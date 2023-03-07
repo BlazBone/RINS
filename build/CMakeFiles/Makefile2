@@ -55,6 +55,7 @@ CMAKE_BINARY_DIR = /home/bone/RINS/ROS/build
 # The main recursive "all" target.
 all: gtest/all
 all: exercise1/all
+all: exercise2/all
 all: my_package/all
 
 .PHONY : all
@@ -62,6 +63,7 @@ all: my_package/all
 # The main recursive "preinstall" target.
 preinstall: gtest/preinstall
 preinstall: exercise1/preinstall
+preinstall: exercise2/preinstall
 preinstall: my_package/preinstall
 
 .PHONY : preinstall
@@ -74,6 +76,7 @@ clean: CMakeFiles/tests.dir/clean
 clean: CMakeFiles/download_extra_data.dir/clean
 clean: gtest/clean
 clean: exercise1/clean
+clean: exercise2/clean
 clean: my_package/clean
 
 .PHONY : clean
@@ -136,6 +139,29 @@ exercise1/clean: exercise1/CMakeFiles/exercise1_generate_messages_nodejs.dir/cle
 exercise1/clean: exercise1/CMakeFiles/exercise1_generate_messages_py.dir/clean
 
 .PHONY : exercise1/clean
+
+#=============================================================================
+# Directory level rules for directory exercise2
+
+# Recursive "all" directory target.
+exercise2/all: exercise2/CMakeFiles/pubvel.dir/all
+
+.PHONY : exercise2/all
+
+# Recursive "preinstall" directory target.
+exercise2/preinstall:
+
+.PHONY : exercise2/preinstall
+
+# Recursive "clean" directory target.
+exercise2/clean: exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/clean
+exercise2/clean: exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/clean
+exercise2/clean: exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/clean
+exercise2/clean: exercise2/CMakeFiles/pubvel.dir/clean
+exercise2/clean: exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/clean
+exercise2/clean: exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/clean
+
+.PHONY : exercise2/clean
 
 #=============================================================================
 # Directory level rules for directory gtest
@@ -520,7 +546,7 @@ exercise1/CMakeFiles/subscribe_custom.dir/all: exercise1/CMakeFiles/exercise1_ge
 exercise1/CMakeFiles/subscribe_custom.dir/all: exercise1/CMakeFiles/exercise1_generate_messages_py.dir/all
 	$(MAKE) -f exercise1/CMakeFiles/subscribe_custom.dir/build.make exercise1/CMakeFiles/subscribe_custom.dir/depend
 	$(MAKE) -f exercise1/CMakeFiles/subscribe_custom.dir/build.make exercise1/CMakeFiles/subscribe_custom.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=53,54 "Built target subscribe_custom"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=55,56 "Built target subscribe_custom"
 .PHONY : exercise1/CMakeFiles/subscribe_custom.dir/all
 
 # Build rule for subdir invocation for target.
@@ -578,7 +604,7 @@ exercise1/CMakeFiles/publish_custom.dir/clean:
 exercise1/CMakeFiles/subscribe_string.dir/all:
 	$(MAKE) -f exercise1/CMakeFiles/subscribe_string.dir/build.make exercise1/CMakeFiles/subscribe_string.dir/depend
 	$(MAKE) -f exercise1/CMakeFiles/subscribe_string.dir/build.make exercise1/CMakeFiles/subscribe_string.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=55,56 "Built target subscribe_string"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=57,58 "Built target subscribe_string"
 .PHONY : exercise1/CMakeFiles/subscribe_string.dir/all
 
 # Build rule for subdir invocation for target.
@@ -989,7 +1015,7 @@ exercise1/CMakeFiles/service_node.dir/all: exercise1/CMakeFiles/exercise1_genera
 exercise1/CMakeFiles/service_node.dir/all: exercise1/CMakeFiles/exercise1_generate_messages_py.dir/all
 	$(MAKE) -f exercise1/CMakeFiles/service_node.dir/build.make exercise1/CMakeFiles/service_node.dir/depend
 	$(MAKE) -f exercise1/CMakeFiles/service_node.dir/build.make exercise1/CMakeFiles/service_node.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=51,52 "Built target service_node"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=53,54 "Built target service_node"
 .PHONY : exercise1/CMakeFiles/service_node.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1454,6 +1480,168 @@ exercise1/CMakeFiles/exercise1_generate_messages_py.dir/clean:
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages_py.dir/clean
 
 #=============================================================================
+# Target rules for target exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir
+
+# All Build rule for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/all:
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/depend
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num= "Built target geometry_msgs_generate_messages_nodejs"
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/all
+
+# Build rule for subdir invocation for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 0
+	$(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 0
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule
+
+# Convenience name for target.
+geometry_msgs_generate_messages_nodejs: exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule
+
+.PHONY : geometry_msgs_generate_messages_nodejs
+
+# clean rule for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/clean:
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/clean
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/clean
+
+#=============================================================================
+# Target rules for target exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir
+
+# All Build rule for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/all:
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/depend
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num= "Built target geometry_msgs_generate_messages_py"
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/all
+
+# Build rule for subdir invocation for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 0
+	$(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 0
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/rule
+
+# Convenience name for target.
+geometry_msgs_generate_messages_py: exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/rule
+
+.PHONY : geometry_msgs_generate_messages_py
+
+# clean rule for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/clean:
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/clean
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_py.dir/clean
+
+#=============================================================================
+# Target rules for target exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir
+
+# All Build rule for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/all:
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/depend
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num= "Built target geometry_msgs_generate_messages_lisp"
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/all
+
+# Build rule for subdir invocation for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 0
+	$(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 0
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
+
+# Convenience name for target.
+geometry_msgs_generate_messages_lisp: exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
+
+.PHONY : geometry_msgs_generate_messages_lisp
+
+# clean rule for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/clean:
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/clean
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/clean
+
+#=============================================================================
+# Target rules for target exercise2/CMakeFiles/pubvel.dir
+
+# All Build rule for target.
+exercise2/CMakeFiles/pubvel.dir/all:
+	$(MAKE) -f exercise2/CMakeFiles/pubvel.dir/build.make exercise2/CMakeFiles/pubvel.dir/depend
+	$(MAKE) -f exercise2/CMakeFiles/pubvel.dir/build.make exercise2/CMakeFiles/pubvel.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=51,52 "Built target pubvel"
+.PHONY : exercise2/CMakeFiles/pubvel.dir/all
+
+# Build rule for subdir invocation for target.
+exercise2/CMakeFiles/pubvel.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/pubvel.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 0
+.PHONY : exercise2/CMakeFiles/pubvel.dir/rule
+
+# Convenience name for target.
+pubvel: exercise2/CMakeFiles/pubvel.dir/rule
+
+.PHONY : pubvel
+
+# clean rule for target.
+exercise2/CMakeFiles/pubvel.dir/clean:
+	$(MAKE) -f exercise2/CMakeFiles/pubvel.dir/build.make exercise2/CMakeFiles/pubvel.dir/clean
+.PHONY : exercise2/CMakeFiles/pubvel.dir/clean
+
+#=============================================================================
+# Target rules for target exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir
+
+# All Build rule for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/all:
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/depend
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num= "Built target geometry_msgs_generate_messages_eus"
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/all
+
+# Build rule for subdir invocation for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 0
+	$(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 0
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
+
+# Convenience name for target.
+geometry_msgs_generate_messages_eus: exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
+
+.PHONY : geometry_msgs_generate_messages_eus
+
+# clean rule for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/clean:
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/clean
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/clean
+
+#=============================================================================
+# Target rules for target exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir
+
+# All Build rule for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/all:
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/depend
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num= "Built target geometry_msgs_generate_messages_cpp"
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/all
+
+# Build rule for subdir invocation for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 0
+	$(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 0
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
+
+# Convenience name for target.
+geometry_msgs_generate_messages_cpp: exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
+
+.PHONY : geometry_msgs_generate_messages_cpp
+
+# clean rule for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/clean:
+	$(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/clean
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/clean
+
+#=============================================================================
 # Target rules for target my_package/CMakeFiles/my_service_client.dir
 
 # All Build rule for target.
@@ -1571,7 +1759,7 @@ my_package/CMakeFiles/subscriber.dir/all: my_package/CMakeFiles/my_package_gener
 my_package/CMakeFiles/subscriber.dir/all: my_package/CMakeFiles/my_package_generate_messages_py.dir/all
 	$(MAKE) -f my_package/CMakeFiles/subscriber.dir/build.make my_package/CMakeFiles/subscriber.dir/depend
 	$(MAKE) -f my_package/CMakeFiles/subscriber.dir/build.make my_package/CMakeFiles/subscriber.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=57,58 "Built target subscriber"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=59,60 "Built target subscriber"
 .PHONY : my_package/CMakeFiles/subscriber.dir/all
 
 # Build rule for subdir invocation for target.

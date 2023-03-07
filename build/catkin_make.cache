@@ -1,2 +1,2 @@
-exercise1:my_package
+exercise1:exercise2:my_package
 -DCATKIN_DEVEL_PREFIX=/home/bone/RINS/ROS/devel -DCMAKE_INSTALL_PREFIX=/home/bone/RINS/ROS/install -G Unix Makefiles
