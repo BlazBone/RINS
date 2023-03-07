@@ -7,7 +7,7 @@ project(exercise2)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS rospy roscpp geometry_msgs)
+find_package(catkin REQUIRED COMPONENTS rospy roscpp geometry_msgs message_generation std_msgs)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -45,11 +45,12 @@ find_package(catkin REQUIRED COMPONENTS rospy roscpp geometry_msgs)
 #)
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
+add_service_files(
+  FILES
+  CommandTest.srv
 #   Service1.srv
 #   Service2.srv
-# )
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -59,10 +60,10 @@ find_package(catkin REQUIRED COMPONENTS rospy roscpp geometry_msgs)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-#generate_messages(
-#  DEPENDENCIES
-#  std_msgs  # Or other packages containing msgs
-#)
+generate_messages(
+ DEPENDENCIES
+ std_msgs  # Or other packages containing msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -96,7 +97,7 @@ find_package(catkin REQUIRED COMPONENTS rospy roscpp geometry_msgs)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES exercise1
-   CATKIN_DEPENDS message_runtime
+   CATKIN_DEPENDS message_runtime rospy std_msg message_runtime
 #  DEPENDS system_lib
 )
 
@@ -149,7 +150,7 @@ target_link_libraries(pubvel ${catkin_LIBRARIES})
 
 
 
-#catkin_install_python(PROGRAMS scripts/movement.py scripts/simple_node.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+catkin_install_python(PROGRAMS scripts/movement_service.py  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed

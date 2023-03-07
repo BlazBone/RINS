@@ -68,6 +68,39 @@ install/strip/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
 .PHONY : install/strip/fast
 
+# Special rule for the target test
+test:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running tests..."
+	/usr/bin/ctest --force-new-ctest-process $(ARGS)
+.PHONY : test
+
+# Special rule for the target test
+test/fast: test
+
+.PHONY : test/fast
+
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
+
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
+
 # Special rule for the target install/local
 install/local: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
@@ -102,39 +135,6 @@ list_install_components/fast: list_install_components
 
 .PHONY : list_install_components/fast
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
-
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
-
-# Special rule for the target test
-test:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running tests..."
-	/usr/bin/ctest --force-new-ctest-process $(ARGS)
-.PHONY : test
-
-# Special rule for the target test
-test/fast: test
-
-.PHONY : test/fast
-
 # The main all target
 all: cmake_check_build_system
 	cd /home/bone/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles /home/bone/RINS/ROS/build/exercise2/CMakeFiles/progress.marks
@@ -168,6 +168,111 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
+exercise2/CMakeFiles/exercise2_genpy.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/exercise2_genpy.dir/rule
+.PHONY : exercise2/CMakeFiles/exercise2_genpy.dir/rule
+
+# Convenience name for target.
+exercise2_genpy: exercise2/CMakeFiles/exercise2_genpy.dir/rule
+
+.PHONY : exercise2_genpy
+
+# fast build rule for target.
+exercise2_genpy/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/exercise2_genpy.dir/build.make exercise2/CMakeFiles/exercise2_genpy.dir/build
+.PHONY : exercise2_genpy/fast
+
+# Convenience name for target.
+exercise2/CMakeFiles/exercise2_gennodejs.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/exercise2_gennodejs.dir/rule
+.PHONY : exercise2/CMakeFiles/exercise2_gennodejs.dir/rule
+
+# Convenience name for target.
+exercise2_gennodejs: exercise2/CMakeFiles/exercise2_gennodejs.dir/rule
+
+.PHONY : exercise2_gennodejs
+
+# fast build rule for target.
+exercise2_gennodejs/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/exercise2_gennodejs.dir/build.make exercise2/CMakeFiles/exercise2_gennodejs.dir/build
+.PHONY : exercise2_gennodejs/fast
+
+# Convenience name for target.
+exercise2/CMakeFiles/exercise2_generate_messages_nodejs.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/exercise2_generate_messages_nodejs.dir/rule
+.PHONY : exercise2/CMakeFiles/exercise2_generate_messages_nodejs.dir/rule
+
+# Convenience name for target.
+exercise2_generate_messages_nodejs: exercise2/CMakeFiles/exercise2_generate_messages_nodejs.dir/rule
+
+.PHONY : exercise2_generate_messages_nodejs
+
+# fast build rule for target.
+exercise2_generate_messages_nodejs/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/exercise2_generate_messages_nodejs.dir/build.make exercise2/CMakeFiles/exercise2_generate_messages_nodejs.dir/build
+.PHONY : exercise2_generate_messages_nodejs/fast
+
+# Convenience name for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
+
+# Convenience name for target.
+geometry_msgs_generate_messages_eus: exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
+
+.PHONY : geometry_msgs_generate_messages_eus
+
+# fast build rule for target.
+geometry_msgs_generate_messages_eus/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/build
+.PHONY : geometry_msgs_generate_messages_eus/fast
+
+# Convenience name for target.
+exercise2/CMakeFiles/exercise2_generate_messages_lisp.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/exercise2_generate_messages_lisp.dir/rule
+.PHONY : exercise2/CMakeFiles/exercise2_generate_messages_lisp.dir/rule
+
+# Convenience name for target.
+exercise2_generate_messages_lisp: exercise2/CMakeFiles/exercise2_generate_messages_lisp.dir/rule
+
+.PHONY : exercise2_generate_messages_lisp
+
+# fast build rule for target.
+exercise2_generate_messages_lisp/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/exercise2_generate_messages_lisp.dir/build.make exercise2/CMakeFiles/exercise2_generate_messages_lisp.dir/build
+.PHONY : exercise2_generate_messages_lisp/fast
+
+# Convenience name for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
+
+# Convenience name for target.
+geometry_msgs_generate_messages_lisp: exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
+
+.PHONY : geometry_msgs_generate_messages_lisp
+
+# fast build rule for target.
+geometry_msgs_generate_messages_lisp/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/build
+.PHONY : geometry_msgs_generate_messages_lisp/fast
+
+# Convenience name for target.
+exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
+.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
+
+# Convenience name for target.
+geometry_msgs_generate_messages_cpp: exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
+
+.PHONY : geometry_msgs_generate_messages_cpp
+
+# fast build rule for target.
+geometry_msgs_generate_messages_cpp/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/build
+.PHONY : geometry_msgs_generate_messages_cpp/fast
+
+# Convenience name for target.
 exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule:
 	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule
 .PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule
@@ -198,19 +303,49 @@ geometry_msgs_generate_messages_py/fast:
 .PHONY : geometry_msgs_generate_messages_py/fast
 
 # Convenience name for target.
-exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
-.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
+exercise2/CMakeFiles/exercise2_generate_messages_eus.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/exercise2_generate_messages_eus.dir/rule
+.PHONY : exercise2/CMakeFiles/exercise2_generate_messages_eus.dir/rule
 
 # Convenience name for target.
-geometry_msgs_generate_messages_lisp: exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
+exercise2_generate_messages_eus: exercise2/CMakeFiles/exercise2_generate_messages_eus.dir/rule
 
-.PHONY : geometry_msgs_generate_messages_lisp
+.PHONY : exercise2_generate_messages_eus
 
 # fast build rule for target.
-geometry_msgs_generate_messages_lisp/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/build
-.PHONY : geometry_msgs_generate_messages_lisp/fast
+exercise2_generate_messages_eus/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/exercise2_generate_messages_eus.dir/build.make exercise2/CMakeFiles/exercise2_generate_messages_eus.dir/build
+.PHONY : exercise2_generate_messages_eus/fast
+
+# Convenience name for target.
+exercise2/CMakeFiles/exercise2_generate_messages.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/exercise2_generate_messages.dir/rule
+.PHONY : exercise2/CMakeFiles/exercise2_generate_messages.dir/rule
+
+# Convenience name for target.
+exercise2_generate_messages: exercise2/CMakeFiles/exercise2_generate_messages.dir/rule
+
+.PHONY : exercise2_generate_messages
+
+# fast build rule for target.
+exercise2_generate_messages/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/exercise2_generate_messages.dir/build.make exercise2/CMakeFiles/exercise2_generate_messages.dir/build
+.PHONY : exercise2_generate_messages/fast
+
+# Convenience name for target.
+exercise2/CMakeFiles/exercise2_gencpp.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/exercise2_gencpp.dir/rule
+.PHONY : exercise2/CMakeFiles/exercise2_gencpp.dir/rule
+
+# Convenience name for target.
+exercise2_gencpp: exercise2/CMakeFiles/exercise2_gencpp.dir/rule
+
+.PHONY : exercise2_gencpp
+
+# fast build rule for target.
+exercise2_gencpp/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/exercise2_gencpp.dir/build.make exercise2/CMakeFiles/exercise2_gencpp.dir/build
+.PHONY : exercise2_gencpp/fast
 
 # Convenience name for target.
 exercise2/CMakeFiles/pubvel.dir/rule:
@@ -228,34 +363,79 @@ pubvel/fast:
 .PHONY : pubvel/fast
 
 # Convenience name for target.
-exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
-.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
+exercise2/CMakeFiles/exercise2_generate_messages_py.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/exercise2_generate_messages_py.dir/rule
+.PHONY : exercise2/CMakeFiles/exercise2_generate_messages_py.dir/rule
 
 # Convenience name for target.
-geometry_msgs_generate_messages_eus: exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
+exercise2_generate_messages_py: exercise2/CMakeFiles/exercise2_generate_messages_py.dir/rule
 
-.PHONY : geometry_msgs_generate_messages_eus
+.PHONY : exercise2_generate_messages_py
 
 # fast build rule for target.
-geometry_msgs_generate_messages_eus/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_eus.dir/build
-.PHONY : geometry_msgs_generate_messages_eus/fast
+exercise2_generate_messages_py/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/exercise2_generate_messages_py.dir/build.make exercise2/CMakeFiles/exercise2_generate_messages_py.dir/build
+.PHONY : exercise2_generate_messages_py/fast
 
 # Convenience name for target.
-exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
-.PHONY : exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
+exercise2/CMakeFiles/_exercise2_generate_messages_check_deps_CommandTest.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/_exercise2_generate_messages_check_deps_CommandTest.dir/rule
+.PHONY : exercise2/CMakeFiles/_exercise2_generate_messages_check_deps_CommandTest.dir/rule
 
 # Convenience name for target.
-geometry_msgs_generate_messages_cpp: exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
+_exercise2_generate_messages_check_deps_CommandTest: exercise2/CMakeFiles/_exercise2_generate_messages_check_deps_CommandTest.dir/rule
 
-.PHONY : geometry_msgs_generate_messages_cpp
+.PHONY : _exercise2_generate_messages_check_deps_CommandTest
 
 # fast build rule for target.
-geometry_msgs_generate_messages_cpp/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/build.make exercise2/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/build
-.PHONY : geometry_msgs_generate_messages_cpp/fast
+_exercise2_generate_messages_check_deps_CommandTest/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/_exercise2_generate_messages_check_deps_CommandTest.dir/build.make exercise2/CMakeFiles/_exercise2_generate_messages_check_deps_CommandTest.dir/build
+.PHONY : _exercise2_generate_messages_check_deps_CommandTest/fast
+
+# Convenience name for target.
+exercise2/CMakeFiles/exercise2_geneus.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/exercise2_geneus.dir/rule
+.PHONY : exercise2/CMakeFiles/exercise2_geneus.dir/rule
+
+# Convenience name for target.
+exercise2_geneus: exercise2/CMakeFiles/exercise2_geneus.dir/rule
+
+.PHONY : exercise2_geneus
+
+# fast build rule for target.
+exercise2_geneus/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/exercise2_geneus.dir/build.make exercise2/CMakeFiles/exercise2_geneus.dir/build
+.PHONY : exercise2_geneus/fast
+
+# Convenience name for target.
+exercise2/CMakeFiles/exercise2_generate_messages_cpp.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/exercise2_generate_messages_cpp.dir/rule
+.PHONY : exercise2/CMakeFiles/exercise2_generate_messages_cpp.dir/rule
+
+# Convenience name for target.
+exercise2_generate_messages_cpp: exercise2/CMakeFiles/exercise2_generate_messages_cpp.dir/rule
+
+.PHONY : exercise2_generate_messages_cpp
+
+# fast build rule for target.
+exercise2_generate_messages_cpp/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/exercise2_generate_messages_cpp.dir/build.make exercise2/CMakeFiles/exercise2_generate_messages_cpp.dir/build
+.PHONY : exercise2_generate_messages_cpp/fast
+
+# Convenience name for target.
+exercise2/CMakeFiles/exercise2_genlisp.dir/rule:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise2/CMakeFiles/exercise2_genlisp.dir/rule
+.PHONY : exercise2/CMakeFiles/exercise2_genlisp.dir/rule
+
+# Convenience name for target.
+exercise2_genlisp: exercise2/CMakeFiles/exercise2_genlisp.dir/rule
+
+.PHONY : exercise2_genlisp
+
+# fast build rule for target.
+exercise2_genlisp/fast:
+	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise2/CMakeFiles/exercise2_genlisp.dir/build.make exercise2/CMakeFiles/exercise2_genlisp.dir/build
+.PHONY : exercise2_genlisp/fast
 
 src/pubvel.o: src/pubvel.cpp.o
 
@@ -291,18 +471,30 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... install/strip"
-	@echo "... install/local"
-	@echo "... install"
-	@echo "... list_install_components"
+	@echo "... test"
+	@echo "... exercise2_genpy"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... test"
+	@echo "... exercise2_gennodejs"
+	@echo "... exercise2_generate_messages_nodejs"
+	@echo "... install/local"
+	@echo "... geometry_msgs_generate_messages_eus"
+	@echo "... exercise2_generate_messages_lisp"
+	@echo "... install"
+	@echo "... geometry_msgs_generate_messages_lisp"
+	@echo "... geometry_msgs_generate_messages_cpp"
 	@echo "... geometry_msgs_generate_messages_nodejs"
 	@echo "... geometry_msgs_generate_messages_py"
-	@echo "... geometry_msgs_generate_messages_lisp"
+	@echo "... exercise2_generate_messages_eus"
+	@echo "... exercise2_generate_messages"
+	@echo "... exercise2_gencpp"
+	@echo "... list_install_components"
 	@echo "... pubvel"
-	@echo "... geometry_msgs_generate_messages_eus"
-	@echo "... geometry_msgs_generate_messages_cpp"
+	@echo "... exercise2_generate_messages_py"
+	@echo "... _exercise2_generate_messages_check_deps_CommandTest"
+	@echo "... exercise2_geneus"
+	@echo "... exercise2_generate_messages_cpp"
+	@echo "... exercise2_genlisp"
 	@echo "... src/pubvel.o"
 	@echo "... src/pubvel.i"
 	@echo "... src/pubvel.s"

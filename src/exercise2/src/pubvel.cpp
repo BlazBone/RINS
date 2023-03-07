@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 
 	//pnh.getParam("scale_linear", scale_linear);
 	//pnh.getParam("scale_angular", scale_angular);
-
+	
 	ros::param::get("~scale_linear", scale_linear);
 	ros::param::get("~scale_angular", scale_angular);
 
