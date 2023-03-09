@@ -150,7 +150,7 @@ target_link_libraries(pubvel ${catkin_LIBRARIES})
 
 
 
-catkin_install_python(PROGRAMS scripts/movement_service.py  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+catkin_install_python(PROGRAMS scripts/movement_service.py scripts/movement.py  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed

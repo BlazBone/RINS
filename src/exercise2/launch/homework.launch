@@ -3,9 +3,9 @@
   <node pkg="turtlesim" type="turtlesim_node" name="turtlesim_node" output="screen"/>
 
   <node pkg="exercise2" type="movement_service.py" name="movement_service"  output="screen">
-    <remap from="cmd_vel" to="/turtle1/cmd_vel" />
-    <param name="scale_linear" value="1" type="double"/>
-    <param name="scale_angular" value="4" type="double"/>
+      <remap from="cmd_vel" to="/turtle1/cmd_vel" />
+      <param name="scale_linear" value="1" type="double"/>
+      <param name="scale_angular" value="4" type="double"/>
   </node>
 
 </launch>

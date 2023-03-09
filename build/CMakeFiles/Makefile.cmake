@@ -36,6 +36,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/home/bone/RINS/ROS/src/exercise1/package.xml"
   "/home/bone/RINS/ROS/src/exercise2/CMakeLists.txt"
   "/home/bone/RINS/ROS/src/exercise2/package.xml"
+  "/home/bone/RINS/ROS/src/exercise2/scripts/movement.py"
   "/home/bone/RINS/ROS/src/exercise2/scripts/movement_service.py"
   "/home/bone/RINS/ROS/src/my_package/CMakeLists.txt"
   "/home/bone/RINS/ROS/src/my_package/package.xml"

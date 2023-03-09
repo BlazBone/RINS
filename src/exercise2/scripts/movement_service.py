@@ -3,13 +3,16 @@
 import rospy as rp
 from geometry_msgs.msg import Twist
 import random
-import time
 from exercise2.srv import CommandTest,CommandTestResponse
 
-def rectangle_movement(step):
+pub = rp.Publisher('cmd_vel', Twist, queue_size = 1000)
 
+
+
+def rectangle_movement(step):
+  rp.loginfo("Rectangle movement")
   twist = Twist()
-  twist.linear.x = 0.5
+  twist.linear.x = 1
   step = step % 20
 
   if step % 5 == 0:
@@ -20,7 +23,7 @@ def rectangle_movement(step):
 
 
 def triangle_movement(step):
-
+  rp.loginfo("Triangle movement")
   twist = Twist()
   twist.linear.x = 1
   step = step % 9
@@ -33,7 +36,7 @@ def triangle_movement(step):
 
 
 def circle_movement(step):
-
+  rp.loginfo("Circle movement")
   twist = Twist()
   twist.linear.x = 1
   twist.angular.z = (70 / 360) * 2 * 3.14
@@ -42,7 +45,7 @@ def circle_movement(step):
 
 
 def random_movement(step):
-
+  rp.loginfo("Random movement")
   twist = Twist()
   twist.linear.x = rp.get_param("~scale_linear") * random.random()
   twist.angular.z = rp.get_param('~scale_angular') * 2 * (random.random() - 0.5) # +-
@@ -50,42 +53,36 @@ def random_movement(step):
   return twist
 
 
+
 def handle_reqeust(req):
     print("Got", req.type)
     movement_type = req.type
     duration = req.duration
 
-    pub = rp.Publisher("cmd_vel", Twist, queue_size=100)
-
-    time_end = time.time() + duration
-    step = 0
-
-    
-
-    if movement_type == "circle":
-        function = circle_movement
-    elif movement_type == "rectangle":
+    if movement_type == "rectangle":
         function = rectangle_movement
     elif movement_type == "triangle":
         function = triangle_movement
+    elif movement_type == "circle":
+        function = circle_movement
     elif movement_type == "random":
         function = random_movement
     else:
         rp.logerr("Unknown movement type: %s", movement_type)
-        return CommandTestResponse("Unknown movement type: %s" % movement_type)
+        return movement_type
+
+    rp.loginfo("Starting movement: %s with duration %s", movement_type,duration)
     
-    rp.loginfo("Starting movement: %s", movement_type)
+    # get while for duration seconds
     start_time = rp.Time.now()
-    # write a loop that runs for 'duration' seconds
+    r = rp.Rate(1)
+    step = 0
     while rp.Time.now() < start_time + rp.Duration(duration):
-        twist = function(step)
-        pub.publish(twist)
-        step = step + 1.0
-        rp.sleep(0.1)
-
-    stop_twist = Twist()
-    pub.publish(stop_twist)
-
+      twist = function(step)
+      pub.publish(twist)
+      step = step + 1.0
+      r.sleep()
+  
     response = CommandTestResponse()
     response.type = movement_type
 
@@ -93,7 +90,6 @@ def handle_reqeust(req):
 
 
 def movement_server():
-    rp.rate(2)
     rp.init_node("movement_server")
     s = rp.Service("movement_service", CommandTest, handler=handle_reqeust)
     print("Ready to move the turtle")

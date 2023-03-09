@@ -92,3 +92,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/exercise2" TYPE PROGRAM FILES "/home/bone/RINS/ROS/build/exercise2/catkin_generated/installspace/movement_service.py")
 endif()
 
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/exercise2" TYPE PROGRAM FILES "/home/bone/RINS/ROS/build/exercise2/catkin_generated/installspace/movement.py")
+endif()
+
