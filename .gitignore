@@ -1,6 +1,4 @@
 .vscode/
 .idea/
-.nevem
-devel/
-build/
+*/build/*
 */devel/*
