@@ -1,0 +1,6 @@
+<launch>
+
+  <node pkg="exercise3" type="goal_pub.py" name="homework3"  output="screen"/>
+
+</launch>
+
