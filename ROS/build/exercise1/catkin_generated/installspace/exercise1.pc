@@ -1,8 +1,0 @@
-prefix=/home/jonatan/Skupinsko/RINS/ROS/install
-
-Name: exercise1
-Description: Description of exercise1
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: message_runtime
