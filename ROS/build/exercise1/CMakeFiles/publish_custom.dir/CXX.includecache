@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/bone/RINS/ROS/devel/include/exercise1/Greeting.h
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Greeting.h
 string
 -
 vector
@@ -22,11 +22,11 @@ ros/builtin_message_traits.h
 ros/message_operations.h
 -
 
-/home/bone/RINS/ROS/src/exercise1/src/publish_custom_msg_node.cpp
+/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/src/publish_custom_msg_node.cpp
 ros/ros.h
 -
 exercise1/Greeting.h
-/home/bone/RINS/ROS/src/exercise1/src/exercise1/Greeting.h
+/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/src/exercise1/Greeting.h
 sstream
 -
 

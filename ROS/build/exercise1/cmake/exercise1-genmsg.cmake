@@ -2,7 +2,7 @@
 
 message(STATUS "exercise1: 1 messages, 1 services")
 
-set(MSG_I_FLAGS "-Iexercise1:/home/bone/RINS/ROS/src/exercise1/msg;-Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg")
+set(MSG_I_FLAGS "-Iexercise1:/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg;-Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg")
 
 # Find all generators
 find_package(gencpp REQUIRED)
@@ -17,14 +17,14 @@ add_custom_target(exercise1_generate_messages ALL)
 
 
 
-get_filename_component(_filename "/home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg" NAME_WE)
+get_filename_component(_filename "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg" NAME_WE)
 add_custom_target(_exercise1_generate_messages_check_deps_${_filename}
-  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "exercise1" "/home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg" ""
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "exercise1" "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg" ""
 )
 
-get_filename_component(_filename "/home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv" NAME_WE)
+get_filename_component(_filename "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv" NAME_WE)
 add_custom_target(_exercise1_generate_messages_check_deps_${_filename}
-  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "exercise1" "/home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv" ""
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "exercise1" "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv" ""
 )
 
 #
@@ -34,7 +34,7 @@ add_custom_target(_exercise1_generate_messages_check_deps_${_filename}
 ### Section generating for lang: gencpp
 ### Generating Messages
 _generate_msg_cpp(exercise1
-  "/home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg"
+  "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/exercise1
@@ -42,7 +42,7 @@ _generate_msg_cpp(exercise1
 
 ### Generating Services
 _generate_srv_cpp(exercise1
-  "/home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv"
+  "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/exercise1
@@ -60,9 +60,9 @@ add_custom_target(exercise1_generate_messages_cpp
 add_dependencies(exercise1_generate_messages exercise1_generate_messages_cpp)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg" NAME_WE)
+get_filename_component(_filename "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg" NAME_WE)
 add_dependencies(exercise1_generate_messages_cpp _exercise1_generate_messages_check_deps_${_filename})
-get_filename_component(_filename "/home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv" NAME_WE)
+get_filename_component(_filename "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv" NAME_WE)
 add_dependencies(exercise1_generate_messages_cpp _exercise1_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -75,7 +75,7 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS exercise1_generate_messages_cpp)
 ### Section generating for lang: geneus
 ### Generating Messages
 _generate_msg_eus(exercise1
-  "/home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg"
+  "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/exercise1
@@ -83,7 +83,7 @@ _generate_msg_eus(exercise1
 
 ### Generating Services
 _generate_srv_eus(exercise1
-  "/home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv"
+  "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/exercise1
@@ -101,9 +101,9 @@ add_custom_target(exercise1_generate_messages_eus
 add_dependencies(exercise1_generate_messages exercise1_generate_messages_eus)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg" NAME_WE)
+get_filename_component(_filename "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg" NAME_WE)
 add_dependencies(exercise1_generate_messages_eus _exercise1_generate_messages_check_deps_${_filename})
-get_filename_component(_filename "/home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv" NAME_WE)
+get_filename_component(_filename "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv" NAME_WE)
 add_dependencies(exercise1_generate_messages_eus _exercise1_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -116,7 +116,7 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS exercise1_generate_messages_eus)
 ### Section generating for lang: genlisp
 ### Generating Messages
 _generate_msg_lisp(exercise1
-  "/home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg"
+  "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/exercise1
@@ -124,7 +124,7 @@ _generate_msg_lisp(exercise1
 
 ### Generating Services
 _generate_srv_lisp(exercise1
-  "/home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv"
+  "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/exercise1
@@ -142,9 +142,9 @@ add_custom_target(exercise1_generate_messages_lisp
 add_dependencies(exercise1_generate_messages exercise1_generate_messages_lisp)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg" NAME_WE)
+get_filename_component(_filename "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg" NAME_WE)
 add_dependencies(exercise1_generate_messages_lisp _exercise1_generate_messages_check_deps_${_filename})
-get_filename_component(_filename "/home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv" NAME_WE)
+get_filename_component(_filename "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv" NAME_WE)
 add_dependencies(exercise1_generate_messages_lisp _exercise1_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -157,7 +157,7 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS exercise1_generate_messages_lisp)
 ### Section generating for lang: gennodejs
 ### Generating Messages
 _generate_msg_nodejs(exercise1
-  "/home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg"
+  "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/exercise1
@@ -165,7 +165,7 @@ _generate_msg_nodejs(exercise1
 
 ### Generating Services
 _generate_srv_nodejs(exercise1
-  "/home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv"
+  "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/exercise1
@@ -183,9 +183,9 @@ add_custom_target(exercise1_generate_messages_nodejs
 add_dependencies(exercise1_generate_messages exercise1_generate_messages_nodejs)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg" NAME_WE)
+get_filename_component(_filename "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg" NAME_WE)
 add_dependencies(exercise1_generate_messages_nodejs _exercise1_generate_messages_check_deps_${_filename})
-get_filename_component(_filename "/home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv" NAME_WE)
+get_filename_component(_filename "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv" NAME_WE)
 add_dependencies(exercise1_generate_messages_nodejs _exercise1_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -198,7 +198,7 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS exercise1_generate_messages_nodejs)
 ### Section generating for lang: genpy
 ### Generating Messages
 _generate_msg_py(exercise1
-  "/home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg"
+  "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/exercise1
@@ -206,7 +206,7 @@ _generate_msg_py(exercise1
 
 ### Generating Services
 _generate_srv_py(exercise1
-  "/home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv"
+  "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/exercise1
@@ -224,9 +224,9 @@ add_custom_target(exercise1_generate_messages_py
 add_dependencies(exercise1_generate_messages exercise1_generate_messages_py)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg" NAME_WE)
+get_filename_component(_filename "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg" NAME_WE)
 add_dependencies(exercise1_generate_messages_py _exercise1_generate_messages_check_deps_${_filename})
-get_filename_component(_filename "/home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv" NAME_WE)
+get_filename_component(_filename "/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv" NAME_WE)
 add_dependencies(exercise1_generate_messages_py _exercise1_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility

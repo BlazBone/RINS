@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bone/RINS/ROS/src
+CMAKE_SOURCE_DIR = /home/jonatan/Skupinsko/RINS/ROS/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bone/RINS/ROS/build
+CMAKE_BINARY_DIR = /home/jonatan/Skupinsko/RINS/ROS/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -137,14 +137,14 @@ install/local/fast: preinstall/fast
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/bone/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles /home/bone/RINS/ROS/build/exercise1/CMakeFiles/progress.marks
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/bone/RINS/ROS/build/CMakeFiles 0
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles /home/jonatan/Skupinsko/RINS/ROS/build/exercise1/CMakeFiles/progress.marks
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/clean
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/clean
 .PHONY : clean
 
 # The main clean target
@@ -154,22 +154,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/preinstall
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/preinstall
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/bone/RINS/ROS/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 exercise1/CMakeFiles/client_node.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/client_node.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/client_node.dir/rule
 .PHONY : exercise1/CMakeFiles/client_node.dir/rule
 
 # Convenience name for target.
@@ -179,12 +179,12 @@ client_node: exercise1/CMakeFiles/client_node.dir/rule
 
 # fast build rule for target.
 client_node/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/client_node.dir/build.make exercise1/CMakeFiles/client_node.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/client_node.dir/build.make exercise1/CMakeFiles/client_node.dir/build
 .PHONY : client_node/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/subscribe_custom.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/subscribe_custom.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/subscribe_custom.dir/rule
 .PHONY : exercise1/CMakeFiles/subscribe_custom.dir/rule
 
 # Convenience name for target.
@@ -194,12 +194,12 @@ subscribe_custom: exercise1/CMakeFiles/subscribe_custom.dir/rule
 
 # fast build rule for target.
 subscribe_custom/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_custom.dir/build.make exercise1/CMakeFiles/subscribe_custom.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_custom.dir/build.make exercise1/CMakeFiles/subscribe_custom.dir/build
 .PHONY : subscribe_custom/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/publish_custom.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/publish_custom.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/publish_custom.dir/rule
 .PHONY : exercise1/CMakeFiles/publish_custom.dir/rule
 
 # Convenience name for target.
@@ -209,12 +209,12 @@ publish_custom: exercise1/CMakeFiles/publish_custom.dir/rule
 
 # fast build rule for target.
 publish_custom/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_custom.dir/build.make exercise1/CMakeFiles/publish_custom.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_custom.dir/build.make exercise1/CMakeFiles/publish_custom.dir/build
 .PHONY : publish_custom/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/subscribe_string.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/subscribe_string.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/subscribe_string.dir/rule
 .PHONY : exercise1/CMakeFiles/subscribe_string.dir/rule
 
 # Convenience name for target.
@@ -224,12 +224,12 @@ subscribe_string: exercise1/CMakeFiles/subscribe_string.dir/rule
 
 # fast build rule for target.
 subscribe_string/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_string.dir/build.make exercise1/CMakeFiles/subscribe_string.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_string.dir/build.make exercise1/CMakeFiles/subscribe_string.dir/build
 .PHONY : subscribe_string/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/roscpp_generate_messages_lisp.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/roscpp_generate_messages_lisp.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/roscpp_generate_messages_lisp.dir/rule
 .PHONY : exercise1/CMakeFiles/roscpp_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
@@ -239,12 +239,12 @@ roscpp_generate_messages_lisp: exercise1/CMakeFiles/roscpp_generate_messages_lis
 
 # fast build rule for target.
 roscpp_generate_messages_lisp/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/roscpp_generate_messages_lisp.dir/build.make exercise1/CMakeFiles/roscpp_generate_messages_lisp.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/roscpp_generate_messages_lisp.dir/build.make exercise1/CMakeFiles/roscpp_generate_messages_lisp.dir/build
 .PHONY : roscpp_generate_messages_lisp/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule
 .PHONY : exercise1/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
@@ -254,12 +254,12 @@ rosgraph_msgs_generate_messages_lisp: exercise1/CMakeFiles/rosgraph_msgs_generat
 
 # fast build rule for target.
 rosgraph_msgs_generate_messages_lisp/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build.make exercise1/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build.make exercise1/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build
 .PHONY : rosgraph_msgs_generate_messages_lisp/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/exercise1_genlisp.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_genlisp.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_genlisp.dir/rule
 .PHONY : exercise1/CMakeFiles/exercise1_genlisp.dir/rule
 
 # Convenience name for target.
@@ -269,12 +269,12 @@ exercise1_genlisp: exercise1/CMakeFiles/exercise1_genlisp.dir/rule
 
 # fast build rule for target.
 exercise1_genlisp/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_genlisp.dir/build.make exercise1/CMakeFiles/exercise1_genlisp.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_genlisp.dir/build.make exercise1/CMakeFiles/exercise1_genlisp.dir/build
 .PHONY : exercise1_genlisp/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
 .PHONY : exercise1/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
 
 # Convenience name for target.
@@ -284,12 +284,12 @@ std_msgs_generate_messages_cpp: exercise1/CMakeFiles/std_msgs_generate_messages_
 
 # fast build rule for target.
 std_msgs_generate_messages_cpp/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make exercise1/CMakeFiles/std_msgs_generate_messages_cpp.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make exercise1/CMakeFiles/std_msgs_generate_messages_cpp.dir/build
 .PHONY : std_msgs_generate_messages_cpp/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/exercise1_gencpp.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_gencpp.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_gencpp.dir/rule
 .PHONY : exercise1/CMakeFiles/exercise1_gencpp.dir/rule
 
 # Convenience name for target.
@@ -299,12 +299,12 @@ exercise1_gencpp: exercise1/CMakeFiles/exercise1_gencpp.dir/rule
 
 # fast build rule for target.
 exercise1_gencpp/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_gencpp.dir/build.make exercise1/CMakeFiles/exercise1_gencpp.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_gencpp.dir/build.make exercise1/CMakeFiles/exercise1_gencpp.dir/build
 .PHONY : exercise1_gencpp/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/exercise1_generate_messages_lisp.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_generate_messages_lisp.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_generate_messages_lisp.dir/rule
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
@@ -314,12 +314,12 @@ exercise1_generate_messages_lisp: exercise1/CMakeFiles/exercise1_generate_messag
 
 # fast build rule for target.
 exercise1_generate_messages_lisp/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_generate_messages_lisp.dir/build.make exercise1/CMakeFiles/exercise1_generate_messages_lisp.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_generate_messages_lisp.dir/build.make exercise1/CMakeFiles/exercise1_generate_messages_lisp.dir/build
 .PHONY : exercise1_generate_messages_lisp/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule
 .PHONY : exercise1/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule
 
 # Convenience name for target.
@@ -329,12 +329,12 @@ rosgraph_msgs_generate_messages_cpp: exercise1/CMakeFiles/rosgraph_msgs_generate
 
 # fast build rule for target.
 rosgraph_msgs_generate_messages_cpp/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build.make exercise1/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build.make exercise1/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build
 .PHONY : rosgraph_msgs_generate_messages_cpp/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/std_msgs_generate_messages_eus.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/std_msgs_generate_messages_eus.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/std_msgs_generate_messages_eus.dir/rule
 .PHONY : exercise1/CMakeFiles/std_msgs_generate_messages_eus.dir/rule
 
 # Convenience name for target.
@@ -344,12 +344,12 @@ std_msgs_generate_messages_eus: exercise1/CMakeFiles/std_msgs_generate_messages_
 
 # fast build rule for target.
 std_msgs_generate_messages_eus/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/std_msgs_generate_messages_eus.dir/build.make exercise1/CMakeFiles/std_msgs_generate_messages_eus.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/std_msgs_generate_messages_eus.dir/build.make exercise1/CMakeFiles/std_msgs_generate_messages_eus.dir/build
 .PHONY : std_msgs_generate_messages_eus/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/roscpp_generate_messages_py.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/roscpp_generate_messages_py.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/roscpp_generate_messages_py.dir/rule
 .PHONY : exercise1/CMakeFiles/roscpp_generate_messages_py.dir/rule
 
 # Convenience name for target.
@@ -359,12 +359,12 @@ roscpp_generate_messages_py: exercise1/CMakeFiles/roscpp_generate_messages_py.di
 
 # fast build rule for target.
 roscpp_generate_messages_py/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/roscpp_generate_messages_py.dir/build.make exercise1/CMakeFiles/roscpp_generate_messages_py.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/roscpp_generate_messages_py.dir/build.make exercise1/CMakeFiles/roscpp_generate_messages_py.dir/build
 .PHONY : roscpp_generate_messages_py/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
 .PHONY : exercise1/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
@@ -374,12 +374,12 @@ std_msgs_generate_messages_lisp: exercise1/CMakeFiles/std_msgs_generate_messages
 
 # fast build rule for target.
 std_msgs_generate_messages_lisp/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make exercise1/CMakeFiles/std_msgs_generate_messages_lisp.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make exercise1/CMakeFiles/std_msgs_generate_messages_lisp.dir/build
 .PHONY : std_msgs_generate_messages_lisp/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/rule
 .PHONY : exercise1/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/rule
 
 # Convenience name for target.
@@ -389,12 +389,12 @@ rosgraph_msgs_generate_messages_nodejs: exercise1/CMakeFiles/rosgraph_msgs_gener
 
 # fast build rule for target.
 rosgraph_msgs_generate_messages_nodejs/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/build.make exercise1/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/build.make exercise1/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/build
 .PHONY : rosgraph_msgs_generate_messages_nodejs/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/roscpp_generate_messages_cpp.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/roscpp_generate_messages_cpp.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/roscpp_generate_messages_cpp.dir/rule
 .PHONY : exercise1/CMakeFiles/roscpp_generate_messages_cpp.dir/rule
 
 # Convenience name for target.
@@ -404,12 +404,12 @@ roscpp_generate_messages_cpp: exercise1/CMakeFiles/roscpp_generate_messages_cpp.
 
 # fast build rule for target.
 roscpp_generate_messages_cpp/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/roscpp_generate_messages_cpp.dir/build.make exercise1/CMakeFiles/roscpp_generate_messages_cpp.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/roscpp_generate_messages_cpp.dir/build.make exercise1/CMakeFiles/roscpp_generate_messages_cpp.dir/build
 .PHONY : roscpp_generate_messages_cpp/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule
 .PHONY : exercise1/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule
 
 # Convenience name for target.
@@ -419,12 +419,12 @@ std_msgs_generate_messages_nodejs: exercise1/CMakeFiles/std_msgs_generate_messag
 
 # fast build rule for target.
 std_msgs_generate_messages_nodejs/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build.make exercise1/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build.make exercise1/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build
 .PHONY : std_msgs_generate_messages_nodejs/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/std_msgs_generate_messages_py.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/std_msgs_generate_messages_py.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/std_msgs_generate_messages_py.dir/rule
 .PHONY : exercise1/CMakeFiles/std_msgs_generate_messages_py.dir/rule
 
 # Convenience name for target.
@@ -434,12 +434,12 @@ std_msgs_generate_messages_py: exercise1/CMakeFiles/std_msgs_generate_messages_p
 
 # fast build rule for target.
 std_msgs_generate_messages_py/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/std_msgs_generate_messages_py.dir/build.make exercise1/CMakeFiles/std_msgs_generate_messages_py.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/std_msgs_generate_messages_py.dir/build.make exercise1/CMakeFiles/std_msgs_generate_messages_py.dir/build
 .PHONY : std_msgs_generate_messages_py/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/service_node.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/service_node.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/service_node.dir/rule
 .PHONY : exercise1/CMakeFiles/service_node.dir/rule
 
 # Convenience name for target.
@@ -449,12 +449,12 @@ service_node: exercise1/CMakeFiles/service_node.dir/rule
 
 # fast build rule for target.
 service_node/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/service_node.dir/build.make exercise1/CMakeFiles/service_node.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/service_node.dir/build.make exercise1/CMakeFiles/service_node.dir/build
 .PHONY : service_node/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/exercise1_generate_messages.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_generate_messages.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_generate_messages.dir/rule
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages.dir/rule
 
 # Convenience name for target.
@@ -464,12 +464,12 @@ exercise1_generate_messages: exercise1/CMakeFiles/exercise1_generate_messages.di
 
 # fast build rule for target.
 exercise1_generate_messages/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_generate_messages.dir/build.make exercise1/CMakeFiles/exercise1_generate_messages.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_generate_messages.dir/build.make exercise1/CMakeFiles/exercise1_generate_messages.dir/build
 .PHONY : exercise1_generate_messages/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule
 .PHONY : exercise1/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule
 
 # Convenience name for target.
@@ -479,12 +479,12 @@ rosgraph_msgs_generate_messages_py: exercise1/CMakeFiles/rosgraph_msgs_generate_
 
 # fast build rule for target.
 rosgraph_msgs_generate_messages_py/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build.make exercise1/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build.make exercise1/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build
 .PHONY : rosgraph_msgs_generate_messages_py/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/rule
 .PHONY : exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/rule
 
 # Convenience name for target.
@@ -494,12 +494,12 @@ _exercise1_generate_messages_check_deps_Greeting: exercise1/CMakeFiles/_exercise
 
 # fast build rule for target.
 _exercise1_generate_messages_check_deps_Greeting/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/build.make exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/build.make exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/build
 .PHONY : _exercise1_generate_messages_check_deps_Greeting/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Reverse.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Reverse.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Reverse.dir/rule
 .PHONY : exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Reverse.dir/rule
 
 # Convenience name for target.
@@ -509,12 +509,12 @@ _exercise1_generate_messages_check_deps_Reverse: exercise1/CMakeFiles/_exercise1
 
 # fast build rule for target.
 _exercise1_generate_messages_check_deps_Reverse/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Reverse.dir/build.make exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Reverse.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Reverse.dir/build.make exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Reverse.dir/build
 .PHONY : _exercise1_generate_messages_check_deps_Reverse/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/exercise1_gennodejs.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_gennodejs.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_gennodejs.dir/rule
 .PHONY : exercise1/CMakeFiles/exercise1_gennodejs.dir/rule
 
 # Convenience name for target.
@@ -524,12 +524,12 @@ exercise1_gennodejs: exercise1/CMakeFiles/exercise1_gennodejs.dir/rule
 
 # fast build rule for target.
 exercise1_gennodejs/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_gennodejs.dir/build.make exercise1/CMakeFiles/exercise1_gennodejs.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_gennodejs.dir/build.make exercise1/CMakeFiles/exercise1_gennodejs.dir/build
 .PHONY : exercise1_gennodejs/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/hello_world.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/hello_world.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/hello_world.dir/rule
 .PHONY : exercise1/CMakeFiles/hello_world.dir/rule
 
 # Convenience name for target.
@@ -539,12 +539,12 @@ hello_world: exercise1/CMakeFiles/hello_world.dir/rule
 
 # fast build rule for target.
 hello_world/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/hello_world.dir/build.make exercise1/CMakeFiles/hello_world.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/hello_world.dir/build.make exercise1/CMakeFiles/hello_world.dir/build
 .PHONY : hello_world/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/rule
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/rule
 
 # Convenience name for target.
@@ -554,12 +554,12 @@ exercise1_generate_messages_cpp: exercise1/CMakeFiles/exercise1_generate_message
 
 # fast build rule for target.
 exercise1_generate_messages_cpp/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/build.make exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/build.make exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/build
 .PHONY : exercise1_generate_messages_cpp/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/roscpp_generate_messages_eus.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/roscpp_generate_messages_eus.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/roscpp_generate_messages_eus.dir/rule
 .PHONY : exercise1/CMakeFiles/roscpp_generate_messages_eus.dir/rule
 
 # Convenience name for target.
@@ -569,12 +569,12 @@ roscpp_generate_messages_eus: exercise1/CMakeFiles/roscpp_generate_messages_eus.
 
 # fast build rule for target.
 roscpp_generate_messages_eus/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/roscpp_generate_messages_eus.dir/build.make exercise1/CMakeFiles/roscpp_generate_messages_eus.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/roscpp_generate_messages_eus.dir/build.make exercise1/CMakeFiles/roscpp_generate_messages_eus.dir/build
 .PHONY : roscpp_generate_messages_eus/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/rule
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/rule
 
 # Convenience name for target.
@@ -584,12 +584,12 @@ exercise1_generate_messages_eus: exercise1/CMakeFiles/exercise1_generate_message
 
 # fast build rule for target.
 exercise1_generate_messages_eus/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/build.make exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/build.make exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/build
 .PHONY : exercise1_generate_messages_eus/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/roscpp_generate_messages_nodejs.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/roscpp_generate_messages_nodejs.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/roscpp_generate_messages_nodejs.dir/rule
 .PHONY : exercise1/CMakeFiles/roscpp_generate_messages_nodejs.dir/rule
 
 # Convenience name for target.
@@ -599,12 +599,12 @@ roscpp_generate_messages_nodejs: exercise1/CMakeFiles/roscpp_generate_messages_n
 
 # fast build rule for target.
 roscpp_generate_messages_nodejs/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/roscpp_generate_messages_nodejs.dir/build.make exercise1/CMakeFiles/roscpp_generate_messages_nodejs.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/roscpp_generate_messages_nodejs.dir/build.make exercise1/CMakeFiles/roscpp_generate_messages_nodejs.dir/build
 .PHONY : roscpp_generate_messages_nodejs/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/exercise1_geneus.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_geneus.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_geneus.dir/rule
 .PHONY : exercise1/CMakeFiles/exercise1_geneus.dir/rule
 
 # Convenience name for target.
@@ -614,12 +614,12 @@ exercise1_geneus: exercise1/CMakeFiles/exercise1_geneus.dir/rule
 
 # fast build rule for target.
 exercise1_geneus/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_geneus.dir/build.make exercise1/CMakeFiles/exercise1_geneus.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_geneus.dir/build.make exercise1/CMakeFiles/exercise1_geneus.dir/build
 .PHONY : exercise1_geneus/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/publish_string.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/publish_string.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/publish_string.dir/rule
 .PHONY : exercise1/CMakeFiles/publish_string.dir/rule
 
 # Convenience name for target.
@@ -629,12 +629,12 @@ publish_string: exercise1/CMakeFiles/publish_string.dir/rule
 
 # fast build rule for target.
 publish_string/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_string.dir/build.make exercise1/CMakeFiles/publish_string.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_string.dir/build.make exercise1/CMakeFiles/publish_string.dir/build
 .PHONY : publish_string/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/rule
 .PHONY : exercise1/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/rule
 
 # Convenience name for target.
@@ -644,12 +644,12 @@ rosgraph_msgs_generate_messages_eus: exercise1/CMakeFiles/rosgraph_msgs_generate
 
 # fast build rule for target.
 rosgraph_msgs_generate_messages_eus/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/build.make exercise1/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/build.make exercise1/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/build
 .PHONY : rosgraph_msgs_generate_messages_eus/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/exercise1_genpy.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_genpy.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_genpy.dir/rule
 .PHONY : exercise1/CMakeFiles/exercise1_genpy.dir/rule
 
 # Convenience name for target.
@@ -659,12 +659,12 @@ exercise1_genpy: exercise1/CMakeFiles/exercise1_genpy.dir/rule
 
 # fast build rule for target.
 exercise1_genpy/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_genpy.dir/build.make exercise1/CMakeFiles/exercise1_genpy.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_genpy.dir/build.make exercise1/CMakeFiles/exercise1_genpy.dir/build
 .PHONY : exercise1_genpy/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/exercise1_generate_messages_nodejs.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_generate_messages_nodejs.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_generate_messages_nodejs.dir/rule
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages_nodejs.dir/rule
 
 # Convenience name for target.
@@ -674,12 +674,12 @@ exercise1_generate_messages_nodejs: exercise1/CMakeFiles/exercise1_generate_mess
 
 # fast build rule for target.
 exercise1_generate_messages_nodejs/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_generate_messages_nodejs.dir/build.make exercise1/CMakeFiles/exercise1_generate_messages_nodejs.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_generate_messages_nodejs.dir/build.make exercise1/CMakeFiles/exercise1_generate_messages_nodejs.dir/build
 .PHONY : exercise1_generate_messages_nodejs/fast
 
 # Convenience name for target.
 exercise1/CMakeFiles/exercise1_generate_messages_py.dir/rule:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_generate_messages_py.dir/rule
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f CMakeFiles/Makefile2 exercise1/CMakeFiles/exercise1_generate_messages_py.dir/rule
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages_py.dir/rule
 
 # Convenience name for target.
@@ -689,7 +689,7 @@ exercise1_generate_messages_py: exercise1/CMakeFiles/exercise1_generate_messages
 
 # fast build rule for target.
 exercise1_generate_messages_py/fast:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_generate_messages_py.dir/build.make exercise1/CMakeFiles/exercise1_generate_messages_py.dir/build
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/exercise1_generate_messages_py.dir/build.make exercise1/CMakeFiles/exercise1_generate_messages_py.dir/build
 .PHONY : exercise1_generate_messages_py/fast
 
 src/client_node.o: src/client_node.cpp.o
@@ -698,7 +698,7 @@ src/client_node.o: src/client_node.cpp.o
 
 # target to build an object file
 src/client_node.cpp.o:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/client_node.dir/build.make exercise1/CMakeFiles/client_node.dir/src/client_node.cpp.o
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/client_node.dir/build.make exercise1/CMakeFiles/client_node.dir/src/client_node.cpp.o
 .PHONY : src/client_node.cpp.o
 
 src/client_node.i: src/client_node.cpp.i
@@ -707,7 +707,7 @@ src/client_node.i: src/client_node.cpp.i
 
 # target to preprocess a source file
 src/client_node.cpp.i:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/client_node.dir/build.make exercise1/CMakeFiles/client_node.dir/src/client_node.cpp.i
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/client_node.dir/build.make exercise1/CMakeFiles/client_node.dir/src/client_node.cpp.i
 .PHONY : src/client_node.cpp.i
 
 src/client_node.s: src/client_node.cpp.s
@@ -716,7 +716,7 @@ src/client_node.s: src/client_node.cpp.s
 
 # target to generate assembly for a file
 src/client_node.cpp.s:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/client_node.dir/build.make exercise1/CMakeFiles/client_node.dir/src/client_node.cpp.s
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/client_node.dir/build.make exercise1/CMakeFiles/client_node.dir/src/client_node.cpp.s
 .PHONY : src/client_node.cpp.s
 
 src/hello_world_node.o: src/hello_world_node.cpp.o
@@ -725,7 +725,7 @@ src/hello_world_node.o: src/hello_world_node.cpp.o
 
 # target to build an object file
 src/hello_world_node.cpp.o:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/hello_world.dir/build.make exercise1/CMakeFiles/hello_world.dir/src/hello_world_node.cpp.o
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/hello_world.dir/build.make exercise1/CMakeFiles/hello_world.dir/src/hello_world_node.cpp.o
 .PHONY : src/hello_world_node.cpp.o
 
 src/hello_world_node.i: src/hello_world_node.cpp.i
@@ -734,7 +734,7 @@ src/hello_world_node.i: src/hello_world_node.cpp.i
 
 # target to preprocess a source file
 src/hello_world_node.cpp.i:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/hello_world.dir/build.make exercise1/CMakeFiles/hello_world.dir/src/hello_world_node.cpp.i
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/hello_world.dir/build.make exercise1/CMakeFiles/hello_world.dir/src/hello_world_node.cpp.i
 .PHONY : src/hello_world_node.cpp.i
 
 src/hello_world_node.s: src/hello_world_node.cpp.s
@@ -743,7 +743,7 @@ src/hello_world_node.s: src/hello_world_node.cpp.s
 
 # target to generate assembly for a file
 src/hello_world_node.cpp.s:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/hello_world.dir/build.make exercise1/CMakeFiles/hello_world.dir/src/hello_world_node.cpp.s
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/hello_world.dir/build.make exercise1/CMakeFiles/hello_world.dir/src/hello_world_node.cpp.s
 .PHONY : src/hello_world_node.cpp.s
 
 src/publish_custom_msg_node.o: src/publish_custom_msg_node.cpp.o
@@ -752,7 +752,7 @@ src/publish_custom_msg_node.o: src/publish_custom_msg_node.cpp.o
 
 # target to build an object file
 src/publish_custom_msg_node.cpp.o:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_custom.dir/build.make exercise1/CMakeFiles/publish_custom.dir/src/publish_custom_msg_node.cpp.o
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_custom.dir/build.make exercise1/CMakeFiles/publish_custom.dir/src/publish_custom_msg_node.cpp.o
 .PHONY : src/publish_custom_msg_node.cpp.o
 
 src/publish_custom_msg_node.i: src/publish_custom_msg_node.cpp.i
@@ -761,7 +761,7 @@ src/publish_custom_msg_node.i: src/publish_custom_msg_node.cpp.i
 
 # target to preprocess a source file
 src/publish_custom_msg_node.cpp.i:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_custom.dir/build.make exercise1/CMakeFiles/publish_custom.dir/src/publish_custom_msg_node.cpp.i
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_custom.dir/build.make exercise1/CMakeFiles/publish_custom.dir/src/publish_custom_msg_node.cpp.i
 .PHONY : src/publish_custom_msg_node.cpp.i
 
 src/publish_custom_msg_node.s: src/publish_custom_msg_node.cpp.s
@@ -770,7 +770,7 @@ src/publish_custom_msg_node.s: src/publish_custom_msg_node.cpp.s
 
 # target to generate assembly for a file
 src/publish_custom_msg_node.cpp.s:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_custom.dir/build.make exercise1/CMakeFiles/publish_custom.dir/src/publish_custom_msg_node.cpp.s
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_custom.dir/build.make exercise1/CMakeFiles/publish_custom.dir/src/publish_custom_msg_node.cpp.s
 .PHONY : src/publish_custom_msg_node.cpp.s
 
 src/publish_string_node.o: src/publish_string_node.cpp.o
@@ -779,7 +779,7 @@ src/publish_string_node.o: src/publish_string_node.cpp.o
 
 # target to build an object file
 src/publish_string_node.cpp.o:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_string.dir/build.make exercise1/CMakeFiles/publish_string.dir/src/publish_string_node.cpp.o
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_string.dir/build.make exercise1/CMakeFiles/publish_string.dir/src/publish_string_node.cpp.o
 .PHONY : src/publish_string_node.cpp.o
 
 src/publish_string_node.i: src/publish_string_node.cpp.i
@@ -788,7 +788,7 @@ src/publish_string_node.i: src/publish_string_node.cpp.i
 
 # target to preprocess a source file
 src/publish_string_node.cpp.i:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_string.dir/build.make exercise1/CMakeFiles/publish_string.dir/src/publish_string_node.cpp.i
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_string.dir/build.make exercise1/CMakeFiles/publish_string.dir/src/publish_string_node.cpp.i
 .PHONY : src/publish_string_node.cpp.i
 
 src/publish_string_node.s: src/publish_string_node.cpp.s
@@ -797,7 +797,7 @@ src/publish_string_node.s: src/publish_string_node.cpp.s
 
 # target to generate assembly for a file
 src/publish_string_node.cpp.s:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_string.dir/build.make exercise1/CMakeFiles/publish_string.dir/src/publish_string_node.cpp.s
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/publish_string.dir/build.make exercise1/CMakeFiles/publish_string.dir/src/publish_string_node.cpp.s
 .PHONY : src/publish_string_node.cpp.s
 
 src/service_node.o: src/service_node.cpp.o
@@ -806,7 +806,7 @@ src/service_node.o: src/service_node.cpp.o
 
 # target to build an object file
 src/service_node.cpp.o:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/service_node.dir/build.make exercise1/CMakeFiles/service_node.dir/src/service_node.cpp.o
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/service_node.dir/build.make exercise1/CMakeFiles/service_node.dir/src/service_node.cpp.o
 .PHONY : src/service_node.cpp.o
 
 src/service_node.i: src/service_node.cpp.i
@@ -815,7 +815,7 @@ src/service_node.i: src/service_node.cpp.i
 
 # target to preprocess a source file
 src/service_node.cpp.i:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/service_node.dir/build.make exercise1/CMakeFiles/service_node.dir/src/service_node.cpp.i
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/service_node.dir/build.make exercise1/CMakeFiles/service_node.dir/src/service_node.cpp.i
 .PHONY : src/service_node.cpp.i
 
 src/service_node.s: src/service_node.cpp.s
@@ -824,7 +824,7 @@ src/service_node.s: src/service_node.cpp.s
 
 # target to generate assembly for a file
 src/service_node.cpp.s:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/service_node.dir/build.make exercise1/CMakeFiles/service_node.dir/src/service_node.cpp.s
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/service_node.dir/build.make exercise1/CMakeFiles/service_node.dir/src/service_node.cpp.s
 .PHONY : src/service_node.cpp.s
 
 src/subscribe_custom_msg_node.o: src/subscribe_custom_msg_node.cpp.o
@@ -833,7 +833,7 @@ src/subscribe_custom_msg_node.o: src/subscribe_custom_msg_node.cpp.o
 
 # target to build an object file
 src/subscribe_custom_msg_node.cpp.o:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_custom.dir/build.make exercise1/CMakeFiles/subscribe_custom.dir/src/subscribe_custom_msg_node.cpp.o
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_custom.dir/build.make exercise1/CMakeFiles/subscribe_custom.dir/src/subscribe_custom_msg_node.cpp.o
 .PHONY : src/subscribe_custom_msg_node.cpp.o
 
 src/subscribe_custom_msg_node.i: src/subscribe_custom_msg_node.cpp.i
@@ -842,7 +842,7 @@ src/subscribe_custom_msg_node.i: src/subscribe_custom_msg_node.cpp.i
 
 # target to preprocess a source file
 src/subscribe_custom_msg_node.cpp.i:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_custom.dir/build.make exercise1/CMakeFiles/subscribe_custom.dir/src/subscribe_custom_msg_node.cpp.i
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_custom.dir/build.make exercise1/CMakeFiles/subscribe_custom.dir/src/subscribe_custom_msg_node.cpp.i
 .PHONY : src/subscribe_custom_msg_node.cpp.i
 
 src/subscribe_custom_msg_node.s: src/subscribe_custom_msg_node.cpp.s
@@ -851,7 +851,7 @@ src/subscribe_custom_msg_node.s: src/subscribe_custom_msg_node.cpp.s
 
 # target to generate assembly for a file
 src/subscribe_custom_msg_node.cpp.s:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_custom.dir/build.make exercise1/CMakeFiles/subscribe_custom.dir/src/subscribe_custom_msg_node.cpp.s
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_custom.dir/build.make exercise1/CMakeFiles/subscribe_custom.dir/src/subscribe_custom_msg_node.cpp.s
 .PHONY : src/subscribe_custom_msg_node.cpp.s
 
 src/subscribe_string_node.o: src/subscribe_string_node.cpp.o
@@ -860,7 +860,7 @@ src/subscribe_string_node.o: src/subscribe_string_node.cpp.o
 
 # target to build an object file
 src/subscribe_string_node.cpp.o:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_string.dir/build.make exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.o
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_string.dir/build.make exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.o
 .PHONY : src/subscribe_string_node.cpp.o
 
 src/subscribe_string_node.i: src/subscribe_string_node.cpp.i
@@ -869,7 +869,7 @@ src/subscribe_string_node.i: src/subscribe_string_node.cpp.i
 
 # target to preprocess a source file
 src/subscribe_string_node.cpp.i:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_string.dir/build.make exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.i
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_string.dir/build.make exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.i
 .PHONY : src/subscribe_string_node.cpp.i
 
 src/subscribe_string_node.s: src/subscribe_string_node.cpp.s
@@ -878,7 +878,7 @@ src/subscribe_string_node.s: src/subscribe_string_node.cpp.s
 
 # target to generate assembly for a file
 src/subscribe_string_node.cpp.s:
-	cd /home/bone/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_string.dir/build.make exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.s
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(MAKE) -f exercise1/CMakeFiles/subscribe_string.dir/build.make exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.s
 .PHONY : src/subscribe_string_node.cpp.s
 
 # Help Target
@@ -961,6 +961,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/bone/RINS/ROS/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

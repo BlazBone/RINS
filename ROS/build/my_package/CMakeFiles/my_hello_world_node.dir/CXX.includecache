@@ -6,9 +6,9 @@
 
 #IncludeRegexTransform: 
 
-/home/bone/RINS/ROS/src/my_package/src/my_hello_world_node.cpp
+/home/jonatan/Skupinsko/RINS/ROS/src/my_package/src/my_hello_world_node.cpp
 ros/ros.h
-/home/bone/RINS/ROS/src/my_package/src/ros/ros.h
+/home/jonatan/Skupinsko/RINS/ROS/src/my_package/src/ros/ros.h
 
 /opt/ros/noetic/include/ros/advertise_options.h
 ros/forwards.h

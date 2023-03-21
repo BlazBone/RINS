@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/home/bone/RINS/ROS/devel/lib/exercise2/pubvel"
-  "/home/bone/RINS/ROS/devel/lib/exercise2/pubvel.pdb"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise2/pubvel"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise2/pubvel.pdb"
   "CMakeFiles/pubvel.dir/src/pubvel.cpp.o"
 )
 

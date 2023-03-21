@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/bone/RINS/ROS/src/my_package/src/publisher.cpp" "/home/bone/RINS/ROS/build/my_package/CMakeFiles/publisher.dir/src/publisher.cpp.o"
+  "/home/jonatan/Skupinsko/RINS/ROS/src/my_package/src/publisher.cpp" "/home/jonatan/Skupinsko/RINS/ROS/build/my_package/CMakeFiles/publisher.dir/src/publisher.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
@@ -17,7 +17,7 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "/home/bone/RINS/ROS/devel/include"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/include"
   "/opt/ros/noetic/include"
   "/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"
   )

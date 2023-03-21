@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/bone/RINS/ROS/devel/include/exercise1/Reverse.h
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Reverse.h
 ros/service_traits.h
 -
 exercise1/ReverseRequest.h
@@ -14,7 +14,7 @@ exercise1/ReverseRequest.h
 exercise1/ReverseResponse.h
 -
 
-/home/bone/RINS/ROS/devel/include/exercise1/ReverseRequest.h
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/ReverseRequest.h
 string
 -
 vector
@@ -30,7 +30,7 @@ ros/builtin_message_traits.h
 ros/message_operations.h
 -
 
-/home/bone/RINS/ROS/devel/include/exercise1/ReverseResponse.h
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/ReverseResponse.h
 string
 -
 vector
@@ -46,11 +46,11 @@ ros/builtin_message_traits.h
 ros/message_operations.h
 -
 
-/home/bone/RINS/ROS/src/exercise1/src/client_node.cpp
+/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/src/client_node.cpp
 ros/ros.h
-/home/bone/RINS/ROS/src/exercise1/src/ros/ros.h
+/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/src/ros/ros.h
 exercise1/Reverse.h
-/home/bone/RINS/ROS/src/exercise1/src/exercise1/Reverse.h
+/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/src/exercise1/Reverse.h
 sstream
 -
 

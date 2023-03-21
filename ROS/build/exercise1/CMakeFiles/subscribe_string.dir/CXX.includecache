@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/bone/RINS/ROS/src/exercise1/src/subscribe_string_node.cpp
+/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/src/subscribe_string_node.cpp
 ros/ros.h
 -
 std_msgs/String.h

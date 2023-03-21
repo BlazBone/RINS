@@ -1,8 +1,8 @@
 file(REMOVE_RECURSE
-  "/home/bone/RINS/ROS/devel/lib/python3/dist-packages/exercise1/msg/_Greeting.py"
-  "/home/bone/RINS/ROS/devel/lib/python3/dist-packages/exercise1/msg/__init__.py"
-  "/home/bone/RINS/ROS/devel/lib/python3/dist-packages/exercise1/srv/_Reverse.py"
-  "/home/bone/RINS/ROS/devel/lib/python3/dist-packages/exercise1/srv/__init__.py"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/exercise1/msg/_Greeting.py"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/exercise1/msg/__init__.py"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/exercise1/srv/_Reverse.py"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/exercise1/srv/__init__.py"
   "CMakeFiles/exercise1_generate_messages_py"
 )
 

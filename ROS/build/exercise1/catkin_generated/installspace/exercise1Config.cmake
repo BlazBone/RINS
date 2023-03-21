@@ -67,14 +67,14 @@ set(exercise1_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(exercise1_SOURCE_PREFIX /home/bone/RINS/ROS/src/exercise1)
-  set(exercise1_DEVEL_PREFIX /home/bone/RINS/ROS/devel)
+  set(exercise1_SOURCE_PREFIX /home/jonatan/Skupinsko/RINS/ROS/src/exercise1)
+  set(exercise1_DEVEL_PREFIX /home/jonatan/Skupinsko/RINS/ROS/devel)
   set(exercise1_INSTALL_PREFIX "")
   set(exercise1_PREFIX ${exercise1_DEVEL_PREFIX})
 else()
   set(exercise1_SOURCE_PREFIX "")
   set(exercise1_DEVEL_PREFIX "")
-  set(exercise1_INSTALL_PREFIX /home/bone/RINS/ROS/install)
+  set(exercise1_INSTALL_PREFIX /home/jonatan/Skupinsko/RINS/ROS/install)
   set(exercise1_PREFIX ${exercise1_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/bone/RINS/ROS/install/lib;/home/bone/RINS/ROS_TURTLE/devel/lib;/home/bone/RINS/ROS/devel/lib;/opt/ros/noetic/lib)
+    foreach(path /home/jonatan/Skupinsko/RINS/ROS/install/lib;/home/jonatan/hmwrk1/devel/lib;/home/jonatan/ROS/devel/lib;/opt/ros/noetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

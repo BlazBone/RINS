@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/home/bone/RINS/ROS/devel/include/my_package/MyMessage.h"
-  "/home/bone/RINS/ROS/devel/include/my_package/Sum.h"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/include/my_package/MyMessage.h"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/include/my_package/Sum.h"
   "CMakeFiles/my_package_generate_messages_cpp"
 )
 

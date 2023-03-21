@@ -1,4 +1,4 @@
-prefix=/home/bone/RINS/ROS/install
+prefix=/home/jonatan/Skupinsko/RINS/ROS/install
 
 Name: my_package
 Description: Description of my_package

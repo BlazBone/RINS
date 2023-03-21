@@ -43,39 +43,39 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bone/RINS/ROS/src
+CMAKE_SOURCE_DIR = /home/jonatan/Skupinsko/RINS/ROS/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bone/RINS/ROS/build
+CMAKE_BINARY_DIR = /home/jonatan/Skupinsko/RINS/ROS/build
 
 # Utility rule file for exercise1_generate_messages_eus.
 
 # Include the progress variables for this target.
 include exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/progress.make
 
-exercise1/CMakeFiles/exercise1_generate_messages_eus: /home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/msg/Greeting.l
-exercise1/CMakeFiles/exercise1_generate_messages_eus: /home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/srv/Reverse.l
-exercise1/CMakeFiles/exercise1_generate_messages_eus: /home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/manifest.l
+exercise1/CMakeFiles/exercise1_generate_messages_eus: /home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/msg/Greeting.l
+exercise1/CMakeFiles/exercise1_generate_messages_eus: /home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/srv/Reverse.l
+exercise1/CMakeFiles/exercise1_generate_messages_eus: /home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/manifest.l
 
 
-/home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/msg/Greeting.l: /opt/ros/noetic/lib/geneus/gen_eus.py
-/home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/msg/Greeting.l: /home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating EusLisp code from exercise1/Greeting.msg"
-	cd /home/bone/RINS/ROS/build/exercise1 && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py /home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg -Iexercise1:/home/bone/RINS/ROS/src/exercise1/msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p exercise1 -o /home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/msg
+/home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/msg/Greeting.l: /opt/ros/noetic/lib/geneus/gen_eus.py
+/home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/msg/Greeting.l: /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating EusLisp code from exercise1/Greeting.msg"
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg -Iexercise1:/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p exercise1 -o /home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/msg
 
-/home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/srv/Reverse.l: /opt/ros/noetic/lib/geneus/gen_eus.py
-/home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/srv/Reverse.l: /home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating EusLisp code from exercise1/Reverse.srv"
-	cd /home/bone/RINS/ROS/build/exercise1 && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py /home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv -Iexercise1:/home/bone/RINS/ROS/src/exercise1/msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p exercise1 -o /home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/srv
+/home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/srv/Reverse.l: /opt/ros/noetic/lib/geneus/gen_eus.py
+/home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/srv/Reverse.l: /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating EusLisp code from exercise1/Reverse.srv"
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv -Iexercise1:/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p exercise1 -o /home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/srv
 
-/home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/manifest.l: /opt/ros/noetic/lib/geneus/gen_eus.py
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating EusLisp manifest code for exercise1"
-	cd /home/bone/RINS/ROS/build/exercise1 && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py -m -o /home/bone/RINS/ROS/devel/share/roseus/ros/exercise1 exercise1 std_msgs
+/home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/manifest.l: /opt/ros/noetic/lib/geneus/gen_eus.py
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating EusLisp manifest code for exercise1"
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py -m -o /home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1 exercise1 std_msgs
 
 exercise1_generate_messages_eus: exercise1/CMakeFiles/exercise1_generate_messages_eus
-exercise1_generate_messages_eus: /home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/msg/Greeting.l
-exercise1_generate_messages_eus: /home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/srv/Reverse.l
-exercise1_generate_messages_eus: /home/bone/RINS/ROS/devel/share/roseus/ros/exercise1/manifest.l
+exercise1_generate_messages_eus: /home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/msg/Greeting.l
+exercise1_generate_messages_eus: /home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/srv/Reverse.l
+exercise1_generate_messages_eus: /home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise1/manifest.l
 exercise1_generate_messages_eus: exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/build.make
 
 .PHONY : exercise1_generate_messages_eus
@@ -86,10 +86,10 @@ exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/build: exercise1_genera
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/build
 
 exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/clean:
-	cd /home/bone/RINS/ROS/build/exercise1 && $(CMAKE_COMMAND) -P CMakeFiles/exercise1_generate_messages_eus.dir/cmake_clean.cmake
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && $(CMAKE_COMMAND) -P CMakeFiles/exercise1_generate_messages_eus.dir/cmake_clean.cmake
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/clean
 
 exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/depend:
-	cd /home/bone/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bone/RINS/ROS/src /home/bone/RINS/ROS/src/exercise1 /home/bone/RINS/ROS/build /home/bone/RINS/ROS/build/exercise1 /home/bone/RINS/ROS/build/exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jonatan/Skupinsko/RINS/ROS/src /home/jonatan/Skupinsko/RINS/ROS/src/exercise1 /home/jonatan/Skupinsko/RINS/ROS/build /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 /home/jonatan/Skupinsko/RINS/ROS/build/exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages_eus.dir/depend
 

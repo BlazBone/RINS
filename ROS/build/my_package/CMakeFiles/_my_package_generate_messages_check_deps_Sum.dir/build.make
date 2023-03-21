@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bone/RINS/ROS/src
+CMAKE_SOURCE_DIR = /home/jonatan/Skupinsko/RINS/ROS/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bone/RINS/ROS/build
+CMAKE_BINARY_DIR = /home/jonatan/Skupinsko/RINS/ROS/build
 
 # Utility rule file for _my_package_generate_messages_check_deps_Sum.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/bone/RINS/ROS/build
 include my_package/CMakeFiles/_my_package_generate_messages_check_deps_Sum.dir/progress.make
 
 my_package/CMakeFiles/_my_package_generate_messages_check_deps_Sum:
-	cd /home/bone/RINS/ROS/build/my_package && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genmsg/cmake/../../../lib/genmsg/genmsg_check_deps.py my_package /home/bone/RINS/ROS/src/my_package/srv/Sum.srv 
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/my_package && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genmsg/cmake/../../../lib/genmsg/genmsg_check_deps.py my_package /home/jonatan/Skupinsko/RINS/ROS/src/my_package/srv/Sum.srv 
 
 _my_package_generate_messages_check_deps_Sum: my_package/CMakeFiles/_my_package_generate_messages_check_deps_Sum
 _my_package_generate_messages_check_deps_Sum: my_package/CMakeFiles/_my_package_generate_messages_check_deps_Sum.dir/build.make
@@ -67,10 +67,10 @@ my_package/CMakeFiles/_my_package_generate_messages_check_deps_Sum.dir/build: _m
 .PHONY : my_package/CMakeFiles/_my_package_generate_messages_check_deps_Sum.dir/build
 
 my_package/CMakeFiles/_my_package_generate_messages_check_deps_Sum.dir/clean:
-	cd /home/bone/RINS/ROS/build/my_package && $(CMAKE_COMMAND) -P CMakeFiles/_my_package_generate_messages_check_deps_Sum.dir/cmake_clean.cmake
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/my_package && $(CMAKE_COMMAND) -P CMakeFiles/_my_package_generate_messages_check_deps_Sum.dir/cmake_clean.cmake
 .PHONY : my_package/CMakeFiles/_my_package_generate_messages_check_deps_Sum.dir/clean
 
 my_package/CMakeFiles/_my_package_generate_messages_check_deps_Sum.dir/depend:
-	cd /home/bone/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bone/RINS/ROS/src /home/bone/RINS/ROS/src/my_package /home/bone/RINS/ROS/build /home/bone/RINS/ROS/build/my_package /home/bone/RINS/ROS/build/my_package/CMakeFiles/_my_package_generate_messages_check_deps_Sum.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jonatan/Skupinsko/RINS/ROS/src /home/jonatan/Skupinsko/RINS/ROS/src/my_package /home/jonatan/Skupinsko/RINS/ROS/build /home/jonatan/Skupinsko/RINS/ROS/build/my_package /home/jonatan/Skupinsko/RINS/ROS/build/my_package/CMakeFiles/_my_package_generate_messages_check_deps_Sum.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : my_package/CMakeFiles/_my_package_generate_messages_check_deps_Sum.dir/depend
 

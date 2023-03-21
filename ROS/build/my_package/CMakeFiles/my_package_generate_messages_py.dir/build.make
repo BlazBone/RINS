@@ -43,49 +43,49 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bone/RINS/ROS/src
+CMAKE_SOURCE_DIR = /home/jonatan/Skupinsko/RINS/ROS/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bone/RINS/ROS/build
+CMAKE_BINARY_DIR = /home/jonatan/Skupinsko/RINS/ROS/build
 
 # Utility rule file for my_package_generate_messages_py.
 
 # Include the progress variables for this target.
 include my_package/CMakeFiles/my_package_generate_messages_py.dir/progress.make
 
-my_package/CMakeFiles/my_package_generate_messages_py: /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/_MyMessage.py
-my_package/CMakeFiles/my_package_generate_messages_py: /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/_Sum.py
-my_package/CMakeFiles/my_package_generate_messages_py: /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/__init__.py
-my_package/CMakeFiles/my_package_generate_messages_py: /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/__init__.py
+my_package/CMakeFiles/my_package_generate_messages_py: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/_MyMessage.py
+my_package/CMakeFiles/my_package_generate_messages_py: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/_Sum.py
+my_package/CMakeFiles/my_package_generate_messages_py: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/__init__.py
+my_package/CMakeFiles/my_package_generate_messages_py: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/__init__.py
 
 
-/home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/_MyMessage.py: /opt/ros/noetic/lib/genpy/genmsg_py.py
-/home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/_MyMessage.py: /home/bone/RINS/ROS/src/my_package/msg/MyMessage.msg
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Python from MSG my_package/MyMessage"
-	cd /home/bone/RINS/ROS/build/my_package && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genpy/cmake/../../../lib/genpy/genmsg_py.py /home/bone/RINS/ROS/src/my_package/msg/MyMessage.msg -Imy_package:/home/bone/RINS/ROS/src/my_package/msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p my_package -o /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/_MyMessage.py: /opt/ros/noetic/lib/genpy/genmsg_py.py
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/_MyMessage.py: /home/jonatan/Skupinsko/RINS/ROS/src/my_package/msg/MyMessage.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Python from MSG my_package/MyMessage"
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/my_package && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genpy/cmake/../../../lib/genpy/genmsg_py.py /home/jonatan/Skupinsko/RINS/ROS/src/my_package/msg/MyMessage.msg -Imy_package:/home/jonatan/Skupinsko/RINS/ROS/src/my_package/msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p my_package -o /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg
 
-/home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/_Sum.py: /opt/ros/noetic/lib/genpy/gensrv_py.py
-/home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/_Sum.py: /home/bone/RINS/ROS/src/my_package/srv/Sum.srv
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Python code from SRV my_package/Sum"
-	cd /home/bone/RINS/ROS/build/my_package && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genpy/cmake/../../../lib/genpy/gensrv_py.py /home/bone/RINS/ROS/src/my_package/srv/Sum.srv -Imy_package:/home/bone/RINS/ROS/src/my_package/msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p my_package -o /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/_Sum.py: /opt/ros/noetic/lib/genpy/gensrv_py.py
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/_Sum.py: /home/jonatan/Skupinsko/RINS/ROS/src/my_package/srv/Sum.srv
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Python code from SRV my_package/Sum"
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/my_package && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genpy/cmake/../../../lib/genpy/gensrv_py.py /home/jonatan/Skupinsko/RINS/ROS/src/my_package/srv/Sum.srv -Imy_package:/home/jonatan/Skupinsko/RINS/ROS/src/my_package/msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p my_package -o /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv
 
-/home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/__init__.py: /opt/ros/noetic/lib/genpy/genmsg_py.py
-/home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/__init__.py: /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/_MyMessage.py
-/home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/__init__.py: /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/_Sum.py
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Python msg __init__.py for my_package"
-	cd /home/bone/RINS/ROS/build/my_package && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genpy/cmake/../../../lib/genpy/genmsg_py.py -o /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg --initpy
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/__init__.py: /opt/ros/noetic/lib/genpy/genmsg_py.py
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/__init__.py: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/_MyMessage.py
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/__init__.py: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/_Sum.py
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Python msg __init__.py for my_package"
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/my_package && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genpy/cmake/../../../lib/genpy/genmsg_py.py -o /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg --initpy
 
-/home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/__init__.py: /opt/ros/noetic/lib/genpy/genmsg_py.py
-/home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/__init__.py: /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/_MyMessage.py
-/home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/__init__.py: /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/_Sum.py
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating Python srv __init__.py for my_package"
-	cd /home/bone/RINS/ROS/build/my_package && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genpy/cmake/../../../lib/genpy/genmsg_py.py -o /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv --initpy
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/__init__.py: /opt/ros/noetic/lib/genpy/genmsg_py.py
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/__init__.py: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/_MyMessage.py
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/__init__.py: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/_Sum.py
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating Python srv __init__.py for my_package"
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/my_package && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genpy/cmake/../../../lib/genpy/genmsg_py.py -o /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv --initpy
 
 my_package_generate_messages_py: my_package/CMakeFiles/my_package_generate_messages_py
-my_package_generate_messages_py: /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/_MyMessage.py
-my_package_generate_messages_py: /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/_Sum.py
-my_package_generate_messages_py: /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/__init__.py
-my_package_generate_messages_py: /home/bone/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/__init__.py
+my_package_generate_messages_py: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/_MyMessage.py
+my_package_generate_messages_py: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/_Sum.py
+my_package_generate_messages_py: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/msg/__init__.py
+my_package_generate_messages_py: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/my_package/srv/__init__.py
 my_package_generate_messages_py: my_package/CMakeFiles/my_package_generate_messages_py.dir/build.make
 
 .PHONY : my_package_generate_messages_py
@@ -96,10 +96,10 @@ my_package/CMakeFiles/my_package_generate_messages_py.dir/build: my_package_gene
 .PHONY : my_package/CMakeFiles/my_package_generate_messages_py.dir/build
 
 my_package/CMakeFiles/my_package_generate_messages_py.dir/clean:
-	cd /home/bone/RINS/ROS/build/my_package && $(CMAKE_COMMAND) -P CMakeFiles/my_package_generate_messages_py.dir/cmake_clean.cmake
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/my_package && $(CMAKE_COMMAND) -P CMakeFiles/my_package_generate_messages_py.dir/cmake_clean.cmake
 .PHONY : my_package/CMakeFiles/my_package_generate_messages_py.dir/clean
 
 my_package/CMakeFiles/my_package_generate_messages_py.dir/depend:
-	cd /home/bone/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bone/RINS/ROS/src /home/bone/RINS/ROS/src/my_package /home/bone/RINS/ROS/build /home/bone/RINS/ROS/build/my_package /home/bone/RINS/ROS/build/my_package/CMakeFiles/my_package_generate_messages_py.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jonatan/Skupinsko/RINS/ROS/src /home/jonatan/Skupinsko/RINS/ROS/src/my_package /home/jonatan/Skupinsko/RINS/ROS/build /home/jonatan/Skupinsko/RINS/ROS/build/my_package /home/jonatan/Skupinsko/RINS/ROS/build/my_package/CMakeFiles/my_package_generate_messages_py.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : my_package/CMakeFiles/my_package_generate_messages_py.dir/depend
 

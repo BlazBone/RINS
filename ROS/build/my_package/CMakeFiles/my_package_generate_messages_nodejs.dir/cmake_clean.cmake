@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/home/bone/RINS/ROS/devel/share/gennodejs/ros/my_package/msg/MyMessage.js"
-  "/home/bone/RINS/ROS/devel/share/gennodejs/ros/my_package/srv/Sum.js"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/share/gennodejs/ros/my_package/msg/MyMessage.js"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/share/gennodejs/ros/my_package/srv/Sum.js"
   "CMakeFiles/my_package_generate_messages_nodejs"
 )
 

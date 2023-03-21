@@ -1,8 +1,8 @@
-# Install script for directory: /home/bone/RINS/ROS/src/exercise2
+# Install script for directory: /home/jonatan/Skupinsko/RINS/ROS/src/exercise2
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/bone/RINS/ROS/install")
+  set(CMAKE_INSTALL_PREFIX "/home/jonatan/Skupinsko/RINS/ROS/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -38,61 +38,61 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/exercise2/srv" TYPE FILE FILES "/home/bone/RINS/ROS/src/exercise2/srv/CommandTest.srv")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/exercise2/srv" TYPE FILE FILES "/home/jonatan/Skupinsko/RINS/ROS/src/exercise2/srv/CommandTest.srv")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/exercise2/cmake" TYPE FILE FILES "/home/bone/RINS/ROS/build/exercise2/catkin_generated/installspace/exercise2-msg-paths.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/exercise2/cmake" TYPE FILE FILES "/home/jonatan/Skupinsko/RINS/ROS/build/exercise2/catkin_generated/installspace/exercise2-msg-paths.cmake")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/bone/RINS/ROS/devel/include/exercise2")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise2")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/roseus/ros" TYPE DIRECTORY FILES "/home/bone/RINS/ROS/devel/share/roseus/ros/exercise2")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/roseus/ros" TYPE DIRECTORY FILES "/home/jonatan/Skupinsko/RINS/ROS/devel/share/roseus/ros/exercise2")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/common-lisp/ros" TYPE DIRECTORY FILES "/home/bone/RINS/ROS/devel/share/common-lisp/ros/exercise2")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/common-lisp/ros" TYPE DIRECTORY FILES "/home/jonatan/Skupinsko/RINS/ROS/devel/share/common-lisp/ros/exercise2")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/gennodejs/ros" TYPE DIRECTORY FILES "/home/bone/RINS/ROS/devel/share/gennodejs/ros/exercise2")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/gennodejs/ros" TYPE DIRECTORY FILES "/home/jonatan/Skupinsko/RINS/ROS/devel/share/gennodejs/ros/exercise2")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  execute_process(COMMAND "/usr/bin/python3" -m compileall "/home/bone/RINS/ROS/devel/lib/python3/dist-packages/exercise2")
+  execute_process(COMMAND "/usr/bin/python3" -m compileall "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/exercise2")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/python3/dist-packages" TYPE DIRECTORY FILES "/home/bone/RINS/ROS/devel/lib/python3/dist-packages/exercise2")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/python3/dist-packages" TYPE DIRECTORY FILES "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/python3/dist-packages/exercise2")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/bone/RINS/ROS/build/exercise2/catkin_generated/installspace/exercise2.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/jonatan/Skupinsko/RINS/ROS/build/exercise2/catkin_generated/installspace/exercise2.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/exercise2/cmake" TYPE FILE FILES "/home/bone/RINS/ROS/build/exercise2/catkin_generated/installspace/exercise2-msg-extras.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/exercise2/cmake" TYPE FILE FILES "/home/jonatan/Skupinsko/RINS/ROS/build/exercise2/catkin_generated/installspace/exercise2-msg-extras.cmake")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/exercise2/cmake" TYPE FILE FILES
-    "/home/bone/RINS/ROS/build/exercise2/catkin_generated/installspace/exercise2Config.cmake"
-    "/home/bone/RINS/ROS/build/exercise2/catkin_generated/installspace/exercise2Config-version.cmake"
+    "/home/jonatan/Skupinsko/RINS/ROS/build/exercise2/catkin_generated/installspace/exercise2Config.cmake"
+    "/home/jonatan/Skupinsko/RINS/ROS/build/exercise2/catkin_generated/installspace/exercise2Config-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/exercise2" TYPE FILE FILES "/home/bone/RINS/ROS/src/exercise2/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/exercise2" TYPE FILE FILES "/home/jonatan/Skupinsko/RINS/ROS/src/exercise2/package.xml")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/exercise2" TYPE PROGRAM FILES "/home/bone/RINS/ROS/build/exercise2/catkin_generated/installspace/movement_service.py")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/exercise2" TYPE PROGRAM FILES "/home/jonatan/Skupinsko/RINS/ROS/build/exercise2/catkin_generated/installspace/movement_service.py")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/exercise2" TYPE PROGRAM FILES "/home/bone/RINS/ROS/build/exercise2/catkin_generated/installspace/movement.py")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/exercise2" TYPE PROGRAM FILES "/home/jonatan/Skupinsko/RINS/ROS/build/exercise2/catkin_generated/installspace/movement.py")
 endif()
 

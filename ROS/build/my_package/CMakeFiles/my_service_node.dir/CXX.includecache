@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/bone/RINS/ROS/devel/include/my_package/Sum.h
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/my_package/Sum.h
 ros/service_traits.h
 -
 my_package/SumRequest.h
@@ -14,7 +14,7 @@ my_package/SumRequest.h
 my_package/SumResponse.h
 -
 
-/home/bone/RINS/ROS/devel/include/my_package/SumRequest.h
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/my_package/SumRequest.h
 string
 -
 vector
@@ -30,7 +30,7 @@ ros/builtin_message_traits.h
 ros/message_operations.h
 -
 
-/home/bone/RINS/ROS/devel/include/my_package/SumResponse.h
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/my_package/SumResponse.h
 string
 -
 vector
@@ -46,11 +46,11 @@ ros/builtin_message_traits.h
 ros/message_operations.h
 -
 
-/home/bone/RINS/ROS/src/my_package/src/my_service_node.cpp
+/home/jonatan/Skupinsko/RINS/ROS/src/my_package/src/my_service_node.cpp
 ros/ros.h
-/home/bone/RINS/ROS/src/my_package/src/ros/ros.h
+/home/jonatan/Skupinsko/RINS/ROS/src/my_package/src/ros/ros.h
 my_package/Sum.h
-/home/bone/RINS/ROS/src/my_package/src/my_package/Sum.h
+/home/jonatan/Skupinsko/RINS/ROS/src/my_package/src/my_package/Sum.h
 
 /opt/ros/noetic/include/ros/advertise_options.h
 ros/forwards.h

@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/bone/RINS/ROS/src/exercise1/src/hello_world_node.cpp
+/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/src/hello_world_node.cpp
 ros/ros.h
 -
 

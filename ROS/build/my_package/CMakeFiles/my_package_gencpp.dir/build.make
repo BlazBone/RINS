@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bone/RINS/ROS/src
+CMAKE_SOURCE_DIR = /home/jonatan/Skupinsko/RINS/ROS/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bone/RINS/ROS/build
+CMAKE_BINARY_DIR = /home/jonatan/Skupinsko/RINS/ROS/build
 
 # Utility rule file for my_package_gencpp.
 
@@ -63,10 +63,10 @@ my_package/CMakeFiles/my_package_gencpp.dir/build: my_package_gencpp
 .PHONY : my_package/CMakeFiles/my_package_gencpp.dir/build
 
 my_package/CMakeFiles/my_package_gencpp.dir/clean:
-	cd /home/bone/RINS/ROS/build/my_package && $(CMAKE_COMMAND) -P CMakeFiles/my_package_gencpp.dir/cmake_clean.cmake
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/my_package && $(CMAKE_COMMAND) -P CMakeFiles/my_package_gencpp.dir/cmake_clean.cmake
 .PHONY : my_package/CMakeFiles/my_package_gencpp.dir/clean
 
 my_package/CMakeFiles/my_package_gencpp.dir/depend:
-	cd /home/bone/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bone/RINS/ROS/src /home/bone/RINS/ROS/src/my_package /home/bone/RINS/ROS/build /home/bone/RINS/ROS/build/my_package /home/bone/RINS/ROS/build/my_package/CMakeFiles/my_package_gencpp.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jonatan/Skupinsko/RINS/ROS/src /home/jonatan/Skupinsko/RINS/ROS/src/my_package /home/jonatan/Skupinsko/RINS/ROS/build /home/jonatan/Skupinsko/RINS/ROS/build/my_package /home/jonatan/Skupinsko/RINS/ROS/build/my_package/CMakeFiles/my_package_gencpp.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : my_package/CMakeFiles/my_package_gencpp.dir/depend
 

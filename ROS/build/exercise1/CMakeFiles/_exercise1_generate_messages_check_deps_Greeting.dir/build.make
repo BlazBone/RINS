@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bone/RINS/ROS/src
+CMAKE_SOURCE_DIR = /home/jonatan/Skupinsko/RINS/ROS/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bone/RINS/ROS/build
+CMAKE_BINARY_DIR = /home/jonatan/Skupinsko/RINS/ROS/build
 
 # Utility rule file for _exercise1_generate_messages_check_deps_Greeting.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/bone/RINS/ROS/build
 include exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/progress.make
 
 exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting:
-	cd /home/bone/RINS/ROS/build/exercise1 && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genmsg/cmake/../../../lib/genmsg/genmsg_check_deps.py exercise1 /home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg 
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genmsg/cmake/../../../lib/genmsg/genmsg_check_deps.py exercise1 /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg 
 
 _exercise1_generate_messages_check_deps_Greeting: exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting
 _exercise1_generate_messages_check_deps_Greeting: exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/build.make
@@ -67,10 +67,10 @@ exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/build:
 .PHONY : exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/build
 
 exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/clean:
-	cd /home/bone/RINS/ROS/build/exercise1 && $(CMAKE_COMMAND) -P CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/cmake_clean.cmake
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && $(CMAKE_COMMAND) -P CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/cmake_clean.cmake
 .PHONY : exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/clean
 
 exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/depend:
-	cd /home/bone/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bone/RINS/ROS/src /home/bone/RINS/ROS/src/exercise1 /home/bone/RINS/ROS/build /home/bone/RINS/ROS/build/exercise1 /home/bone/RINS/ROS/build/exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jonatan/Skupinsko/RINS/ROS/src /home/jonatan/Skupinsko/RINS/ROS/src/exercise1 /home/jonatan/Skupinsko/RINS/ROS/build /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 /home/jonatan/Skupinsko/RINS/ROS/build/exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : exercise1/CMakeFiles/_exercise1_generate_messages_check_deps_Greeting.dir/depend
 

@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/home/bone/RINS/ROS/devel/lib/my_package/publisher"
-  "/home/bone/RINS/ROS/devel/lib/my_package/publisher.pdb"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/my_package/publisher"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/my_package/publisher.pdb"
   "CMakeFiles/publisher.dir/src/publisher.cpp.o"
 )
 

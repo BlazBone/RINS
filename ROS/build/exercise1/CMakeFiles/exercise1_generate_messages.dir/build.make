@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bone/RINS/ROS/src
+CMAKE_SOURCE_DIR = /home/jonatan/Skupinsko/RINS/ROS/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bone/RINS/ROS/build
+CMAKE_BINARY_DIR = /home/jonatan/Skupinsko/RINS/ROS/build
 
 # Utility rule file for exercise1_generate_messages.
 
@@ -63,10 +63,10 @@ exercise1/CMakeFiles/exercise1_generate_messages.dir/build: exercise1_generate_m
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages.dir/build
 
 exercise1/CMakeFiles/exercise1_generate_messages.dir/clean:
-	cd /home/bone/RINS/ROS/build/exercise1 && $(CMAKE_COMMAND) -P CMakeFiles/exercise1_generate_messages.dir/cmake_clean.cmake
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && $(CMAKE_COMMAND) -P CMakeFiles/exercise1_generate_messages.dir/cmake_clean.cmake
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages.dir/clean
 
 exercise1/CMakeFiles/exercise1_generate_messages.dir/depend:
-	cd /home/bone/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bone/RINS/ROS/src /home/bone/RINS/ROS/src/exercise1 /home/bone/RINS/ROS/build /home/bone/RINS/ROS/build/exercise1 /home/bone/RINS/ROS/build/exercise1/CMakeFiles/exercise1_generate_messages.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jonatan/Skupinsko/RINS/ROS/src /home/jonatan/Skupinsko/RINS/ROS/src/exercise1 /home/jonatan/Skupinsko/RINS/ROS/build /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 /home/jonatan/Skupinsko/RINS/ROS/build/exercise1/CMakeFiles/exercise1_generate_messages.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages.dir/depend
 

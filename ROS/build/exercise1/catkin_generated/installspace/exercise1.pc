@@ -1,4 +1,4 @@
-prefix=/home/bone/RINS/ROS/install
+prefix=/home/jonatan/Skupinsko/RINS/ROS/install
 
 Name: exercise1
 Description: Description of exercise1

@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bone/RINS/ROS/src
+CMAKE_SOURCE_DIR = /home/jonatan/Skupinsko/RINS/ROS/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bone/RINS/ROS/build
+CMAKE_BINARY_DIR = /home/jonatan/Skupinsko/RINS/ROS/build
 
 # Include any dependencies generated for this target.
 include exercise1/CMakeFiles/subscribe_string.dir/depend.make
@@ -58,17 +58,17 @@ include exercise1/CMakeFiles/subscribe_string.dir/progress.make
 include exercise1/CMakeFiles/subscribe_string.dir/flags.make
 
 exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.o: exercise1/CMakeFiles/subscribe_string.dir/flags.make
-exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.o: /home/bone/RINS/ROS/src/exercise1/src/subscribe_string_node.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.o"
-	cd /home/bone/RINS/ROS/build/exercise1 && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.o -c /home/bone/RINS/ROS/src/exercise1/src/subscribe_string_node.cpp
+exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.o: /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/src/subscribe_string_node.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.o"
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.o -c /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/src/subscribe_string_node.cpp
 
 exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.i"
-	cd /home/bone/RINS/ROS/build/exercise1 && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/bone/RINS/ROS/src/exercise1/src/subscribe_string_node.cpp > CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.i
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/src/subscribe_string_node.cpp > CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.i
 
 exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.s"
-	cd /home/bone/RINS/ROS/build/exercise1 && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/bone/RINS/ROS/src/exercise1/src/subscribe_string_node.cpp -o CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.s
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/src/subscribe_string_node.cpp -o CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.s
 
 # Object files for target subscribe_string
 subscribe_string_OBJECTS = \
@@ -77,39 +77,39 @@ subscribe_string_OBJECTS = \
 # External object files for target subscribe_string
 subscribe_string_EXTERNAL_OBJECTS =
 
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.o
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: exercise1/CMakeFiles/subscribe_string.dir/build.make
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/libroscpp.so
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libpthread.so
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libboost_chrono.so.1.71.0
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/librosconsole.so
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/librosconsole_log4cxx.so
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/librosconsole_backend_interface.so
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/liblog4cxx.so
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libboost_regex.so.1.71.0
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/libxmlrpcpp.so
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/libroscpp_serialization.so
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/librostime.so
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libboost_date_time.so.1.71.0
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/libcpp_common.so
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libboost_system.so.1.71.0
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libboost_thread.so.1.71.0
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libconsole_bridge.so.0.4
-/home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string: exercise1/CMakeFiles/subscribe_string.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable /home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string"
-	cd /home/bone/RINS/ROS/build/exercise1 && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/subscribe_string.dir/link.txt --verbose=$(VERBOSE)
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: exercise1/CMakeFiles/subscribe_string.dir/src/subscribe_string_node.cpp.o
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: exercise1/CMakeFiles/subscribe_string.dir/build.make
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/libroscpp.so
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libpthread.so
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libboost_chrono.so.1.71.0
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/librosconsole.so
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/librosconsole_log4cxx.so
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/librosconsole_backend_interface.so
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/liblog4cxx.so
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libboost_regex.so.1.71.0
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/libxmlrpcpp.so
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/libroscpp_serialization.so
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/librostime.so
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libboost_date_time.so.1.71.0
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /opt/ros/noetic/lib/libcpp_common.so
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libboost_system.so.1.71.0
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libboost_thread.so.1.71.0
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: /usr/lib/x86_64-linux-gnu/libconsole_bridge.so.0.4
+/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string: exercise1/CMakeFiles/subscribe_string.dir/link.txt
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable /home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string"
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/subscribe_string.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
-exercise1/CMakeFiles/subscribe_string.dir/build: /home/bone/RINS/ROS/devel/lib/exercise1/subscribe_string
+exercise1/CMakeFiles/subscribe_string.dir/build: /home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/subscribe_string
 
 .PHONY : exercise1/CMakeFiles/subscribe_string.dir/build
 
 exercise1/CMakeFiles/subscribe_string.dir/clean:
-	cd /home/bone/RINS/ROS/build/exercise1 && $(CMAKE_COMMAND) -P CMakeFiles/subscribe_string.dir/cmake_clean.cmake
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && $(CMAKE_COMMAND) -P CMakeFiles/subscribe_string.dir/cmake_clean.cmake
 .PHONY : exercise1/CMakeFiles/subscribe_string.dir/clean
 
 exercise1/CMakeFiles/subscribe_string.dir/depend:
-	cd /home/bone/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bone/RINS/ROS/src /home/bone/RINS/ROS/src/exercise1 /home/bone/RINS/ROS/build /home/bone/RINS/ROS/build/exercise1 /home/bone/RINS/ROS/build/exercise1/CMakeFiles/subscribe_string.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jonatan/Skupinsko/RINS/ROS/src /home/jonatan/Skupinsko/RINS/ROS/src/exercise1 /home/jonatan/Skupinsko/RINS/ROS/build /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 /home/jonatan/Skupinsko/RINS/ROS/build/exercise1/CMakeFiles/subscribe_string.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : exercise1/CMakeFiles/subscribe_string.dir/depend
 

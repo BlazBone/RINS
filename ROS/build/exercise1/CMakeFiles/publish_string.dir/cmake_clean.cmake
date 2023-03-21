@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/home/bone/RINS/ROS/devel/lib/exercise1/publish_string"
-  "/home/bone/RINS/ROS/devel/lib/exercise1/publish_string.pdb"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/publish_string"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/exercise1/publish_string.pdb"
   "CMakeFiles/publish_string.dir/src/publish_string_node.cpp.o"
 )
 

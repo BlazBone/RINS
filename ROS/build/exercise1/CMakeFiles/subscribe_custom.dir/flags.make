@@ -6,5 +6,5 @@ CXX_FLAGS =
 
 CXX_DEFINES = -DROSCONSOLE_BACKEND_LOG4CXX -DROS_BUILD_SHARED_LIBS=1 -DROS_PACKAGE_NAME=\"exercise1\"
 
-CXX_INCLUDES = -I/home/bone/RINS/ROS/devel/include -I/home/bone/RINS/ROS/src/exercise1/include -I/opt/ros/noetic/include -I/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp 
+CXX_INCLUDES = -I/home/jonatan/Skupinsko/RINS/ROS/devel/include -I/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/include -I/opt/ros/noetic/include -I/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp 
 

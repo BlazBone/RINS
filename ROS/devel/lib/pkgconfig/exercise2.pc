@@ -1,8 +1,8 @@
-prefix=/home/bone/RINS/ROS/devel
+prefix=/home/jonatan/Skupinsko/RINS/ROS/devel
 
 Name: exercise2
 Description: Description of exercise2
 Version: 0.0.0
-Cflags: -I/home/bone/RINS/ROS/devel/include
+Cflags: -I/home/jonatan/Skupinsko/RINS/ROS/devel/include
 Libs: -L${prefix}/lib 
 Requires: message_runtime rospy std_msg message_runtime

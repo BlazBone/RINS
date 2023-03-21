@@ -43,36 +43,36 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bone/RINS/ROS/src
+CMAKE_SOURCE_DIR = /home/jonatan/Skupinsko/RINS/ROS/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bone/RINS/ROS/build
+CMAKE_BINARY_DIR = /home/jonatan/Skupinsko/RINS/ROS/build
 
 # Utility rule file for exercise1_generate_messages_cpp.
 
 # Include the progress variables for this target.
 include exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/progress.make
 
-exercise1/CMakeFiles/exercise1_generate_messages_cpp: /home/bone/RINS/ROS/devel/include/exercise1/Greeting.h
-exercise1/CMakeFiles/exercise1_generate_messages_cpp: /home/bone/RINS/ROS/devel/include/exercise1/Reverse.h
+exercise1/CMakeFiles/exercise1_generate_messages_cpp: /home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Greeting.h
+exercise1/CMakeFiles/exercise1_generate_messages_cpp: /home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Reverse.h
 
 
-/home/bone/RINS/ROS/devel/include/exercise1/Greeting.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
-/home/bone/RINS/ROS/devel/include/exercise1/Greeting.h: /home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg
-/home/bone/RINS/ROS/devel/include/exercise1/Greeting.h: /opt/ros/noetic/share/gencpp/msg.h.template
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating C++ code from exercise1/Greeting.msg"
-	cd /home/bone/RINS/ROS/src/exercise1 && /home/bone/RINS/ROS/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/bone/RINS/ROS/src/exercise1/msg/Greeting.msg -Iexercise1:/home/bone/RINS/ROS/src/exercise1/msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p exercise1 -o /home/bone/RINS/ROS/devel/include/exercise1 -e /opt/ros/noetic/share/gencpp/cmake/..
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Greeting.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Greeting.h: /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Greeting.h: /opt/ros/noetic/share/gencpp/msg.h.template
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating C++ code from exercise1/Greeting.msg"
+	cd /home/jonatan/Skupinsko/RINS/ROS/src/exercise1 && /home/jonatan/Skupinsko/RINS/ROS/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg/Greeting.msg -Iexercise1:/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p exercise1 -o /home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1 -e /opt/ros/noetic/share/gencpp/cmake/..
 
-/home/bone/RINS/ROS/devel/include/exercise1/Reverse.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
-/home/bone/RINS/ROS/devel/include/exercise1/Reverse.h: /home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv
-/home/bone/RINS/ROS/devel/include/exercise1/Reverse.h: /opt/ros/noetic/share/gencpp/msg.h.template
-/home/bone/RINS/ROS/devel/include/exercise1/Reverse.h: /opt/ros/noetic/share/gencpp/srv.h.template
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/bone/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating C++ code from exercise1/Reverse.srv"
-	cd /home/bone/RINS/ROS/src/exercise1 && /home/bone/RINS/ROS/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/bone/RINS/ROS/src/exercise1/srv/Reverse.srv -Iexercise1:/home/bone/RINS/ROS/src/exercise1/msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p exercise1 -o /home/bone/RINS/ROS/devel/include/exercise1 -e /opt/ros/noetic/share/gencpp/cmake/..
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Reverse.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Reverse.h: /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Reverse.h: /opt/ros/noetic/share/gencpp/msg.h.template
+/home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Reverse.h: /opt/ros/noetic/share/gencpp/srv.h.template
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jonatan/Skupinsko/RINS/ROS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating C++ code from exercise1/Reverse.srv"
+	cd /home/jonatan/Skupinsko/RINS/ROS/src/exercise1 && /home/jonatan/Skupinsko/RINS/ROS/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/jonatan/Skupinsko/RINS/ROS/src/exercise1/srv/Reverse.srv -Iexercise1:/home/jonatan/Skupinsko/RINS/ROS/src/exercise1/msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p exercise1 -o /home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1 -e /opt/ros/noetic/share/gencpp/cmake/..
 
 exercise1_generate_messages_cpp: exercise1/CMakeFiles/exercise1_generate_messages_cpp
-exercise1_generate_messages_cpp: /home/bone/RINS/ROS/devel/include/exercise1/Greeting.h
-exercise1_generate_messages_cpp: /home/bone/RINS/ROS/devel/include/exercise1/Reverse.h
+exercise1_generate_messages_cpp: /home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Greeting.h
+exercise1_generate_messages_cpp: /home/jonatan/Skupinsko/RINS/ROS/devel/include/exercise1/Reverse.h
 exercise1_generate_messages_cpp: exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/build.make
 
 .PHONY : exercise1_generate_messages_cpp
@@ -83,10 +83,10 @@ exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/build: exercise1_genera
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/build
 
 exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/clean:
-	cd /home/bone/RINS/ROS/build/exercise1 && $(CMAKE_COMMAND) -P CMakeFiles/exercise1_generate_messages_cpp.dir/cmake_clean.cmake
+	cd /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 && $(CMAKE_COMMAND) -P CMakeFiles/exercise1_generate_messages_cpp.dir/cmake_clean.cmake
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/clean
 
 exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/depend:
-	cd /home/bone/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bone/RINS/ROS/src /home/bone/RINS/ROS/src/exercise1 /home/bone/RINS/ROS/build /home/bone/RINS/ROS/build/exercise1 /home/bone/RINS/ROS/build/exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jonatan/Skupinsko/RINS/ROS/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jonatan/Skupinsko/RINS/ROS/src /home/jonatan/Skupinsko/RINS/ROS/src/exercise1 /home/jonatan/Skupinsko/RINS/ROS/build /home/jonatan/Skupinsko/RINS/ROS/build/exercise1 /home/jonatan/Skupinsko/RINS/ROS/build/exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : exercise1/CMakeFiles/exercise1_generate_messages_cpp.dir/depend
 

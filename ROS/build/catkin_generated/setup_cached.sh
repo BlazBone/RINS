@@ -7,4 +7,7 @@
 # new environment variables
 
 # modified environment variables
-export PWD='/home/bone/RINS/ROS/build'
+export CMAKE_PREFIX_PATH="/home/jonatan/Skupinsko/RINS/ROS/devel:$CMAKE_PREFIX_PATH"
+export PWD='/home/jonatan/Skupinsko/RINS/ROS/build'
+export ROSLISP_PACKAGE_DIRECTORIES="/home/jonatan/Skupinsko/RINS/ROS/devel/share/common-lisp:$ROSLISP_PACKAGE_DIRECTORIES"
+export ROS_PACKAGE_PATH="/home/jonatan/Skupinsko/RINS/ROS/src:$ROS_PACKAGE_PATH"

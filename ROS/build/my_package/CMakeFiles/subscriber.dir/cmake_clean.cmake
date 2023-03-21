@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/home/bone/RINS/ROS/devel/lib/my_package/subscriber"
-  "/home/bone/RINS/ROS/devel/lib/my_package/subscriber.pdb"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/my_package/subscriber"
+  "/home/jonatan/Skupinsko/RINS/ROS/devel/lib/my_package/subscriber.pdb"
   "CMakeFiles/subscriber.dir/src/subscriber.cpp.o"
 )
 
