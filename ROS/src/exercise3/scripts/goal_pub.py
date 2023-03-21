@@ -5,6 +5,8 @@ from actionlib_msgs.msg import GoalStatusArray, GoalStatus
 
 GOALS = [
         (-0.001434326171875, 0.29035043716430664, -0.001434326171875),
+        (-0.001434326171875, 0.29035043716430664, -0.001434326171875),
+        (-0.001434326171875, 0.29035043716430664, -0.001434326171875),
         (-0.8019881844520569, -0.4780222773551941, -0.001434326171875),
         (-0.10407786071300507, -1.9015296697616577, -0.005340576171875),
         (0.33748140931129456, -1.3737103939056396, -0.005340576171875),
@@ -29,6 +31,9 @@ STATUS_DICT = {
 def callback(data: GoalStatusArray):
     global NEXT_GOAL
     slist = data.status_list
+    if len(slist) == 0:
+        NEXT_GOAL = True
+        return
     # rospy.loginfo(f"status: {slist[-1].status}: The goal is currently")
     rospy.loginfo(f"status {slist[-1].status}: {STATUS_DICT[slist[-1].status]}")
     if slist[-1].status == 3:
@@ -73,7 +78,7 @@ def main():
             pass
 
 
-        if goals_idx >= 5:
+        if goals_idx >= len(GOALS):
             rospy.loginfo("All goals reached, shutting down.")
             break
         rate.sleep()
