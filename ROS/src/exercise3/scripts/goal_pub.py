@@ -13,6 +13,16 @@ GOALS = [
         (1.6469016075134277, -1.9848524332046509, -0.005340576171875)
         ]
 
+GOALS = [
+        (-0.7952509522438049, 1.5871058702468872, -0.001434326171875),
+        (-0.7952509522438049, 1.5871058702468872, -0.001434326171875),
+        (-0.7952509522438049, 1.5871058702468872, -0.001434326171875),
+        (-0.5639151334762573, 0.8585555553436279, -0.001434326171875),
+        (-0.5457677245140076, 0.17789430916309357, -0.001434326171875),
+        (-0.24812187254428864, -0.8512775301933289, -0.001434326171875),
+        (0.6777873635292053, -1.8661431074142456, -0.001434326171875)
+        ]
+
 NEXT_GOAL = True
 
 STATUS_DICT = {
@@ -27,7 +37,6 @@ STATUS_DICT = {
     8:"The goal received a cancel request before it started executing and was successfully cancelled (Terminal State)",
     9:"An action client can determine that a goal is LOST. This should not be sent over the wire by an action server",
 }
-
 def callback(data: GoalStatusArray):
     global NEXT_GOAL
     slist = data.status_list
@@ -50,7 +59,7 @@ def move_to_point(id: int, goals_idx: int) -> PoseStamped:
     msg.pose.position.y = GOALS[goals_idx][1]
     # msg.header.stamp = rospy.get_time()
     return msg
-
+        
 def main():
     global NEXT_GOAL
     rospy.init_node("goal_pub_node", anonymous=True)
@@ -64,6 +73,10 @@ def main():
     seq_id = 0
     goals_idx = 0
     while not rospy.is_shutdown():
+        if goals_idx >= len(GOALS) and NEXT_GOAL == True:
+            rospy.loginfo("All goals reached, shutting down.")
+            break
+
         if NEXT_GOAL:
             msg = move_to_point(seq_id, goals_idx) 
             seq_id += 1
@@ -77,10 +90,6 @@ def main():
             # rospy.spin()
             pass
 
-
-        if goals_idx >= len(GOALS):
-            rospy.loginfo("All goals reached, shutting down.")
-            break
         rate.sleep()
         
 
