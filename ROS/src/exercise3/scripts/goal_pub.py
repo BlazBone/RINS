@@ -16,7 +16,7 @@ def callback(data):
 
 def move_to_point(id: int) -> PoseStamped: 
     msg = PoseStamped()
-    msg.frame_id = "map"
+    msg.header.frame_id = "map"
     msg.pose.orientation.w = 1
     msg.pose.position.x = GOALS[id][0]
     msg.pose.position.y = GOALS[id][1]
