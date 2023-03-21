@@ -10,7 +10,6 @@ GOALS = [
         (0.33748140931129456, -1.3737103939056396, -0.005340576171875),
         (1.6469016075134277, -1.9848524332046509, -0.005340576171875)
         ]
-NEXT_GOAL = True
 
 def callback(data):
     print(data) 
@@ -25,6 +24,7 @@ def move_to_point(id: int) -> PoseStamped:
     return msg
 
 def main():
+    NEXT_GOAL = True
     rospy.init_node("goal_pub_node")
 
     pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
@@ -42,6 +42,8 @@ def main():
             NEXT_GOAL = False
         else:
             rospy.spin()
+
+
         if seq_id >= 5:
             rospy.loginfo("All goals reached, shutting down.")
             break
