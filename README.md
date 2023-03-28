@@ -10,3 +10,6 @@ vim path_to_RINS/ROS_TURTLE/src/Turtlebot_packs_part1/turtlebot_navigation/param
 ```
 
 2. Change value of `inflation_radius` (default is 0.5, 0.25 works best)
+```yaml
+inflation_radius:     0.25  # max. distance from an obstacle at which costs are incurred for planning paths.
+```
