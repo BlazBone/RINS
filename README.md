@@ -32,6 +32,7 @@ vim path_to_RINS/ROS_TURTLE/src/Turtlebot_packs_part1/turtlebot_navigation/param
 
 ```yaml
 inflation_radius: 0.25 # max. distance from an obstacle at which costs are incurred for planning paths.
+cost_scaling_factor: 20.0 # exponential rate at which the obstacle cost drops off (default: 10)
 ```
 
 ### Check if ros packages are in path variable
