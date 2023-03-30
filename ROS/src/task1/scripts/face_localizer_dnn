@@ -133,9 +133,8 @@ class face_localizer:
         if len(slist) == 0:
             self.next_goal = True
             return
-        rospy.loginfo(f"status: {slist[-1].status}: The goal is currently")
-        rospy.loginfo(f"status {slist[-1].status}: {STATUS_DICT[slist[-1].status]}")
-        rospy.loginfo(f"currently_on_path: {self.path}")
+        # rospy.loginfo(f"status {slist[-1].status}: {STATUS_DICT[slist[-1].status]}")
+        # rospy.loginfo(f"currently_on_path: {self.path}")
         if slist[-1].status == 3:
             if not self.path:
                 self.all_goals_reached = True
@@ -205,6 +204,151 @@ class face_localizer:
 
         return pose
     
+
+    def aproach_face_in_view(self):
+        """
+        Aproach the face in view
+        This function will be called when the robot is aproaching near a face and then it will wait for robot to print status 3 (finnished)
+        after that it will get closer to the fece and it will try to center it in the camera view
+        """
+        while True:
+            #just wait
+            status = rgb_image_message = rospy.wait_for_message("/move_base/status", GoalStatusArray)
+            if status.status_list[-1].status == 3:
+                break
+            pass
+        rospy.loginfo("Aproaching face in view")
+
+                # Get the next rgb and depth images that are posted from the camera
+        try:
+            rgb_image_message = rospy.wait_for_message("/camera/rgb/image_raw", Image)
+        except Exception as e:
+            print(e)
+            return 0
+
+        try:
+            depth_image_message = rospy.wait_for_message("/camera/depth/image_raw", Image)
+        except Exception as e:
+            print(e)
+            return 0
+
+        # Convert the images into a OpenCV (numpy) format
+
+        try:
+            rgb_image = self.bridge.imgmsg_to_cv2(rgb_image_message, "bgr8")
+        except CvBridgeError as e:
+            print(e)
+
+        try:
+            depth_image = self.bridge.imgmsg_to_cv2(depth_image_message, "32FC1")
+        except CvBridgeError as e:
+            print(e)
+
+        # Set the dimensions of the image
+        self.dims = rgb_image.shape
+        h = self.dims[0]
+        w = self.dims[1]
+        
+        # Tranform image to gayscale
+        #gray = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2GRAY)
+
+        # Do histogram equlization
+        #img = cv2.equalizeHist(gray)
+
+        # Detect the faces in the image
+        #face_rectangles = self.face_detector(rgb_image, 0)
+        blob = cv2.dnn.blobFromImage(cv2.resize(rgb_image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
+        self.face_net.setInput(blob)
+        face_detections = self.face_net.forward()
+        x_diff = 0
+        face_distance = 0
+        face_detected = False
+        for i in range(0, face_detections.shape[2]):
+            confidence = face_detections[0, 0, i, 2]
+            if confidence>0.50:
+                face_detected = True
+                rospy.loginfo("Face detected. WE ARE GOING TO CENTER IT")
+                box = face_detections[0,0,i,3:7] * np.array([w,h,w,h])
+                box = box.astype('int')
+                x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
+                # center of the face 
+                x_center = (x1+x2)/2.
+                y_center = (y1+y2)/2.
+                print('x_center', x_center)
+                
+                # how much is the centre of the face from the center of the image
+                print('self dims 1 ',self.dims[1])
+                x_diff = 600 / 2 - x_center
+                # Find the distance to the detected face
+                face_distance = float(np.nanmean(depth_image[y1:y2,x1:x2]))
+                break
+                # print('Distance to face', face_distance)
+
+        if not face_detected:
+            print("HUGE MISTAKE WE DID NOT DETECT THE FACE")
+        # rotate the robot so that the face will be in the center of the camera view
+        # if the face is not in the center of the camera view
+        # if the face is in the center of the camera view then the robot will aproach the face
+        # if the face is too close to the robot then the robot will stop
+        # if the face is too far from the robot then the robot will stop
+        # if x_diff > 0.1:
+
+        #  i calculatet the FOV of the camera and its about 60degs
+
+        # x_diff is here in pixels and the max value is 300 or -300
+        # x_diff = x_diff / 300 # translate to [-1,1]
+        # x_diff = x_diff / (1/6) # image is 1/6 of the whole space
+            # rotate the robot to the left
+            # we need to rotate the robot by x_diff * 60 to get number of degrees for rotation
+            # since we have not 360 but from -1 to 1 rotations we scale it
+            # we see 60degs which is 2/6
+            # 1/3
+            # we rotate by x_diff * 1/3 to the right and by x_diff * 1/3 to the left
+        print("x_diff", x_diff)
+        rotation_z = (x_diff / 300) / 6
+        print("rotation_z", rotation_z)
+        # get current position of robot
+        current_pose = self.get_current_pose()
+        # get the z rotation of the robot
+        current_rotation_z = current_pose.pose.pose.orientation.z 
+        # calculate the new rotation
+        new_rotation_z = current_rotation_z + rotation_z
+        if new_rotation_z > 1:
+            new_rotation_z = -2 + new_rotation_z
+        elif new_rotation_z < -1:
+            new_rotation_z = 2 + new_rotation_z
+        # create a new pose
+        new_pose = PoseStamped()
+        new_pose.header.seq = 100
+        new_pose.header.frame_id = "map"
+        new_pose.pose.position.x = current_pose.pose.pose.position.x
+        new_pose.pose.position.y = current_pose.pose.pose.position.y
+        new_pose.pose.position.z = current_pose.pose.pose.position.z
+        new_pose.pose.orientation.x = current_pose.pose.pose.orientation.x
+        new_pose.pose.orientation.y = current_pose.pose.pose.orientation.y
+        new_pose.pose.orientation.z = new_rotation_z
+        new_pose.pose.orientation.w = current_pose.pose.pose.orientation.w
+        # create a new goal
+        publish = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=10)
+        publish.publish(new_pose)
+
+        print("PUBLISHIG MESSAGE", new_pose)
+
+        rospy.loginfo("FACE SHOULD BE IN THE CENTER NOW")            
+
+        pass
+    
+    def get_current_pose(self)->PoseWithCovarianceStamped:
+        """
+        Get the current pose of the robot
+        """
+        try:
+            pose = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
+            return pose
+        except Exception as e:
+            print(e)
+            return None
+
     def find_faces(self):
         # print('I got a new image!')
 
@@ -304,8 +448,8 @@ class face_localizer:
                     rospy.loginfo(message)
                     if d > 1:
                         self.bot_positions.append((p_position, p_orientation, face_distance))
-                        # position = (pose.position.x, pose.position.y, pose.position.z)
-                        # self.face_positions.append(position)
+                        position = (pose.position.x, pose.position.y, pose.position.z)
+                        self.face_positions.append(position)
                         # self.path.append(position)
                         # rospy.loginfo(f"Added position {position}, curr len: {len(self.face_positions)}")
                         # added to images as I am deleting it on every run
@@ -379,6 +523,7 @@ def main():
                 # msg.pose.position.z = face_finder.bot_positions[0][0][2]
                 pub.publish(msg)
                 speak_to_person()
+                face_finder.aproach_face_in_view()
                 break
 
             if face_finder.next_goal:
