@@ -7,8 +7,6 @@ import numpy as np
 import tf2_geometry_msgs
 import tf2_ros
 
-import pandas as pd
-
 from os.path import dirname, join
 
 #import matplotlib.pyplot as plt
@@ -34,10 +32,6 @@ STATUS_DICT = {
     9:"An action client can determine that a goal is LOST. This should not be sent over the wire by an action server",
 }
 
-
-def read_path_csv(filename):
-    df = pd.read_csv(filename)
-    return df.values.tolist()
 
 def read_path_log(filename):
     path = []
@@ -84,7 +78,6 @@ class face_localizer:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
         
         # full path of the robot
-        # self.path = read_path_csv("points.csv")
         self.path = read_path_log("points_full")
 
         self.all_goals_reached = False
