@@ -17,6 +17,10 @@ roslaunch turtlebot_rviz_launchers view_navigation.launch
 ```bash
 rosrun task1 face_localizer_dnn
 ```
+or (to create images)
+```bash
+(rm images/* && rosrun task1 face_localizer_dnn) || rosrun task1 face_localizer_dnn
+```
 
 # Shorcuts, tips, tricks
 
