@@ -19,6 +19,9 @@ from std_msgs.msg import ColorRGBA
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from actionlib_msgs.msg import GoalStatusArray
 
+from sound_play.msg import SoundRequest
+from sound_play.libsoundplay import SoundClient
+
 STATUS_DICT = {
     0:"The goal has yet to be processed by the action server",
     1:"The goal is currently being processed by the action server",
@@ -31,6 +34,18 @@ STATUS_DICT = {
     8:"The goal received a cancel request before it started executing and was successfully cancelled (Terminal State)",
     9:"An action client can determine that a goal is LOST. This should not be sent over the wire by an action server",
 }
+
+def speak_to_person():
+    soundhandle = SoundClient()
+    rospy.sleep(1)
+
+    voice = "voice_kal_diphone"
+    volume = 1.0
+    text = "Hello, I am your robot friend"
+    rospy.sleep(1)
+    rospy.loginfo(f"volume: {volume}, voice: {voice}, text:{text}")
+    soundhandle.say(text, voice, volume)
+    rospy.sleep(1)
 
 
 def read_path_log(filename):
@@ -358,6 +373,7 @@ def main():
                 # msg.pose.position.y = face_finder.bot_positions[0][0][1]
                 # msg.pose.position.z = face_finder.bot_positions[0][0][2]
                 pub.publish(msg)
+                speak_to_person()
                 break
 
             if face_finder.next_goal:
