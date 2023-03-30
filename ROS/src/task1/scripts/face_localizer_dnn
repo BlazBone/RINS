@@ -33,7 +33,13 @@ STATUS_DICT = {
 }
 
 
-def read_path_log(filename):
+def read_path_log(filename: str) -> list:
+    """
+    Reads copied published points and creates a path for the bot to follow.
+
+    :param filename: The name of the file to read from.
+    :return: A list of tuples containing the x, y, and z coordinates of the points.
+    """
     path = []
     with open(filename, "r") as f:
         for line in f:
@@ -101,7 +107,13 @@ class face_localizer:
         # array of robot positions when faces are detected
         self.bot_positions = []
    
-    def get_position(self, seq_id) -> PoseStamped: 
+    def get_position(self, seq_id:int) -> PoseStamped: 
+        """
+        Creates a PoseStamped message with the next position in the path.
+
+        :param seq_id: The sequence id of the message.
+        :return: A PoseStamped message with the next position in the path.
+        """
         msg = PoseStamped()
         msg.header.seq = seq_id
         msg.header.frame_id = "map"
@@ -111,25 +123,38 @@ class face_localizer:
         # msg.header.stamp = rospy.get_time()
         return msg
 
-    def check_status(self, data: GoalStatusArray):
-        slist = data.status_list
-        if len(slist) == 0:
+    def check_status(self, data: GoalStatusArray) -> None:
+        """
+        Subscriber (/move_base/status) callback function. Checks the status of the goal and reacts accordingly.
+
+        :param data: The status of the goal.
+        :return: None
+        """
+        status_list = data.status_list
+        if len(status_list) == 0:
             self.next_goal = True
             return
-        rospy.loginfo(f"status: {slist[-1].status}: The goal is currently")
-        rospy.loginfo(f"status {slist[-1].status}: {STATUS_DICT[slist[-1].status]}")
+        rospy.loginfo(f"status: {status_list[-1].status}: The goal is currently")
+        rospy.loginfo(f"status {status_list[-1].status}: {STATUS_DICT[status_list[-1].status]}")
         rospy.loginfo(f"currently_on_path: {self.path}")
-        if slist[-1].status == 3:
+        if status_list[-1].status == 3:
             if not self.path:
                 self.all_goals_reached = True
                 rospy.loginfo("All goals reached.")
             self.next_goal = True
-        elif slist[-1].status not in (0, 1,):
+        elif status_list[-1].status not in (0, 1,):
             self.next_goal = True
 
 
-    def marker_distance(self, pose):
-        # Calculate the distance to the marker
+    def marker_distance(self, pose: PoseStamped) -> float:
+        """
+        Calculates the distance to the closest marker.
+        
+        WARNING: Will be depracted, once we recognize faces more intelligently.
+
+        :param pose: The current position of the robot.
+        :return: The distance to the closest marker.
+        """
         
         min_dist = float("inf")
         for position in self.face_positions:
@@ -281,7 +306,6 @@ class face_localizer:
                     marker.scale = Vector3(0.1, 0.1, 0.1)
                     marker.color = ColorRGBA(0, 1, 0, 1)
                     d = self.marker_distance(pose)
-                    # TODO: check why distance is inf (probably fix face-detection)
                     rospy.loginfo(f"Distance is {d}")
                     message = "Will add" if d > 1 else "will not add"
                     rospy.loginfo(message)
@@ -324,18 +348,11 @@ class face_localizer:
         #plt.show()
 
 def main():
-        # TODO: add sub on topic /amcl_pose
-        # this sub should get current position (once!)
-        # and sort self.path accordingly
         face_finder = face_localizer()
         
-        TOPIC="/move_base_simple/goal"
-        pub = rospy.Publisher(TOPIC, PoseStamped, queue_size=10)
-        # rospy.loginfo(f"Publishing on {TOPIC}")
+        pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
         sub = rospy.Subscriber("/move_base/status", GoalStatusArray, callback=face_finder.check_status)
 
-
-        # print(face_finder.path)
         rate = rospy.Rate(10)
         
         seq_id = 1
