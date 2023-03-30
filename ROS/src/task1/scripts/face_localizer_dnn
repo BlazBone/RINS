@@ -1,15 +1,12 @@
 #!/usr/bin/python3
 
-import sys
 import rospy
 import cv2
 import numpy as np
-import tf2_geometry_msgs
 import tf2_ros
 
 from os.path import dirname, join
 
-#import matplotlib.pyplot as plt
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import PointStamped, Vector3, Pose
 from cv_bridge import CvBridge, CvBridgeError
@@ -18,6 +15,8 @@ from std_msgs.msg import ColorRGBA
 
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from actionlib_msgs.msg import GoalStatusArray
+
+import logging
 
 STATUS_DICT = {
     0:"The goal has yet to be processed by the action server",
@@ -83,28 +82,20 @@ class face_localizer:
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
         
-        # full path of the robot
+        # Path that robot should traverse
         self.path = read_path_log("points_full_small")
-
+    
+        # Boolean marker to check if robot has reached all goals
         self.all_goals_reached = False
-        # self.path = [
-        #     (-0.7952509522438049, 1.5871058702468872, -0.001434326171875),
-        #     (-0.7952509522438049, 1.5871058702468872, -0.001434326171875),
-        #     (-0.7952509522438049, 1.5871058702468872, -0.001434326171875),
-        #     (-0.5639151334762573, 0.8585555553436279, -0.001434326171875),
-        #     (-0.5457677245140076, 0.17789430916309357, -0.001434326171875),
-        #     (-0.24812187254428864, -0.8512775301933289, -0.001434326171875),
-        #     (0.6777873635292053, -1.8661431074142456, -0.001434326171875)
-        # ]
-
         
         if self.path:
+            # Boolean marker to check if robot has a goal currently
             self.next_goal = True
 
-        self.face_search = True
-        # array containing face positions
+        # Array containing face positions
         self.face_positions = []
-        # array of robot positions when faces are detected
+
+        # Array of robot positions when faces are detected
         self.bot_positions = []
    
     def get_position(self, seq_id:int) -> PoseStamped: 
@@ -120,7 +111,6 @@ class face_localizer:
         msg.pose.orientation.w = 1
         msg.pose.position.x = self.path[0][0]
         msg.pose.position.y = self.path[0][1]
-        # msg.header.stamp = rospy.get_time()
         return msg
 
     def check_status(self, data: GoalStatusArray) -> None:
@@ -134,19 +124,20 @@ class face_localizer:
         if len(status_list) == 0:
             self.next_goal = True
             return
-        rospy.loginfo(f"status: {status_list[-1].status}: The goal is currently")
-        rospy.loginfo(f"status {status_list[-1].status}: {STATUS_DICT[status_list[-1].status]}")
-        rospy.loginfo(f"currently_on_path: {self.path}")
+        logging.info(f"status: {status_list[-1].status}: The goal is currently")
+        logging.info(f"status {status_list[-1].status}: {STATUS_DICT[status_list[-1].status]}")
+        logging.info(f"currently_on_path: {self.path}")
         if status_list[-1].status == 3:
             if not self.path:
                 self.all_goals_reached = True
-                rospy.loginfo("All goals reached.")
+            message = "All goals reached." if not self.path else "Reached a goal."
+            rospy.loginfo(message)
             self.next_goal = True
         elif status_list[-1].status not in (0, 1,):
             self.next_goal = True
 
 
-    def marker_distance(self, pose: PoseStamped) -> float:
+    def marker_distance(self, pose: Pose) -> float:
         """
         Calculates the distance to the closest marker.
         
@@ -271,7 +262,6 @@ class face_localizer:
 
                 # Extract region containing face
                 face_region = rgb_image[y1:y2, x1:x2]
-                # cv2.imwrite('face.jpg', face_region) # Save the face image
 
                 # Visualize the extracted face
                 #cv2.imshow("ImWindow", face_region)
@@ -287,8 +277,6 @@ class face_localizer:
 
                 # Find the location of the detected face
                 pose = self.get_pose((x1,x2,y1,y2), face_distance, depth_time)
-
-                # print(f"pose: {pose}")
 
                 if pose is not None:
                     
@@ -306,26 +294,15 @@ class face_localizer:
                     marker.scale = Vector3(0.1, 0.1, 0.1)
                     marker.color = ColorRGBA(0, 1, 0, 1)
                     d = self.marker_distance(pose)
-                    rospy.loginfo(f"Distance is {d}")
-                    message = "Will add" if d > 1 else "will not add"
-                    rospy.loginfo(message)
+                    message = "will add" if d > 1 else "will not add"
+                    logging.info(f"Distance to new snapshot of a face is {d}, {message}.")
                     if d > 1:
                         self.bot_positions.append((p_position, p_orientation, face_distance))
-                        # position = (pose.position.x, pose.position.y, pose.position.z)
-                        # self.face_positions.append(position)
-                        # self.path.append(position)
-                        # rospy.loginfo(f"Added position {position}, curr len: {len(self.face_positions)}")
-                        # added to images as I am deleting it on every run
-                        with open("images/face_coordinates.txt", "a") as f:
+                        with open("run_info/face_coordinates.txt", "a") as f:
                             f.write(f"face_{len(self.bot_positions)}: {p_position}\n")
-                        cv2.imwrite(f'images/face_{len(self.bot_positions)}.jpg', face_region) # Save the face image
+                        cv2.imwrite(f'run_info/face_{len(self.bot_positions)}.jpg', face_region) # Save the face image
                         self.marker_array.markers.append(marker)
                         self.markers_pub.publish(self.marker_array)
-    
-                    # self.face_positions.append(pose)
-                    # print(f"Added position, curr len: {len(self.face_positions)}")
-                    # self.marker_array.markers.append(marker)
-                    # self.markers_pub.publish(self.marker_array)
 
     def depth_callback(self,data):
 
@@ -360,20 +337,12 @@ def main():
             face_finder.find_faces()
 
             if not face_finder.path and face_finder.all_goals_reached:
-                rospy.loginfo("All goals reached, shutting down.")
                 rospy.loginfo(face_finder.bot_positions)
                 msg = PoseStamped()
                 msg.header.seq = seq_id
                 msg.header.frame_id = "map"
                 msg.pose.orientation = face_finder.bot_positions[0][1]
-                # msg.pose.orientation.x = face_finder.bot_positions[0][1][0]
-                # msg.pose.orientation.y = face_finder.bot_positions[0][1][1]
-                # msg.pose.orientation.z = face_finder.bot_positions[0][1][2]
-                # msg.pose.orientation.w = face_finder.bot_positions[0][1][3]
                 msg.pose.position = face_finder.bot_positions[0][0]
-                # msg.pose.position.x = face_finder.bot_positions[0][0][0] 
-                # msg.pose.position.y = face_finder.bot_positions[0][0][1]
-                # msg.pose.position.z = face_finder.bot_positions[0][0][2]
                 pub.publish(msg)
                 break
 
@@ -395,4 +364,6 @@ def main():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(filename='task1.log', filemode='w', level=logging.INFO, format='%(levelname)s:%(message)s')
+    logging.info("Starting task 1")
     main()
