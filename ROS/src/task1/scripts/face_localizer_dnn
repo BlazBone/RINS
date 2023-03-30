@@ -1,11 +1,14 @@
 #!/usr/bin/python3
 
 import sys
+from pandas.core.arrays.timedeltas import sequence_to_td64ns
 import rospy
 import cv2
 import numpy as np
 import tf2_geometry_msgs
 import tf2_ros
+
+import pandas as pd
 
 from os.path import dirname, join
 
@@ -15,6 +18,31 @@ from geometry_msgs.msg import PointStamped, Vector3, Pose
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import ColorRGBA
+
+from geometry_msgs.msg import PoseStamped
+from actionlib_msgs.msg import GoalStatusArray
+
+STATUS_DICT = {
+    0:"The goal has yet to be processed by the action server",
+    1:"The goal is currently being processed by the action server",
+    2:"The goal received a cancel request after it started executing and has since completed its execution (Terminal State)",
+    3:"The goal was achieved successfully by the action server (Terminal State)",
+    4:"The goal was aborted during execution by the action server due to some failure (Terminal State)",
+    5:"The goal was rejected by the action server without being processed, because the goal was unattainable or invalid (Terminal State)",
+    6:"The goal received a cancel request after it started executing and has not yet completed execution",
+    7:"The goal received a cancel request before it started executing but the action server has not yet confirmed that the goal is canceled",
+    8:"The goal received a cancel request before it started executing and was successfully cancelled (Terminal State)",
+    9:"An action client can determine that a goal is LOST. This should not be sent over the wire by an action server",
+}
+
+
+def read_path_csv(filename):
+    df = pd.read_csv(filename)
+    return df.values.tolist()
+
+def read_path_log(filename):
+    with open(filename, "r") as f:
+        print()
 
 
 class face_localizer:
@@ -49,9 +77,55 @@ class face_localizer:
         # Object we use for transforming between coordinate frames
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
+        
+        # full path of the robot
+        self.path = read_path_csv("points.csv")
+        # self.path = read_path_log("points_full")
+        # self.path = [
+        #     (-0.7952509522438049, 1.5871058702468872, -0.001434326171875),
+        #     (-0.7952509522438049, 1.5871058702468872, -0.001434326171875),
+        #     (-0.7952509522438049, 1.5871058702468872, -0.001434326171875),
+        #     (-0.5639151334762573, 0.8585555553436279, -0.001434326171875),
+        #     (-0.5457677245140076, 0.17789430916309357, -0.001434326171875),
+        #     (-0.24812187254428864, -0.8512775301933289, -0.001434326171875),
+        #     (0.6777873635292053, -1.8661431074142456, -0.001434326171875)
+        # ]
+
+        
+        if self.path:
+            self.next_goal = True
+
 
         # array containing face positions
         self.face_positions = []
+    
+    def get_position(self, seq_id) -> PoseStamped: 
+        msg = PoseStamped()
+        msg.header.seq = seq_id
+        msg.header.frame_id = "map"
+        msg.pose.orientation.w = 1
+        msg.pose.position.x = self.path[0][0]
+        msg.pose.position.y = self.path[0][1]
+        # msg.header.stamp = rospy.get_time()
+        return msg
+
+    def check_status(self, data: GoalStatusArray):
+        slist = data.status_list
+        if len(slist) == 0:
+            self.next_goal = True
+            return
+        # rospy.loginfo(f"status: {slist[-1].status}: The goal is currently")
+        # rospy.loginfo(f"status {slist[-1].status}: {STATUS_DICT[slist[-1].status]}")
+        # rospy.loginfo(f"currently_on_path: {self.path}")
+        if slist[-1].status == 3:
+            self.next_goal = True
+        elif slist[-1].status not in (0, 1,):
+            self.next_goal = True
+
+
+    def update_goal(self):
+        self.path.pop()
+        self.next_goal = self.path[0] if self.path else None
 
 
     def marker_distance(self, pose):
@@ -112,7 +186,7 @@ class face_localizer:
         return pose
     
     def find_faces(self):
-        print('I got a new image!')
+        # print('I got a new image!')
 
         # Get the next rgb and depth images that are posted from the camera
         try:
@@ -174,7 +248,7 @@ class face_localizer:
                 # Find the distance to the detected face
                 face_distance = float(np.nanmean(depth_image[y1:y2,x1:x2]))
 
-                print('Distance to face', face_distance)
+                # print('Distance to face', face_distance)
 
                 # Get the time that the depth image was recieved
                 depth_time = depth_image_message.header.stamp
@@ -200,12 +274,13 @@ class face_localizer:
                     marker.scale = Vector3(0.1, 0.1, 0.1)
                     marker.color = ColorRGBA(0, 1, 0, 1)
                     d = self.marker_distance(pose)
-                    print(f"Distance is {d}")
+                    rospy.loginfo(f"Distance is {d}")
                     message = "Will add" if d > 1 else "will not add"
-                    print(message)
+                    rospy.loginfo(message)
                     if d > 1:
                         self.face_positions.append(pose)
-                        print(f"Added position, curr len: {len(self.face_positions)}")
+                        rospy.loginfo(f"Added position, curr len: {len(self.face_positions)}")
+                        cv2.imwrite(f'images/face_{len(self.face_positions)}.jpg', face_region) # Save the face image
                         self.marker_array.markers.append(marker)
                         self.markers_pub.publish(self.marker_array)
     
@@ -235,12 +310,42 @@ class face_localizer:
         #plt.show()
 
 def main():
-
+        
         face_finder = face_localizer()
 
-        rate = rospy.Rate(1)
+        TOPIC="/move_base_simple/goal"
+        pub = rospy.Publisher(TOPIC, PoseStamped, queue_size=10)
+        # rospy.loginfo(f"Publishing on {TOPIC}")
+        sub = rospy.Subscriber("/move_base/status", GoalStatusArray, callback=face_finder.check_status)
+
+
+        # print(face_finder.path)
+        rate = rospy.Rate(10)
+        
+        seq_id = 1
         while not rospy.is_shutdown():
             face_finder.find_faces()
+
+            # ex3
+            # if goals_idx >= len(GOALS) and NEXT_GOAL == True:
+            if not face_finder.path:
+                rospy.loginfo("All goals reached, shutting down.")
+                break
+
+            if face_finder.next_goal:
+                msg = face_finder.get_position(seq_id) 
+                seq_id += 1
+                # rospy.loginfo(f"Publishing goal {seq_id}.")
+                pub.publish(msg)
+                # rospy.loginfo(f"Goal {seq_id} published")
+                # rospy.loginfo(msg)
+                face_finder.path.pop(0)
+                face_finder.next_goal = False
+            else:
+                # rospy.spin()
+                pass
+
+
             rate.sleep()
 
         cv2.destroyAllWindows()
