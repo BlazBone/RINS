@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 import tf2_geometry_msgs
 import tf2_ros
+import os
 
 from os.path import dirname, join
 
@@ -93,7 +94,8 @@ class face_localizer:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
         
         # full path of the robot
-        self.path = read_path_log("points_full_small")
+        points_path = os.path.join(os.path.dirname(__file__), "points_full_small")
+        self.path = read_path_log(points_path)
 
         self.all_goals_reached = False
         # self.path = [
@@ -307,9 +309,12 @@ class face_localizer:
                         # self.path.append(position)
                         # rospy.loginfo(f"Added position {position}, curr len: {len(self.face_positions)}")
                         # added to images as I am deleting it on every run
-                        with open("images/face_coordinates.txt", "a") as f:
+                        coordinates_path = os.path.join(os.path.dirname(__file__), "../images/face_coordinates.txt")
+                        with open(coordinates_path, "a") as f:
                             f.write(f"face_{len(self.bot_positions)}: {p_position}\n")
-                        cv2.imwrite(f'images/face_{len(self.bot_positions)}.jpg', face_region) # Save the face image
+                        # use path of the file so i can run it from anywhere
+                        relative_path_to_image = os.path.join(os.path.dirname(__file__), f"../images/face_{len(self.bot_positions)}.jpg")
+                        cv2.imwrite(relative_path_to_image, face_region) # Save the face image
                         self.marker_array.markers.append(marker)
                         self.markers_pub.publish(self.marker_array)
     
