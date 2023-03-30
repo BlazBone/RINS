@@ -78,7 +78,7 @@ class face_localizer:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
         
         # full path of the robot
-        self.path = read_path_log("points_full")
+        self.path = read_path_log("points_full_small")
 
         self.all_goals_reached = False
         # self.path = [
@@ -232,7 +232,11 @@ class face_localizer:
         blob = cv2.dnn.blobFromImage(cv2.resize(rgb_image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
         self.face_net.setInput(blob)
         face_detections = self.face_net.forward()
-
+        
+        p = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
+        p_position = p.pose.pose.position
+        p_orientation = p.pose.pose.orientation
+        
         for i in range(0, face_detections.shape[2]):
             confidence = face_detections[0, 0, i, 2]
             if confidence>0.75:
@@ -282,18 +286,15 @@ class face_localizer:
                     message = "Will add" if d > 1 else "will not add"
                     rospy.loginfo(message)
                     if d > 1:
-                        p = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
-                        p_position = (p.pose.pose.position.x, p.pose.pose.position.y, p.pose.pose.position.z)
-                        p_orientation = (p.pose.pose.orientation.x, p.pose.pose.orientation.y, p.pose.pose.orientation.z, p.pose.pose.orientation.w)
                         self.bot_positions.append((p_position, p_orientation, face_distance))
-                        position = (pose.position.x, pose.position.y, pose.position.z)
+                        # position = (pose.position.x, pose.position.y, pose.position.z)
                         # self.face_positions.append(position)
                         # self.path.append(position)
                         # rospy.loginfo(f"Added position {position}, curr len: {len(self.face_positions)}")
                         # added to images as I am deleting it on every run
                         with open("images/face_coordinates.txt", "a") as f:
-                            f.write(f"face_{len(self.face_positions)}: {position}\n")
-                        cv2.imwrite(f'images/face_{len(self.face_positions)}.jpg', face_region) # Save the face image
+                            f.write(f"face_{len(self.bot_positions)}: {p_position}\n")
+                        cv2.imwrite(f'images/face_{len(self.bot_positions)}.jpg', face_region) # Save the face image
                         self.marker_array.markers.append(marker)
                         self.markers_pub.publish(self.marker_array)
     
@@ -347,13 +348,15 @@ def main():
                 msg = PoseStamped()
                 msg.header.seq = seq_id
                 msg.header.frame_id = "map"
-                msg.pose.orientation.x = face_finder.bot_positions[0][1][0]
-                msg.pose.orientation.y = face_finder.bot_positions[0][1][1]
-                msg.pose.orientation.z = face_finder.bot_positions[0][1][2]
-                msg.pose.orientation.w = face_finder.bot_positions[0][1][3]
-                msg.pose.position.x = face_finder.bot_positions[0][0][0] 
-                msg.pose.position.y = face_finder.bot_positions[0][0][1]
-                msg.pose.position.z = face_finder.bot_positions[0][0][2]
+                msg.pose.orientation = face_finder.bot_positions[0][1]
+                # msg.pose.orientation.x = face_finder.bot_positions[0][1][0]
+                # msg.pose.orientation.y = face_finder.bot_positions[0][1][1]
+                # msg.pose.orientation.z = face_finder.bot_positions[0][1][2]
+                # msg.pose.orientation.w = face_finder.bot_positions[0][1][3]
+                msg.pose.position = face_finder.bot_positions[0][0]
+                # msg.pose.position.x = face_finder.bot_positions[0][0][0] 
+                # msg.pose.position.y = face_finder.bot_positions[0][0][1]
+                # msg.pose.position.z = face_finder.bot_positions[0][0][2]
                 pub.publish(msg)
                 break
 
