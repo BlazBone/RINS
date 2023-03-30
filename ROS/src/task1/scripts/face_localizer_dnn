@@ -16,7 +16,6 @@ from std_msgs.msg import ColorRGBA
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from actionlib_msgs.msg import GoalStatusArray
 
-import logging
 
 STATUS_DICT = {
     0:"The goal has yet to be processed by the action server",
@@ -97,7 +96,7 @@ class face_localizer:
 
         # Array of robot positions when faces are detected
         self.bot_positions = []
-   
+
     def get_position(self, seq_id:int) -> PoseStamped: 
         """
         Creates a PoseStamped message with the next position in the path.
@@ -124,9 +123,9 @@ class face_localizer:
         if len(status_list) == 0:
             self.next_goal = True
             return
-        logging.info(f"status: {status_list[-1].status}: The goal is currently")
-        logging.info(f"status {status_list[-1].status}: {STATUS_DICT[status_list[-1].status]}")
-        logging.info(f"currently_on_path: {self.path}")
+        rospy.loginfo(f"status: {status_list[-1].status}: The goal is currently")
+        rospy.loginfo(f"status {status_list[-1].status}: {STATUS_DICT[status_list[-1].status]}")
+        rospy.loginfo(f"currently_on_path: {self.path}")
         if status_list[-1].status == 3:
             if not self.path:
                 self.all_goals_reached = True
@@ -295,7 +294,7 @@ class face_localizer:
                     marker.color = ColorRGBA(0, 1, 0, 1)
                     d = self.marker_distance(pose)
                     message = "will add" if d > 1 else "will not add"
-                    logging.info(f"Distance to new snapshot of a face is {d}, {message}.")
+                    rospy.loginfo(f"Distance to new snapshot of a face is {d}, {message}.")
                     if d > 1:
                         self.bot_positions.append((p_position, p_orientation, face_distance))
                         with open("run_info/face_coordinates.txt", "a") as f:
@@ -364,6 +363,4 @@ def main():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='task1.log', filemode='w', level=logging.INFO, format='%(levelname)s:%(message)s')
-    logging.info("Starting task 1")
     main()
