@@ -105,8 +105,8 @@ class face_localizer:
         self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
 
         # full path of the robot
-        points_path = os.path.join(os.path.dirname(__file__), "points_full_small")
-        # points_path = os.path.join(os.path.dirname(__file__), "points_full")
+        # points_path = os.path.join(os.path.dirname(__file__), "points_full_small")
+        points_path = os.path.join(os.path.dirname(__file__), "points_full")
         self.path = read_path_log(points_path)
         self.face_path = []
 
