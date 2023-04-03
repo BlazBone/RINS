@@ -21,6 +21,10 @@ roslaunch turtlebot_rviz_launchers view_navigation.launch
 ```
 
 ```bash
+rosrun sound_play soundplay_node.py
+```
+
+```bash
 rosrun task1 face_localizer_dnn
 ```
 
