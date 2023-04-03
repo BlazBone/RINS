@@ -18,7 +18,7 @@ from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import Bool, ColorRGBA
 
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
-from actionlib_msgs.msg import GoalStatusArray
+from actionlib_msgs.msg import GoalID, GoalStatusArray
 
 from sound_play.msg import SoundRequest
 from sound_play.libsoundplay import SoundClient
@@ -60,7 +60,12 @@ def read_path_log(filename):
                 x = float(line.strip().split(" ")[1])
                 y = float(f.readline().strip().split(" ")[1])
                 z = float(f.readline().strip().split(" ")[1])
+                # p = Pose()
+                # p.position.x = x
+                # p.position.y = y
+                # p.position.z = z
                 path.append((x, y, z))
+                # path.append(p)
     return path
 
 class face_localizer:
@@ -96,31 +101,25 @@ class face_localizer:
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
         
+        self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
+        self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
+
         # full path of the robot
-        # points_path = os.path.join(os.path.dirname(__file__), "points_full_small")
-        points_path = os.path.join(os.path.dirname(__file__), "points_full")
+        points_path = os.path.join(os.path.dirname(__file__), "points_full_small")
+        # points_path = os.path.join(os.path.dirname(__file__), "points_full")
         self.path = read_path_log(points_path)
         self.face_path = []
 
         self.path_idx = 0
         self.face_path_idx = 0
+        
+        self.go_to_face = False
+
+        self.number_of_faces_in_current_movement = 0
 
         self.all_goals_reached = False
         self.goal_reached = False
 
-        self.number_of_poses_sent = 0
-
-        # self.path = [
-        #     (-0.7952509522438049, 1.5871058702468872, -0.001434326171875),
-        #     (-0.7952509522438049, 1.5871058702468872, -0.001434326171875),
-        #     (-0.7952509522438049, 1.5871058702468872, -0.001434326171875),
-        #     (-0.5639151334762573, 0.8585555553436279, -0.001434326171875),
-        #     (-0.5457677245140076, 0.17789430916309357, -0.001434326171875),
-        #     (-0.24812187254428864, -0.8512775301933289, -0.001434326171875),
-        #     (0.6777873635292053, -1.8661431074142456, -0.001434326171875)
-        # ]
-
-        
         if self.path:
             self.next_goal = True
 
@@ -130,7 +129,64 @@ class face_localizer:
         # array of robot positions when faces are detected
         self.bot_positions = []
     
-    def status_reached(self) -> bool:
+    def get_greeting_pose(self, coords, dist, stamp, pose_of_detection: PoseWithCovarianceStamped) -> Pose:
+    # def get_pose(self,coords,dist,stamp):
+        # Calculate the position of the detected face
+        k_f = 554 # kinect focal length in pixels
+
+        x1, x2, y1, y2 = coords
+
+        face_x = self.dims[1] / 2 - (x1+x2)/2.
+        face_y = self.dims[0] / 2 - (y1+y2)/2.
+
+        angle_to_target = np.arctan2(face_x,k_f)
+
+        # Get the angles in the base_link relative coordinate system
+        # x, y = 0.8 * dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
+        # step away from image 0.4 units
+        dist -= 0.4
+        x, y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
+
+        ### Define a stamped message for transformation - directly in "base_link"
+        #point_s = PointStamped()
+        #point_s.point.x = x
+        #point_s.point.y = y
+        #point_s.point.z = 0.3
+        #point_s.header.frame_id = "base_link"
+        #point_s.header.stamp = rospy.Time(0)
+
+        # Define a stamped message for transformation - in the "camera rgb frame"
+        point_s = PointStamped()
+        point_s.point.x = -y
+        point_s.point.y = 0
+        point_s.point.z = x
+        point_s.header.frame_id = "camera_rgb_optical_frame"
+        point_s.header.stamp = stamp
+
+        # Get the point in the "map" coordinate system
+        try:
+            point_world = self.tf_buf.transform(point_s, "map")
+
+            # Create a Pose object with the same position
+            pose = Pose()
+            pose.position.x = point_world.point.x
+            pose.position.y = point_world.point.y
+            pose.position.z = point_world.point.z
+            bot_relative_orientation = angle_to_target/np.pi
+            pose_orientation = pose_of_detection.pose.pose.orientation.z + bot_relative_orientation
+            if pose_orientation > 1:
+                pose_orientation -= 2
+            elif pose_orientation < -1:
+                pose_orientation += 2
+            pose.orientation.z = pose_orientation
+        except Exception as e:
+            print(e)
+            pose = None
+
+        return pose
+
+    # def status_reached(self) -> tuple[bool, int]:
+    def status_reached(self):
         """
         Function listenes for status updates on topic /move_base/status.
 
@@ -141,60 +197,45 @@ class face_localizer:
         status = rospy.wait_for_message("/move_base/status", GoalStatusArray)
         if status.status_list[-1].status in (0, 1):
             # goal is being processed
-            return False
+            return False,status.status_list[-1].status
         else:
             # goal is done (successfully or not)
-            return True
+            return True,status.status_list[-1].status
     
-    def create_goal(self, pub:rospy.Publisher, position_idx: int, go_to_face: bool) -> PoseStamped:
+    def publish_new_position(self) -> None:
         """
         Publishes a new position to the robot.
 
         If go_to_face, go to the 'position_idx' of the self.face_path, else go to 'position_idx' of self.path.
         """
         msg = PoseStamped()
-        # msg.header.seq = self.number_of_poses_sent
-        # self.number_of_poses_sent += 1
         msg.header.frame_id = "map"
         msg.header.stamp = rospy.Time().now()
         # TODO: add orientation
-        if go_to_face:
-            msg.pose.orientation.w = 1
+        if self.go_to_face:
+            # msg.pose = self.face_path[position_idx]
+            position_idx = self.face_path_idx
+            if position_idx >= len(self.face_path):
+                return
             msg.pose.position.x = self.face_path[position_idx][0]
             msg.pose.position.y = self.face_path[position_idx][1]
+            msg.pose.orientation.z = self.face_path[position_idx][3]
+            msg.pose.orientation.w = 1
+            self.face_path_idx += 1
         else:
+            # msg.pose = self.path[position_idx]
+            position_idx = self.path_idx
+            if position_idx >= len(self.path):
+                return
             msg.pose.orientation.w = 1
             msg.pose.position.x = self.path[position_idx][0]
             msg.pose.position.y = self.path[position_idx][1]
-        # array = "face_path" if go_to_face else "path"
-        # rospy.loginfo(f"Published goal at {position_idx} for array {array}.")
-        # rospy.loginfo(msg)
-        return msg
-
-    def publish_new_position(self, pub:rospy.Publisher, position_idx: int, go_to_face: bool) -> None:
-        """
-        Publishes a new position to the robot.
-
-        If go_to_face, go to the 'position_idx' of the self.face_path, else go to 'position_idx' of self.path.
-        """
-        msg = PoseStamped()
-        # msg.header.seq = self.number_of_poses_sent
-        # self.number_of_poses_sent += 1
-        msg.header.frame_id = "map"
-        msg.header.stamp = rospy.Time().now()
-        # TODO: add orientation
-        if go_to_face:
-            msg.pose.orientation.w = 1
-            msg.pose.position.x = self.face_path[position_idx][0]
-            msg.pose.position.y = self.face_path[position_idx][1]
-        else:
-            msg.pose.orientation.w = 1
-            msg.pose.position.x = self.path[position_idx][0]
-            msg.pose.position.y = self.path[position_idx][1]
-        pub.publish(msg)
-        array = "face_path" if go_to_face else "path"
+            self.path_idx += 1
+        self.simple_goal_pub.publish(msg)
+        array = "face_path" if self.go_to_face else "path"
         rospy.loginfo(f"Published goal at {position_idx} for array {array}.")
         rospy.loginfo(msg)
+
 
 
     def get_position(self, seq_id) -> PoseStamped: 
@@ -441,6 +482,9 @@ class face_localizer:
             print(e)
             return 0
 
+        # get robot position in moment of taking a picture
+        p = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
+
         try:
             depth_image_message = rospy.wait_for_message("/camera/depth/image_raw", Image)
         except Exception as e:
@@ -474,12 +518,13 @@ class face_localizer:
         #face_rectangles = self.face_detector(rgb_image, 0)
         blob = cv2.dnn.blobFromImage(cv2.resize(rgb_image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
         self.face_net.setInput(blob)
+        
+        # no false positives yet, will keep as it is
         face_detections = self.face_net.forward()
         
-        p = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
         p_position = p.pose.pose.position
         p_orientation = p.pose.pose.orientation
-        
+ 
         for i in range(0, face_detections.shape[2]):
             confidence = face_detections[0, 0, i, 2]
             if confidence>0.75:
@@ -532,6 +577,19 @@ class face_localizer:
                         self.bot_positions.append((p_position, p_orientation, face_distance))
                         position = (pose.position.x, pose.position.y, pose.position.z)
                         self.face_positions.append(position)
+                        greeting_pose = self.get_greeting_pose((x1,x2,y1,y2), face_distance, depth_time, p)
+                        greeting_position = (
+                                greeting_pose.position.x,
+                                greeting_pose.position.y,
+                                greeting_pose.position.z,
+                                greeting_pose.orientation.z,
+                        )
+                        self.face_path.append(greeting_position)
+                        # once face is detected, cancel goal and set go_to_face to true
+                        cancel_msg = GoalID()
+                        self.cancel_goal_pub.publish(cancel_msg)
+                        self.go_to_face = True
+                        # self.face_path.append(self.get_greeting_position((x1,x2,y1,y2), face_distance, depth_time))
                         # self.path.append(position)
                         # rospy.loginfo(f"Added position {position}, curr len: {len(self.face_positions)}")
                         # added to images as I am deleting it on every run
@@ -577,8 +635,6 @@ def main():
 
 
         
-        TOPIC="/move_base_simple/goal"
-        pub = rospy.Publisher(TOPIC, PoseStamped, queue_size=10)
         # rospy.loginfo(f"Publishing on {TOPIC}")
         # sub = rospy.Subscriber("/move_base/status", GoalStatusArray, callback=face_finder.check_status)
 
@@ -588,63 +644,30 @@ def main():
         
         # BOT NEEDS TO SLEEP BEFORE TO FUNCTION!
         rospy.sleep(1)
-        face_finder.publish_new_position(pub=pub, position_idx=0, go_to_face=False)                
+        face_finder.publish_new_position()                
 
         # seq_id = 1
         while not rospy.is_shutdown():
             face_finder.find_faces()
             
-            # face_finder.publish_new_position(pub=pub, position_idx=0, go_to_face=False)                
-            # face_finder.publish_new_position(pub=pub, position_idx=0, go_to_face=False)                
-            # face_finder.publish_new_position(pub=pub, position_idx=0, go_to_face=False)                
-            # face_finder.publish_new_position(pub=pub, position_idx=1, go_to_face=False)                
-            # face_finder.publish_new_position(pub=pub, position_idx=1, go_to_face=False)                
-            # face_finder.publish_new_position(pub=pub, position_idx=2, go_to_face=False)                
-            # face_finder.publish_new_position(pub=pub, position_idx=2, go_to_face=False)                
-            # face_finder.publish_new_position(pub=pub, position_idx=2, go_to_face=False)                
-            
-            reached = face_finder.status_reached() 
+            reached, status = face_finder.status_reached() 
             if reached:
-                next_idx = face_finder.path_idx + 1
-                if next_idx < len(face_finder.path):
-                    face_finder.publish_new_position(pub=pub, position_idx=next_idx,go_to_face=False)
-                    face_finder.path_idx += 1
-                else:
-                    rospy.loginfo("All goals reached.")
-                    break
-            # while True:
-            #     pass
+                if status == 3 and face_finder.go_to_face:
+                    speak_to_person()
+                    face_finder.go_to_face = False
+                face_finder.publish_new_position()
 
-            # if not face_finder.path and face_finder.all_goals_reached:
-            #     rospy.loginfo("All goals reached, shutting down.")
-            #     rospy.loginfo(face_finder.bot_positions)
-            #     msg = PoseStamped()
-            #     msg.header.seq = seq_id
-            #     msg.header.frame_id = "map"
-            #     msg.pose.orientation = face_finder.bot_positions[0][1]
-            #     # msg.pose.orientation.x = face_finder.bot_positions[0][1][0]
-            #     # msg.pose.orientation.y = face_finder.bot_positions[0][1][1]
-            #     # msg.pose.orientation.z = face_finder.bot_positions[0][1][2]
-            #     # msg.pose.orientation.w = face_finder.bot_positions[0][1][3]
-            #     msg.pose.position = face_finder.bot_positions[0][0]
-            #     # msg.pose.position.x = face_finder.bot_positions[0][0][0] 
-            #     # msg.pose.position.y = face_finder.bot_positions[0][0][1]
-            #     # msg.pose.position.z = face_finder.bot_positions[0][0][2]
-            #     pub.publish(msg)
-            #     speak_to_person()
-            #     face_finder.aproach_face_in_view()
-            #     break
-            #
-            # if face_finder.next_goal:
-            #     rospy.loginfo(f"Next goal is: {face_finder.path[0]}")
-            #     msg = face_finder.get_position(seq_id) 
-            #     seq_id += 1
-            #     pub.publish(msg)
-            #     face_finder.path.pop(0)
-            #     face_finder.next_goal = False
-            # else:
-            #     # rospy.spin()
-            #     pass
+            if face_finder.path_idx == len(face_finder.path) and face_finder.face_path_idx == len(face_finder.face_path):
+                rospy.loginfo("All goals reached")
+                break
+                # else:
+                #     rospy.loginfo("All goals reached.")
+                #     rospy.loginfo(face_finder.face_path)
+                #     face_finder.publish_new_position()
+                #     while not face_finder.status_reached():
+                #         pass
+                #     face_finder.publish_new_position()
+                #     break
 
 
             rate.sleep()
