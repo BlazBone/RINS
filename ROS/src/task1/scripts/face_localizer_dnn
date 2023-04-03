@@ -23,6 +23,9 @@ from actionlib_msgs.msg import GoalStatusArray
 from sound_play.msg import SoundRequest
 from sound_play.libsoundplay import SoundClient
 
+from sensor_msgs.msg import CameraInfo
+from image_geometry import PinholeCameraModel
+
 STATUS_DICT = {
     0:"The goal has yet to be processed by the action server",
     1:"The goal is currently being processed by the action server",
@@ -331,6 +334,9 @@ class face_localizer:
         # create a new goal
         publish = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=10)
         publish.publish(new_pose)
+
+        ## now we just need to calculate how much we need to move forward
+
 
         print("PUBLISHIG MESSAGE", new_pose)
 
