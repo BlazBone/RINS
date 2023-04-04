@@ -10,7 +10,7 @@ import os
 
 from os.path import dirname, join
 
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import PointStamped, Vector3, Pose
 from cv_bridge import CvBridge, CvBridgeError
@@ -46,10 +46,10 @@ def speak_to_person():
     voice = "voice_kal_diphone"
     volume = 1.0
     text = "Hello, I am your robot friend"
-    rospy.sleep(1)
+    # rospy.sleep(1)
     rospy.loginfo(f"volume: {volume}, voice: {voice}, text:{text}")
     soundhandle.say(text, voice, volume)
-    rospy.sleep(1)
+    # rospy.sleep(1)
 
 
 def read_path_log(filename):
@@ -105,11 +105,11 @@ class face_localizer:
         self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
 
         # full path of the robot
-        # points_path = os.path.join(os.path.dirname(__file__), "points_full_small")
-        points_path = os.path.join(os.path.dirname(__file__), "points_full")
+        points_path = os.path.join(os.path.dirname(__file__), "points_full_small")
+        # points_path = os.path.join(os.path.dirname(__file__), "points_full")
         self.path = read_path_log(points_path)
         self.face_path = []
-
+        
         self.path_idx = 0
         self.face_path_idx = 0
         
@@ -126,9 +126,11 @@ class face_localizer:
         self.face_search = True
         # array containing face positions
         self.face_positions = []
+        self.FACE_DISTANCE_TOLERANCE = 1
+
         # array of robot positions when faces are detected
         self.bot_positions = []
-    
+   
     def get_greeting_pose(self, coords, dist, stamp, pose_of_detection: PoseWithCovarianceStamped) -> Pose:
     # def get_pose(self,coords,dist,stamp):
         # Calculate the position of the detected face
@@ -268,14 +270,15 @@ class face_localizer:
         # Calculate the distance to the marker
         
         min_dist = float("inf")
-        for position in self.face_positions:
+        for n, position in enumerate(self.face_positions):
             dist = np.sqrt((pose.position.x - position[0])**2 + (pose.position.y - position[1])**2)
             if dist < min_dist:
                 min_dist = dist
+                # min_idx = n
 
         if min_dist == float("inf") and self.face_positions:
             return 0
-
+        
         return min_dist
 
     def get_pose(self,coords,dist,stamp):
@@ -508,6 +511,7 @@ class face_localizer:
         h = self.dims[0]
         w = self.dims[1]
 
+
         # Tranform image to gayscale
         #gray = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2GRAY)
 
@@ -570,13 +574,15 @@ class face_localizer:
                     marker.color = ColorRGBA(0, 1, 0, 1)
                     d = self.marker_distance(pose)
                     # TODO: check why distance is inf (probably fix face-detection)
-                    rospy.loginfo(f"Distance is {d}")
-                    message = "Will add" if d > 1 else "will not add"
+                    rospy.loginfo(f"Distance is {d}.")
+                    message = "Will add" if d > self.FACE_DISTANCE_TOLERANCE else "will not add"
                     rospy.loginfo(message)
-                    if d > 1:
+                    if d > self.FACE_DISTANCE_TOLERANCE:
                         self.bot_positions.append((p_position, p_orientation, face_distance))
                         position = (pose.position.x, pose.position.y, pose.position.z)
+
                         self.face_positions.append(position)
+
                         greeting_pose = self.get_greeting_pose((x1,x2,y1,y2), face_distance, depth_time, p)
                         greeting_position = (
                                 greeting_pose.position.x,
@@ -585,27 +591,19 @@ class face_localizer:
                                 greeting_pose.orientation.z,
                         )
                         self.face_path.append(greeting_position)
+
                         # once face is detected, cancel goal and set go_to_face to true
                         cancel_msg = GoalID()
                         self.cancel_goal_pub.publish(cancel_msg)
+
                         self.go_to_face = True
-                        # self.face_path.append(self.get_greeting_position((x1,x2,y1,y2), face_distance, depth_time))
-                        # self.path.append(position)
-                        # rospy.loginfo(f"Added position {position}, curr len: {len(self.face_positions)}")
-                        # added to images as I am deleting it on every run
-                        # coordinates_path = os.path.join(os.path.dirname(__file__), "../images/face_coordinates.txt")
-                        # with open(coordinates_path, "a") as f:
-                        #     f.write(f"face_{len(self.bot_positions)}: {p_position}\n")
-                        # # use path of the file so i can run it from anywhere
-                        # relative_path_to_image = os.path.join(os.path.dirname(__file__), f"../images/face_{len(self.bot_positions)}.jpg")
-                        # cv2.imwrite(relative_path_to_image, face_region) # Save the face image
+
+                        relative_path_to_image = os.path.join(os.path.dirname(__file__), f"../images/face_{len(self.face_path)}.jpg")
+                        cv2.imwrite(relative_path_to_image, face_region) # Save the face image
+
                         self.marker_array.markers.append(marker)
                         self.markers_pub.publish(self.marker_array)
     
-                    # self.face_positions.append(pose)
-                    # print(f"Added position, curr len: {len(self.face_positions)}")
-                    # self.marker_array.markers.append(marker)
-                    # self.markers_pub.publish(self.marker_array)
 
     def depth_callback(self,data):
 
@@ -628,7 +626,7 @@ class face_localizer:
         #plt.show()
 
 def main():
-        # TODO: add sub on topic /amcl_pose
+       # TODO: add sub on topic /amcl_pose
         # this sub should get current position (once!)
         # and sort self.path accordingly
         face_finder = face_localizer()
