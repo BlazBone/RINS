@@ -52,6 +52,28 @@ def speak_to_person():
     # rospy.sleep(1)
 
 
+def read_path_log_orientation(filename):
+    path = []
+    with open(filename, "r") as f:
+        for line in f:
+            
+            if line.strip().startswith("position:"):
+                
+                x = float(f.readline().strip().split(" ")[1])
+                y = float(f.readline().strip().split(" ")[1])
+                z = float(f.readline().strip().split(" ")[1])
+                # skipings text "orinetation: "
+                f.readline()
+                x_orientation = float(f.readline().strip().split(" ")[1])
+                y_orientation = float(f.readline().strip().split(" ")[1])
+                z_orientation = float(f.readline().strip().split(" ")[1])
+                w_orientation = float(f.readline().strip().split(" ")[1])
+
+                path.append((x, y, z, z_orientation, w_orientation))
+                # path.append(p)
+    print(path)
+    return path
+
 def read_path_log(filename):
     path = []
     with open(filename, "r") as f:
@@ -60,14 +82,8 @@ def read_path_log(filename):
                 x = float(line.strip().split(" ")[1])
                 y = float(f.readline().strip().split(" ")[1])
                 z = float(f.readline().strip().split(" ")[1])
-                # p = Pose()
-                # p.position.x = x
-                # p.position.y = y
-                # p.position.z = z
                 path.append((x, y, z))
-                # path.append(p)
     return path
-
 class face_localizer:
 
     def __init__(self):
@@ -105,9 +121,11 @@ class face_localizer:
         self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
 
         # full path of the robot
-        points_path = os.path.join(os.path.dirname(__file__), "points_full_small")
+        # points_path = os.path.join(os.path.dirname(__file__), "points_full_small")
+        points_path = os.path.join(os.path.dirname(__file__), "newpoints.txt")
         # points_path = os.path.join(os.path.dirname(__file__), "points_full")
-        self.path = read_path_log(points_path)
+        self.path = read_path_log_orientation(points_path)
+        # self.path = read_path_log(points_path)
         self.face_path = []
         
         self.path_idx = 0
@@ -232,23 +250,14 @@ class face_localizer:
             msg.pose.orientation.w = 1
             msg.pose.position.x = self.path[position_idx][0]
             msg.pose.position.y = self.path[position_idx][1]
+            msg.pose.orientation.z = self.path[position_idx][3]
+            msg.pose.orientation.w = self.path[position_idx][4]
             self.path_idx += 1
         self.simple_goal_pub.publish(msg)
         array = "face_path" if self.go_to_face else "path"
         rospy.loginfo(f"Published goal at {position_idx} for array {array}.")
         rospy.loginfo(msg)
 
-
-
-    def get_position(self, seq_id) -> PoseStamped: 
-        msg = PoseStamped()
-        msg.header.seq = seq_id
-        msg.header.frame_id = "map"
-        msg.pose.orientation.w = 1
-        msg.pose.position.x = self.path[0][0]
-        msg.pose.position.y = self.path[0][1]
-        # msg.header.stamp = rospy.get_time()
-        return msg
 
     def check_status(self, data: GoalStatusArray):
         slist = data.status_list
@@ -595,7 +604,7 @@ class face_localizer:
                         # once face is detected, cancel goal and set go_to_face to true
                         cancel_msg = GoalID()
 
-                        # UNCOMENT TO GO TO FACE
+                        # UNCOMENT TO GO TO
                         # self.cancel_goal_pub.publish(cancel_msg)
                         # self.path_idx -= 1
                         # self.go_to_face = True
