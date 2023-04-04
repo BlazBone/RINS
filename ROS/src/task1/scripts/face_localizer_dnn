@@ -531,7 +531,7 @@ class face_localizer:
  
         for i in range(0, face_detections.shape[2]):
             confidence = face_detections[0, 0, i, 2]
-            if confidence>0.75:
+            if confidence>0.50:
                 box = face_detections[0,0,i,3:7] * np.array([w,h,w,h])
                 box = box.astype('int')
                 x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
@@ -594,9 +594,11 @@ class face_localizer:
 
                         # once face is detected, cancel goal and set go_to_face to true
                         cancel_msg = GoalID()
-                        self.cancel_goal_pub.publish(cancel_msg)
 
-                        self.go_to_face = True
+                        # UNCOMENT TO GO TO FACE
+                        # self.cancel_goal_pub.publish(cancel_msg)
+                        # self.path_idx -= 1
+                        # self.go_to_face = True
 
                         relative_path_to_image = os.path.join(os.path.dirname(__file__), f"../images/face_{len(self.face_path)}.jpg")
                         cv2.imwrite(relative_path_to_image, face_region) # Save the face image
@@ -638,7 +640,7 @@ def main():
 
 
         # print(face_finder.path)
-        rate = rospy.Rate(10)
+        rate = rospy.Rate(50)
         
         # BOT NEEDS TO SLEEP BEFORE TO FUNCTION!
         rospy.sleep(1)
