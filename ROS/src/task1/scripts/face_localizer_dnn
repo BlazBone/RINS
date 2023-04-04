@@ -143,12 +143,12 @@ class face_localizer:
         ])
 
         # full path of the robot
-        # points_path = os.path.join(os.path.dirname(__file__), "newpoints.txt")
+        points_path = os.path.join(os.path.dirname(__file__), "newpoints.txt")
         # self.path = read_path_log_orientation(points_path)
 
         # points_path = os.path.join(os.path.dirname(__file__), "points_full_small")
-        points_path = os.path.join(os.path.dirname(__file__), "points_full")
-        self.path = read_path_log(points_path)
+        #points_path = os.path.join(os.path.dirname(__file__), "points_full")
+        self.path = read_path_log_orientation(points_path)
 
         self.face_path = []
         
@@ -692,6 +692,7 @@ class face_localizer:
         #plt.show()
 
 def main():
+        print(DEVICE)
        # TODO: add sub on topic /amcl_pose
         # this sub should get current position (once!)
         # and sort self.path accordingly
