@@ -130,7 +130,7 @@ class face_localizer:
         # resnet18 should suffice, all possible modes: 18, 34, 50, 101, 152
         # COMMENT: resnet18 doesn't suffice, all faces are pretty similar then
         # COMMENT: resnet101 works beautifully, but is quite slow at the end
-        self.model = models.resnet101(pretrained=True)
+        self.model = models.resnet50(pretrained=True)
         self.model.to(DEVICE)
         self.model.eval()
         for param in self.model.parameters():
