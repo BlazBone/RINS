@@ -35,6 +35,9 @@ import torchvision.models as models
 from torchvision import transforms
 from PIL import Image as _i
 
+from facenet_pytorch import InceptionResnetV1
+
+
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 NUMBER_OF_FACES_ON_THE_MAP = 3
@@ -135,7 +138,8 @@ class face_localizer:
         # resnet18 should suffice, all possible modes: 18, 34, 50, 101, 152
         # COMMENT: resnet18 doesn't suffice, all faces are pretty similar then
         # COMMENT: resnet101 works beautifully, but is quite slow at the end
-        self.model = models.resnet18(pretrained=True)
+        # self.model = models.resnet34(pretrained=True)
+        self.model = InceptionResnetV1(pretrained='vggface2')
         self.model.to(DEVICE)
         self.model.eval()
         for param in self.model.parameters():
@@ -175,7 +179,8 @@ class face_localizer:
         self.face_positions_and_images = []
         self.faces_dictionary = {}
 
-        self.FACE_DISTANCE_TOLERANCE = 1
+        # self.FACE_DISTANCE_TOLERANCE = 1
+        self.FACE_DISTANCE_TOLERANCE = 0.5
 
         # array of robot positions when faces are detected
         self.bot_positions = []
@@ -346,6 +351,7 @@ class face_localizer:
         
         min_face = None
         min_filename = None
+        min_time_before_refresh = None
         for filename, face in self.faces_dictionary.items():
             position, face_region_array, time_of_collection = face.values()
             dist = np.sqrt((pose.position.x - position[0])**2 + (pose.position.y - position[1])**2)
@@ -353,12 +359,21 @@ class face_localizer:
                 min_dist = dist
                 min_face = face
                 min_filename = filename
+                min_time_before_refresh = time_of_collection
+            # refresh timer for close enough faces
+            if dist < self.FACE_DISTANCE_TOLERANCE:
+                print(f"AAAAAAAA: Refreshed time for {filename}")
+                self.faces_dictionary[filename]["time"] = time.time()
+
 
         if min_dist == float("inf") and self.face_positions_and_images:
             return 0
 
         similarity = 0
-        if min_dist < self.FACE_DISTANCE_TOLERANCE and min_face is not None and current_time - min_face["time"] > 30:
+        if min_face is not None:
+            print(f"BBBBEFORE: min_dist: {min_dist}, time difference: {current_time-min_time_before_refresh}")
+        if min_dist < self.FACE_DISTANCE_TOLERANCE and min_face is not None and current_time-min_time_before_refresh > 20:
+            print(f"BBBB: min_dist: {min_dist}, time difference: {current_time-min_time_before_refresh}")
             face_region = _i.fromarray(face_region)
             min_face_region = _i.fromarray(min_face["face_region_array"])
 
@@ -374,7 +389,10 @@ class face_localizer:
             print(f"Similarity score between new face and {min_filename} : {similarity}")
 
             # this similarity score was set arbitrarily, but it seems to work just fine
-            if similarity < 0.9:
+            # new face detected
+            if similarity < 0.5:
+                self.faces_dictionary[min_filename]["time"] = time.time()
+                print(f"AAAAAAAA: Refreshed time for {filename}")
                 return self.FACE_DISTANCE_TOLERANCE + 1
 
 
@@ -623,6 +641,7 @@ class face_localizer:
         for i in range(0, face_detections.shape[2]):
             confidence = face_detections[0, 0, i, 2]
             if confidence>0.50:
+                rospy.loginfo("Saw new face.")
                 box = face_detections[0,0,i,3:7] * np.array([w,h,w,h])
                 box = box.astype('int')
                 x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
@@ -667,7 +686,7 @@ class face_localizer:
                     current_time = time.time()
                     d = self.face_similarity(pose, face_region, current_time)
                     # TODO: check why distance is inf (probably fix face-detection)
-                    # rospy.loginfo(f"Distance is {d}.")
+                    # rospy.loginfo(f"Distance to new face is {d}.")
                     # message = "Will add" if d > self.FACE_DISTANCE_TOLERANCE else "will not add"
                     # rospy.loginfo(message)
                     if d > self.FACE_DISTANCE_TOLERANCE:
