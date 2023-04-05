@@ -314,23 +314,6 @@ class face_localizer:
             rospy.loginfo(f"\n{msg.pose}")
 
 
-    def check_status(self, data: GoalStatusArray):
-        slist = data.status_list
-        if len(slist) == 0:
-            self.next_goal = True
-            return
-        # rospy.loginfo(f"status {slist[-1].status}: {STATUS_DICT[slist[-1].status]}")
-        # rospy.loginfo(f"currently_on_path: {self.path}")
-        if slist[-1].status == 3:
-            # TODO: delete this, we don't pop from self.path -> unreachable code
-            if not self.path:
-                self.all_goals_reached = True
-                rospy.loginfo("All goals reached.")
-            self.next_goal = True
-        elif slist[-1].status not in (0, 1,):
-            self.next_goal = True
-
-
     def face_similarity(self, pose, face_region_path: str, current_time):
         """
         Calculates similarities between faces. 
@@ -383,8 +366,12 @@ class face_localizer:
             img2 = self.transform(min_face_region).unsqueeze(0)
 
             with torch.no_grad():
-                feature1 = self.model(img1)
-                feature2 = self.model(img2)
+                try:
+                    feature1 = self.model(img1)
+                    feature2 = self.model(img2)
+                except RuntimeError as e:
+                    print(e)
+                    return 0
 
             similarity = torch.nn.functional.cosine_similarity(feature1, feature2)
 
@@ -789,6 +776,10 @@ def main():
                 if face_finder.face_path_idx == NUMBER_OF_FACES_ON_THE_MAP:
                     rospy.loginfo(f"Found all {NUMBER_OF_FACES_ON_THE_MAP} faces, will stop all other goals.")
                     break
+            elif status == 4:
+                cancel_msg = GoalID()
+                face_finder.cancel_goal_pub.publish(cancel_msg)
+                rospy.sleep(1)
             face_finder.publish_new_position()
 
         # better to compare face_path_idx to NUMBER_OF_FACES_ON_THE_MAP then to compare length of face_path
