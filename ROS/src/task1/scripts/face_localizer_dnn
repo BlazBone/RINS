@@ -220,8 +220,6 @@ class face_localizer:
         point_s.point.z = x
         point_s.header.frame_id = "camera_rgb_optical_frame"
         point_s.header.stamp = stamp
-        print()
-        print(f"Pose of orientation: {pose_of_detection.pose}")
 
         q = Quaternion()
         q.x = 0
@@ -234,35 +232,21 @@ class face_localizer:
         # goal_quaternion_1 = quaternion_multiply((q.x, q.y, q.z, q.w), (q2.x, q2.y, q2.z, q2.w))
         goal_quaternion = quaternion_multiply((q2.x, q2.y, q2.z, q2.w), (q.x, q.y, q.z, q.w))
 
-        print()
-        print(f"goal_quaternion: {goal_quaternion}")
-
         # Get the point in the "map" coordinate system
         try:
             point_world = self.tf_buf.transform(point_s, "map")
 
             # Create a Pose object with the same position
             pose = Pose()
+
             pose.position.x = point_world.point.x
             pose.position.y = point_world.point.y
             pose.position.z = point_world.point.z
-            # bot_relative_orientation = angle_to_target/np.pi
-            # print(f"angle_to_target: {angle_to_target}")
-            # print(f"bot_relative_orientation: {bot_relative_orientation}")
-            # pose_orientation = pose_of_detection.pose.pose.orientation.z + bot_relative_orientation
-            # print(f"pose_orientation before: {pose_orientation}")
-            # if pose_orientation > 1:
-            #     pose_orientation -= 2
-            # elif pose_orientation < -1:
-            #     pose_orientation += 2
-            # print(f"pose_orientation after: {pose_orientation}")
-            # pose.orientation.z = pose_orientation
+
             pose.orientation.x = goal_quaternion[0]
             pose.orientation.y = goal_quaternion[1]
             pose.orientation.z = goal_quaternion[2]
             pose.orientation.w = goal_quaternion[3]
-            print()
-            print(f"pose: {pose}")
             
         except Exception as e:
             print(e)
@@ -410,14 +394,6 @@ class face_localizer:
 
         # Get the angles in the base_link relative coordinate system
         x, y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
-
-        ### Define a stamped message for transformation - directly in "base_link"
-        #point_s = PointStamped()
-        #point_s.point.x = x
-        #point_s.point.y = y
-        #point_s.point.z = 0.3
-        #point_s.header.frame_id = "base_link"
-        #point_s.header.stamp = rospy.Time(0)
 
         # Define a stamped message for transformation - in the "camera rgb frame"
         point_s = PointStamped()
