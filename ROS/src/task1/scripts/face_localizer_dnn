@@ -40,7 +40,7 @@ from facenet_pytorch import InceptionResnetV1
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 NN_FACE_SIMILARITY_TOLERANCE = 0.75
-NUMBER_OF_FACES_ON_THE_MAP = 5
+NUMBER_OF_FACES_ON_THE_MAP = 3
 
 STATUS_DICT = {
     0:"The goal has yet to be processed by the action server",
@@ -345,7 +345,7 @@ class face_localizer:
                 min_time_before_refresh = time_of_collection
             # refresh timer for close enough faces
             if dist < self.FACE_DISTANCE_TOLERANCE:
-                print(f"AAAAAAAA: Refreshed time for {filename}")
+                # print(f"AAAAAAAA: Refreshed time for {filename}")
                 self.faces_dictionary[filename]["time"] = time.time()
 
 
@@ -353,10 +353,10 @@ class face_localizer:
             return 0
 
         similarity = 0
-        if min_face is not None:
-            print(f"BBBBEFORE: min_dist: {min_dist}, time difference: {current_time-min_time_before_refresh}")
+        # if min_face is not None:
+            # print(f"BBBBEFORE: min_dist: {min_dist}, time difference: {current_time-min_time_before_refresh}")
         if min_dist < self.FACE_DISTANCE_TOLERANCE and min_face is not None and current_time-min_time_before_refresh > 20:
-            print(f"BBBB: min_dist: {min_dist}, time difference: {current_time-min_time_before_refresh}")
+            # print(f"BBBB: min_dist: {min_dist}, time difference: {current_time-min_time_before_refresh}")
             # face_region = _i.fromarray(face_region)
             # min_face_region = _i.fromarray(min_face["face_region_array"])
             face_region = _i.open(face_region_path)
@@ -381,8 +381,19 @@ class face_localizer:
             # new face detected
             if similarity < NN_FACE_SIMILARITY_TOLERANCE:
                 self.faces_dictionary[min_filename]["time"] = time.time()
-                print(f"AAAAAAAA: Refreshed time for {filename}")
+                # print(f"AAAAAAAA: Refreshed time for {filename}")
                 return self.FACE_DISTANCE_TOLERANCE + 1
+            else:
+                # update old face if new one is better
+                face_region_width, face_region_height = face_region.size
+                min_face_region_width, min_face_region_height = min_face_region.size
+
+                if face_region_width * face_region_height > min_face_region_width * min_face_region_height:
+                    # self.faces_dictionary[min_filename]["face_region_array"] = face_region_path
+                    self.faces_dictionary[min_filename]["time"] = time.time()
+                    face_region.save(os.path.join(os.path.dirname(__file__), f"../images/{min_filename}"))
+                    print(f"UPDATED IMAGE {min_filename}! {[face_region_width, face_region_height]} -> {[min_face_region_width, min_face_region_height]}")
+                    return 0
 
 
         return min_dist
@@ -634,11 +645,24 @@ class face_localizer:
                 box = face_detections[0,0,i,3:7] * np.array([w,h,w,h])
                 box = box.astype('int')
                 x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
+                ratio = abs(y2-y1)/abs(x2-x1)
+                print(f"Ratio is {ratio}")
+                if  ratio > 1.5:
+                    print(f"Skipping face. Not a nice image.")
+                    return
+
+                # k_f = 554 # kinect focal length in pixels
+                #
+                # face_x = self.dims[1] / 2 - (x1+x2)/2.
+                #
+                # angle_to_target = np.arctan2(face_x,k_f)
+                # print(f"ANGLE_TO_TARGET: {angle_to_target}")
+
 
                 # Extract region containing face
                 face_region = rgb_image[y1:y2, x1:x2]
                 relative_path_to_face_region = os.path.join(os.path.dirname(__file__), f"../images/face_region.jpg")
-                print(f"relative_path_to_face_region: {relative_path_to_face_region}")
+                # print(f"relative_path_to_face_region: {relative_path_to_face_region}")
                 try:
                     cv2.imwrite(relative_path_to_face_region, face_region) # Save the face image
                 except cv2.error:
