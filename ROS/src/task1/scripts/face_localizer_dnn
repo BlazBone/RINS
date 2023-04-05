@@ -39,8 +39,8 @@ from facenet_pytorch import InceptionResnetV1
 
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-NUMBER_OF_FACES_ON_THE_MAP = 3
+NN_FACE_SIMILARITY_TOLERANCE = 0.75
+NUMBER_OF_FACES_ON_THE_MAP = 5
 
 STATUS_DICT = {
     0:"The goal has yet to be processed by the action server",
@@ -331,7 +331,7 @@ class face_localizer:
             self.next_goal = True
 
 
-    def face_similarity(self, pose, face_region: np.ndarray, current_time):
+    def face_similarity(self, pose, face_region_path: str, current_time):
         """
         Calculates similarities between faces. 
 
@@ -374,8 +374,10 @@ class face_localizer:
             print(f"BBBBEFORE: min_dist: {min_dist}, time difference: {current_time-min_time_before_refresh}")
         if min_dist < self.FACE_DISTANCE_TOLERANCE and min_face is not None and current_time-min_time_before_refresh > 20:
             print(f"BBBB: min_dist: {min_dist}, time difference: {current_time-min_time_before_refresh}")
-            face_region = _i.fromarray(face_region)
-            min_face_region = _i.fromarray(min_face["face_region_array"])
+            # face_region = _i.fromarray(face_region)
+            # min_face_region = _i.fromarray(min_face["face_region_array"])
+            face_region = _i.open(face_region_path)
+            min_face_region = _i.open(os.path.join(os.path.dirname(__file__), f"../images/{min_filename}"))
 
             img1 = self.transform(face_region).unsqueeze(0)
             img2 = self.transform(min_face_region).unsqueeze(0)
@@ -390,7 +392,7 @@ class face_localizer:
 
             # this similarity score was set arbitrarily, but it seems to work just fine
             # new face detected
-            if similarity < 0.5:
+            if similarity < NN_FACE_SIMILARITY_TOLERANCE:
                 self.faces_dictionary[min_filename]["time"] = time.time()
                 print(f"AAAAAAAA: Refreshed time for {filename}")
                 return self.FACE_DISTANCE_TOLERANCE + 1
@@ -648,7 +650,15 @@ class face_localizer:
 
                 # Extract region containing face
                 face_region = rgb_image[y1:y2, x1:x2]
-                # cv2.imwrite('face.jpg', face_region) # Save the face image
+                relative_path_to_face_region = os.path.join(os.path.dirname(__file__), f"../images/face_region.jpg")
+                print(f"relative_path_to_face_region: {relative_path_to_face_region}")
+                try:
+                    cv2.imwrite(relative_path_to_face_region, face_region) # Save the face image
+                except cv2.error:
+                    # TODO: Assertion error, emtpy image
+                    print(f"face_region is None. Not saving image to {relative_path_to_face_region}.")
+                    continue
+
 
                 # Visualize the extracted face
                 #cv2.imshow("ImWindow", face_region)
@@ -684,7 +694,7 @@ class face_localizer:
                     marker.color = ColorRGBA(0, 1, 0, 1)
                     # current_time = rospy.Time().now()
                     current_time = time.time()
-                    d = self.face_similarity(pose, face_region, current_time)
+                    d = self.face_similarity(pose, relative_path_to_face_region, current_time)
                     # TODO: check why distance is inf (probably fix face-detection)
                     # rospy.loginfo(f"Distance to new face is {d}.")
                     # message = "Will add" if d > self.FACE_DISTANCE_TOLERANCE else "will not add"
@@ -697,7 +707,8 @@ class face_localizer:
                                 "position": position,
                                 "face_region_array": face_region,
                                 # "time": rospy.Time().now()
-                                "time": time.time()
+                                "time": time.time(),
+                                # "tilt_difference":0
                                 }
 
                         # SHOULD BE BEFORE APPENDING GREETING_POSITION
@@ -775,20 +786,23 @@ def main():
             if status == 3 and face_finder.go_to_face:
                 speak_to_person()
                 face_finder.go_to_face = False
+                if face_finder.face_path_idx == NUMBER_OF_FACES_ON_THE_MAP:
+                    rospy.loginfo(f"Found all {NUMBER_OF_FACES_ON_THE_MAP} faces, will stop all other goals.")
+                    break
             face_finder.publish_new_position()
 
         # better to compare face_path_idx to NUMBER_OF_FACES_ON_THE_MAP then to compare length of face_path
         # face_path_idx gets incremented only when the face is visited
-        if face_finder.face_path_idx == NUMBER_OF_FACES_ON_THE_MAP:
-            if face_finder.go_to_face:
-                speak_to_person()
-                face_finder.go_to_face = False
-            else:
-                rospy.loginfo(f"Found all {NUMBER_OF_FACES_ON_THE_MAP} faces, will stop all other goals.")
-                face_finder.all_goals_reached = True
-                cancel_msg = GoalID()
-                face_finder.cancel_goal_pub.publish(cancel_msg)
-                break
+        # if face_finder.face_path_idx == NUMBER_OF_FACES_ON_THE_MAP:
+        #     if face_finder.go_to_face:
+        #         speak_to_person()
+        #         face_finder.go_to_face = False
+        #     else:
+        #         rospy.loginfo(f"Found all {NUMBER_OF_FACES_ON_THE_MAP} faces, will stop all other goals.")
+        #         face_finder.all_goals_reached = True
+        #         cancel_msg = GoalID()
+        #         face_finder.cancel_goal_pub.publish(cancel_msg)
+        #         break
 
         elif face_finder.path_idx == len(face_finder.path):
             # rospy.loginfo("All goals reached")
