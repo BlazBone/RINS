@@ -341,7 +341,7 @@ class face_localizer:
 
             with torch.no_grad():
                 feature1 = self.model(img1)
-               feature2 = self.model(img2)
+                feature2 = self.model(img2)
 
             similarity = torch.nn.functional.cosine_similarity(feature1, feature2)
 
@@ -703,54 +703,54 @@ class face_localizer:
 def main():
     face_finder = face_localizer()
 
-        # print(face_finder.path)
-        rate = rospy.Rate(10)
+    # print(face_finder.path)
+    rate = rospy.Rate(10)
 
-        # BOT NEEDS TO SLEEP BEFORE TO FUNCTION!
-        rospy.sleep(1)
-        face_finder.publish_new_position()                
+    # BOT NEEDS TO SLEEP BEFORE TO FUNCTION!
+    rospy.sleep(1)
+    face_finder.publish_new_position()                
 
-        # seq_id = 1
-        while not rospy.is_shutdown():
-            face_finder.find_faces()
+    # seq_id = 1
+    while not rospy.is_shutdown():
+        face_finder.find_faces()
 
-            reached, status = face_finder.status_reached() 
-            if reached:
-                if status == 3 and face_finder.go_to_face:
-                    speak_to_person()
-                    face_finder.go_to_face = False
-                face_finder.publish_new_position()
+        reached, status = face_finder.status_reached() 
+        if reached:
+            if status == 3 and face_finder.go_to_face:
+                speak_to_person()
+                face_finder.go_to_face = False
+            face_finder.publish_new_position()
 
-            # better to compare face_path_idx to NUMBER_OF_FACES_ON_THE_MAP - 1 then to compare length of face_path
-            # face_path_idx gets incremented only when the face is visited
-            if face_finder.face_path_idx == (NUMBER_OF_FACES_ON_THE_MAP-1):
-                if face_finder.go_to_face:
-                    speak_to_person()
-                    face_finder.go_to_face = False
-                else:
-                    rospy.loginfo(f"Found all {NUMBER_OF_FACES_ON_THE_MAP} faces, will stop all other goals.")
-                    face_finder.all_goals_reached = True
-                    cancel_msg = GoalID()
-                    face_finder.cancel_goal_pub.publish(cancel_msg)
-                    break
-
-            elif face_finder.path_idx == len(face_finder.path):
-                # rospy.loginfo("All goals reached")
-                rospy.loginfo(f"Found {len(face_finder.face_path)}/{NUMBER_OF_FACES_ON_THE_MAP} faces, but traversed the whole path, will stop.")
+        # better to compare face_path_idx to NUMBER_OF_FACES_ON_THE_MAP - 1 then to compare length of face_path
+        # face_path_idx gets incremented only when the face is visited
+        if face_finder.face_path_idx == (NUMBER_OF_FACES_ON_THE_MAP-1):
+            if face_finder.go_to_face:
+                speak_to_person()
+                face_finder.go_to_face = False
+            else:
+                rospy.loginfo(f"Found all {NUMBER_OF_FACES_ON_THE_MAP} faces, will stop all other goals.")
+                face_finder.all_goals_reached = True
+                cancel_msg = GoalID()
+                face_finder.cancel_goal_pub.publish(cancel_msg)
                 break
-                # else:
-                #     rospy.loginfo("All goals reached.")
-                #     rospy.loginfo(face_finder.face_path)
-                #     face_finder.publish_new_position()
-                #     while not face_finder.status_reached():
-                #         pass
-                #     face_finder.publish_new_position()
-                #     break
+
+        elif face_finder.path_idx == len(face_finder.path):
+            # rospy.loginfo("All goals reached")
+            rospy.loginfo(f"Found {len(face_finder.face_path)}/{NUMBER_OF_FACES_ON_THE_MAP} faces, but traversed the whole path, will stop.")
+            break
+            # else:
+            #     rospy.loginfo("All goals reached.")
+            #     rospy.loginfo(face_finder.face_path)
+            #     face_finder.publish_new_position()
+            #     while not face_finder.status_reached():
+            #         pass
+            #     face_finder.publish_new_position()
+            #     break
 
 
-            rate.sleep()
+        rate.sleep()
 
-        cv2.destroyAllWindows()
+    cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
