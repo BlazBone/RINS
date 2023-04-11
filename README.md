@@ -1,4 +1,10 @@
-ne pozabit dodati source
+# POZOR
+
+POTREBNO JE DA SI NADOMETSTITA TO ZA ZVOK
+
+```bash
+sudo apt install ros-noetic-sound-play
+```
 
 ### RUN TASK 1
 
@@ -15,9 +21,15 @@ roslaunch turtlebot_rviz_launchers view_navigation.launch
 ```
 
 ```bash
+rosrun sound_play soundplay_node.py
+```
+
+```bash
 rosrun task1 face_localizer_dnn
 ```
+
 or (to create images)
+
 ```bash
 (rm run_info/* && rosrun task1 face_localizer_dnn) || rosrun task1 face_localizer_dnn
 ```

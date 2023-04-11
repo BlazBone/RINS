@@ -4,17 +4,42 @@ import rospy
 import cv2
 import numpy as np
 import tf2_ros
+import os
+import shutil
+import math
 
 from os.path import dirname, join
+import time
 
+
+import matplotlib.pyplot as plt
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import PointStamped, Vector3, Pose
+from geometry_msgs.msg import PointStamped, Vector3, Pose, Quaternion
+from tf.transformations import *
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
-from std_msgs.msg import ColorRGBA
+from std_msgs.msg import Bool, ColorRGBA
 
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
-from actionlib_msgs.msg import GoalStatusArray
+from actionlib_msgs.msg import GoalID, GoalStatusArray
+
+from sound_play.msg import SoundRequest
+from sound_play.libsoundplay import SoundClient
+
+from sensor_msgs.msg import CameraInfo
+from image_geometry import PinholeCameraModel
+
+import torch
+import torchvision.models as models
+from torchvision import transforms
+from PIL import Image as _i
+
+from facenet_pytorch import InceptionResnetV1
+
+
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+NN_FACE_SIMILARITY_TOLERANCE = 0.75
+NUMBER_OF_FACES_ON_THE_MAP = 3
 
 
 STATUS_DICT = {
@@ -30,6 +55,39 @@ STATUS_DICT = {
     9:"An action client can determine that a goal is LOST. This should not be sent over the wire by an action server",
 }
 
+def speak_to_person():
+    soundhandle = SoundClient()
+    rospy.sleep(1)
+
+    voice = "voice_kal_diphone"
+    volume = 1.0
+    text = "Hello, I am your robot friend"
+    # rospy.sleep(1)
+    rospy.loginfo(f"volume: {volume}, voice: {voice}, text:{text}")
+    soundhandle.say(text, voice, volume)
+    rospy.sleep(1)
+
+
+def read_path_log_orientation(filename):
+    path = []
+    with open(filename, "r") as f:
+        for line in f:
+            
+            if line.strip().startswith("position:"):
+                
+                x = float(f.readline().strip().split(" ")[1])
+                y = float(f.readline().strip().split(" ")[1])
+                z = float(f.readline().strip().split(" ")[1])
+                # skipings text "orinetation: "
+                f.readline()
+                x_orientation = float(f.readline().strip().split(" ")[1])
+                y_orientation = float(f.readline().strip().split(" ")[1])
+                z_orientation = float(f.readline().strip().split(" ")[1])
+                w_orientation = float(f.readline().strip().split(" ")[1])
+
+                path.append((x, y, z, z_orientation, w_orientation))
+                # path.append(p)
+    return path
 
 def read_path_log(filename: str) -> list:
     """
@@ -47,7 +105,6 @@ def read_path_log(filename: str) -> list:
                 z = float(f.readline().strip().split(" ")[1])
                 path.append((x, y, z))
     return path
-
 class face_localizer:
 
     def __init__(self):
@@ -81,15 +138,73 @@ class face_localizer:
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
         
-        # Path that robot should traverse
-        self.path = read_path_log("points_full_small")
-    
-        # Boolean marker to check if robot has reached all goals
-        self.all_goals_reached = False
+
+        self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
+        self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
+
+        # resnet18 should suffice, all possible modes: 18, 34, 50, 101, 152
+        # COMMENT: resnet18 doesn't suffice, all faces are pretty similar then
+        # COMMENT: resnet101 works beautifully, but is quite slow at the end
+        # self.model = models.resnet34(pretrained=True)
+        self.model = InceptionResnetV1(pretrained='vggface2')
+        self.model.to(DEVICE)
+        self.model.eval()
+        for param in self.model.parameters():
+            param.requires_grad = False
+        self.transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+
+        # full path of the robot
+        points_path = os.path.join(os.path.dirname(__file__), "newpoints.txt")
+        # self.path = read_path_log_orientation(points_path)
+
+        # points_path = os.path.join(os.path.dirname(__file__), "points_full_small")
+        #points_path = os.path.join(os.path.dirname(__file__), "points_full")
+        self.path = read_path_log_orientation(points_path)
+
+        self.face_path = []
+
         
+        self.path_idx = 0
+        self.face_path_idx = 0
+        
+        self.go_to_face = False
+
+        self.number_of_faces_in_current_movement = 0
+
+        self.all_goals_reached = False
+        self.goal_reached = False
+
         if self.path:
             # Boolean marker to check if robot has a goal currently
             self.next_goal = True
+
+        self.face_search = True
+        # array containing face positions
+        self.face_positions_and_images = []
+        self.faces_dictionary = {}
+
+        # self.FACE_DISTANCE_TOLERANCE = 1
+        self.FACE_DISTANCE_TOLERANCE = 0.5
+
+        # array of robot positions when faces are detected
+        self.bot_positions = []
+   
+    def get_greeting_pose(self, coords, dist, stamp, pose_of_detection: PoseWithCovarianceStamped) -> Pose:
+        """
+        Calculates the greeting position for the bot to travel to.
+
+        Should be done in 3 steps:
+        1. Calculate phi (robot angle to the center of the target)
+        """
+
+        # def get_pose(self,coords,dist,stamp):
+        # Calculate the position of the detected face
+        k_f = 554 # kinect focal length in pixels
 
         # Array containing face positions
         self.face_positions = []
@@ -136,6 +251,134 @@ class face_localizer:
             self.next_goal = True
 
 
+        x1, x2, y1, y2 = coords
+
+
+        face_x = self.dims[1] / 2 - (x1+x2)/2.
+        face_y = self.dims[0] / 2 - (y1+y2)/2.
+
+        angle_to_target = np.arctan2(face_x,k_f)
+
+        # Get the angles in the base_link relative coordinate system
+        # x, y = 0.8 * dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
+        # step away from image 0.4 units
+        dist -= 0.4
+        x, y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
+
+        ### Define a stamped message for transformation - directly in "base_link"
+        #point_s = PointStamped()
+        #point_s.point.x = x
+        #point_s.point.y = y
+        #point_s.point.z = 0.3
+        #point_s.header.frame_id = "base_link"
+        #point_s.header.stamp = rospy.Time(0)
+
+        # Define a stamped message for transformation - in the "camera rgb frame"
+        point_s = PointStamped()
+        point_s.point.x = -y
+        point_s.point.y = 0
+        point_s.point.z = x
+        point_s.header.frame_id = "camera_rgb_optical_frame"
+        point_s.header.stamp = stamp
+
+        q = Quaternion()
+        q.x = 0
+        q.y = 0
+        q.z = math.sin(angle_to_target)
+        q.w = math.cos(angle_to_target)
+
+        q2 = pose_of_detection.pose.pose.orientation
+
+        # goal_quaternion_1 = quaternion_multiply((q.x, q.y, q.z, q.w), (q2.x, q2.y, q2.z, q2.w))
+        goal_quaternion = quaternion_multiply((q2.x, q2.y, q2.z, q2.w), (q.x, q.y, q.z, q.w))
+
+        # Get the point in the "map" coordinate system
+        try:
+            point_world = self.tf_buf.transform(point_s, "map")
+
+            # Create a Pose object with the same position
+            pose = Pose()
+
+            pose.position.x = point_world.point.x
+            pose.position.y = point_world.point.y
+            pose.position.z = point_world.point.z
+
+            pose.orientation.x = goal_quaternion[0]
+            pose.orientation.y = goal_quaternion[1]
+            pose.orientation.z = goal_quaternion[2]
+            pose.orientation.w = goal_quaternion[3]
+            
+        except Exception as e:
+            print(e)
+            pose = None
+
+        return pose
+
+    # def status_reached(self) -> tuple[bool, int]:
+    def status_reached(self):
+        """
+        Function listenes for status updates on topic /move_base/status.
+
+        If status is 3 (goal reached) or 4 (goal terminated), the goal is 'reached'.
+
+        TODO: change desc
+        """
+        status = rospy.wait_for_message("/move_base/status", GoalStatusArray)
+        if status.status_list[-1].status in (0, 1):
+            # goal is being processed
+            return False,status.status_list[-1].status
+        else:
+            # goal is done (successfully or not)
+            return True,status.status_list[-1].status
+
+    def publish_new_position(self, log:bool=True) -> None:
+        """
+        Publishes a new position to the robot.
+
+        If go_to_face, go to the 'position_idx' of the self.face_path, else go to 'position_idx' of self.path.
+        """
+        msg = PoseStamped()
+        msg.header.frame_id = "map"
+        msg.header.stamp = rospy.Time().now()
+        # TODO: add orientation
+        if self.go_to_face:
+            # msg.pose = self.face_path[position_idx]
+            position_idx = self.face_path_idx
+            if position_idx >= len(self.face_path):
+                return
+            msg.pose.position.x = self.face_path[position_idx][0]
+            msg.pose.position.y = self.face_path[position_idx][1]
+            msg.pose.orientation.z = self.face_path[position_idx][3]
+            msg.pose.orientation.w = self.face_path[position_idx][4]
+            self.face_path_idx += 1
+        else:
+            # msg.pose = self.path[position_idx]
+            position_idx = self.path_idx
+            if position_idx >= len(self.path):
+                return
+            msg.pose.orientation.w = 1
+            msg.pose.position.x = self.path[position_idx][0]
+            msg.pose.position.y = self.path[position_idx][1]
+            msg.pose.orientation.z = self.path[position_idx][3]
+            msg.pose.orientation.w = self.path[position_idx][4]
+            self.path_idx += 1
+        if log:
+            self.simple_goal_pub.publish(msg)
+            obj, array = ("FACE", "face_path") if self.go_to_face else ("POINT", "path")
+            rospy.loginfo(f"Visiting {obj} @ index {position_idx} in {array}.")
+            rospy.loginfo(f"\n{msg.pose}")
+
+
+    def face_similarity(self, pose, face_region_path: str, current_time):
+        """
+        Calculates similarities between faces. 
+
+        If the detected face is not near any other faces, it should get added.
+        If the detected face is near other faces, nn should be run to determine if it's the same face or not.
+        """
+        # Calculate the distance to the marker
+
+
     def marker_distance(self, pose: Pose) -> float:
         """
         Calculates the distance to the closest marker.
@@ -146,14 +389,79 @@ class face_localizer:
         :return: The distance to the closest marker.
         """
         
+
         min_dist = float("inf")
-        for position in self.face_positions:
+        min_face_region = None
+        # for n, (position, curr_face_region) in enumerate(self.face_positions_and_images):
+        #     dist = np.sqrt((pose.position.x - position[0])**2 + (pose.position.y - position[1])**2)
+        #     if dist < min_dist:
+        #         min_dist = dist
+        #         min_face_region = curr_face_region
+        #         min_idx = n
+        
+        min_face = None
+        min_filename = None
+        min_time_before_refresh = None
+        for filename, face in self.faces_dictionary.items():
+            position, face_region_array, time_of_collection = face.values()
             dist = np.sqrt((pose.position.x - position[0])**2 + (pose.position.y - position[1])**2)
             if dist < min_dist:
                 min_dist = dist
+                min_face = face
+                min_filename = filename
+                min_time_before_refresh = time_of_collection
+            # refresh timer for close enough faces
+            if dist < self.FACE_DISTANCE_TOLERANCE:
+                # print(f"AAAAAAAA: Refreshed time for {filename}")
+                self.faces_dictionary[filename]["time"] = time.time()
 
-        if min_dist == float("inf") and self.face_positions:
+
+        if min_dist == float("inf") and self.face_positions_and_images:
             return 0
+
+        similarity = 0
+        # if min_face is not None:
+            # print(f"BBBBEFORE: min_dist: {min_dist}, time difference: {current_time-min_time_before_refresh}")
+        if min_dist < self.FACE_DISTANCE_TOLERANCE and min_face is not None and current_time-min_time_before_refresh > 20:
+            # print(f"BBBB: min_dist: {min_dist}, time difference: {current_time-min_time_before_refresh}")
+            # face_region = _i.fromarray(face_region)
+            # min_face_region = _i.fromarray(min_face["face_region_array"])
+            face_region = _i.open(face_region_path)
+            min_face_region = _i.open(os.path.join(os.path.dirname(__file__), f"../images/{min_filename}"))
+
+            img1 = self.transform(face_region).unsqueeze(0)
+            img2 = self.transform(min_face_region).unsqueeze(0)
+
+            with torch.no_grad():
+                try:
+                    feature1 = self.model(img1)
+                    feature2 = self.model(img2)
+                except RuntimeError as e:
+                    print(e)
+                    return 0
+
+            similarity = torch.nn.functional.cosine_similarity(feature1, feature2)
+
+            print(f"Similarity score between new face and {min_filename} : {similarity}")
+
+            # this similarity score was set arbitrarily, but it seems to work just fine
+            # new face detected
+            if similarity < NN_FACE_SIMILARITY_TOLERANCE:
+                self.faces_dictionary[min_filename]["time"] = time.time()
+                # print(f"AAAAAAAA: Refreshed time for {filename}")
+                return self.FACE_DISTANCE_TOLERANCE + 1
+            else:
+                # update old face if new one is better
+                face_region_width, face_region_height = face_region.size
+                min_face_region_width, min_face_region_height = min_face_region.size
+
+                if face_region_width * face_region_height > min_face_region_width * min_face_region_height:
+                    # self.faces_dictionary[min_filename]["face_region_array"] = face_region_path
+                    self.faces_dictionary[min_filename]["time"] = time.time()
+                    face_region.save(os.path.join(os.path.dirname(__file__), f"../images/{min_filename}"))
+                    print(f"UPDATED IMAGE {min_filename}! {[face_region_width, face_region_height]} -> {[min_face_region_width, min_face_region_height]}")
+                    return 0
+
 
         return min_dist
 
@@ -171,14 +479,6 @@ class face_localizer:
 
         # Get the angles in the base_link relative coordinate system
         x, y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
-
-        ### Define a stamped message for transformation - directly in "base_link"
-        #point_s = PointStamped()
-        #point_s.point.x = x
-        #point_s.point.y = y
-        #point_s.point.z = 0.3
-        #point_s.header.frame_id = "base_link"
-        #point_s.header.stamp = rospy.Time(0)
 
         # Define a stamped message for transformation - in the "camera rgb frame"
         point_s = PointStamped()
@@ -202,11 +502,23 @@ class face_localizer:
             pose = None
 
         return pose
-    
-    def find_faces(self):
-        # print('I got a new image!')
 
-        # Get the next rgb and depth images that are posted from the camera
+
+    def aproach_face_in_view(self):
+        """
+        Aproach the face in view
+        This function will be called when the robot is aproaching near a face and then it will wait for robot to print status 3 (finnished)
+        after that it will get closer to the fece and it will try to center it in the camera view
+        """
+        while True:
+            #just wait
+            status = rgb_image_message = rospy.wait_for_message("/move_base/status", GoalStatusArray)
+            if status.status_list[-1].status == 3:
+                break
+            pass
+        # rospy.loginfo("Aproaching face in view")
+
+                # Get the next rgb and depth images that are posted from the camera
         try:
             rgb_image_message = rospy.wait_for_message("/camera/rgb/image_raw", Image)
         except Exception as e:
@@ -247,20 +559,186 @@ class face_localizer:
         blob = cv2.dnn.blobFromImage(cv2.resize(rgb_image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
         self.face_net.setInput(blob)
         face_detections = self.face_net.forward()
-        
-        p = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
-        p_position = p.pose.pose.position
-        p_orientation = p.pose.pose.orientation
-        
+        x_diff = 0
+        face_distance = 0
+        face_detected = False
         for i in range(0, face_detections.shape[2]):
             confidence = face_detections[0, 0, i, 2]
-            if confidence>0.75:
+            if confidence>0.50:
+                face_detected = True
+                # rospy.loginfo("Face detected. WE ARE GOING TO CENTER IT")
                 box = face_detections[0,0,i,3:7] * np.array([w,h,w,h])
                 box = box.astype('int')
                 x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
+                # center of the face 
+                x_center = (x1+x2)/2.
+                y_center = (y1+y2)/2.
+                print('x_center', x_center)
+
+                # how much is the centre of the face from the center of the image
+                print('self dims 1 ',self.dims[1])
+                x_diff = 600 / 2 - x_center
+                # Find the distance to the detected face
+                face_distance = float(np.nanmean(depth_image[y1:y2,x1:x2]))
+                break
+            # print('Distance to face', face_distance)
+
+        if not face_detected:
+            print("HUGE MISTAKE WE DID NOT DETECT THE FACE")
+        # rotate the robot so that the face will be in the center of the camera view
+        # if the face is not in the center of the camera view
+        # if the face is in the center of the camera view then the robot will aproach the face
+        # if the face is too close to the robot then the robot will stop
+        # if the face is too far from the robot then the robot will stop
+        # if x_diff > 0.1:
+
+        #  i calculatet the FOV of the camera and its about 60degs
+
+        # x_diff is here in pixels and the max value is 300 or -300
+        # x_diff = x_diff / 300 # translate to [-1,1]
+        # x_diff = x_diff / (1/6) # image is 1/6 of the whole space
+            # rotate the robot to the left
+            # we need to rotate the robot by x_diff * 60 to get number of degrees for rotation
+            # since we have not 360 but from -1 to 1 rotations we scale it
+            # we see 60degs which is 2/6
+            # 1/3
+            # we rotate by x_diff * 1/3 to the right and by x_diff * 1/3 to the left
+        print("x_diff", x_diff)
+        rotation_z = (x_diff / 300) / 6
+        print("rotation_z", rotation_z)
+        # get current position of robot
+        current_pose = self.get_current_pose()
+        # get the z rotation of the robot
+        current_rotation_z = current_pose.pose.pose.orientation.z 
+        # calculate the new rotation
+        new_rotation_z = current_rotation_z + rotation_z
+        if new_rotation_z > 1:
+            new_rotation_z = -2 + new_rotation_z
+        elif new_rotation_z < -1:
+            new_rotation_z = 2 + new_rotation_z
+        # create a new pose
+        new_pose = PoseStamped()
+        new_pose.header.seq = 100
+        new_pose.header.frame_id = "map"
+        new_pose.pose.position.x = current_pose.pose.pose.position.x
+        new_pose.pose.position.y = current_pose.pose.pose.position.y
+        new_pose.pose.position.z = current_pose.pose.pose.position.z
+        new_pose.pose.orientation.x = current_pose.pose.pose.orientation.x
+        new_pose.pose.orientation.y = current_pose.pose.pose.orientation.y
+        new_pose.pose.orientation.z = new_rotation_z
+        new_pose.pose.orientation.w = current_pose.pose.pose.orientation.w
+        # create a new goal
+        publish = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=10)
+        publish.publish(new_pose)
+
+        ## now we just need to calculate how much we need to move forward
+
+
+        print("PUBLISHIG MESSAGE", new_pose)
+
+        # rospy.loginfo("FACE SHOULD BE IN THE CENTER NOW")            
+
+        pass
+
+    def get_current_pose(self)->PoseWithCovarianceStamped:
+        """
+        Get the current pose of the robot
+        """
+        try:
+            pose = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
+            return pose
+        except Exception as e:
+            print(e)
+            return None
+
+    def find_faces(self):
+        # print('I got a new image!')
+
+        # Get the next rgb and depth images that are posted from the camera
+        try:
+            rgb_image_message = rospy.wait_for_message("/camera/rgb/image_raw", Image)
+        except Exception as e:
+            print(e)
+            return 0
+
+        # get robot position in moment of taking a picture
+        p = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
+
+        try:
+            depth_image_message = rospy.wait_for_message("/camera/depth/image_raw", Image)
+        except Exception as e:
+            print(e)
+            return 0
+
+        # Convert the images into a OpenCV (numpy) format
+
+        try:
+            rgb_image = self.bridge.imgmsg_to_cv2(rgb_image_message, "bgr8")
+        except CvBridgeError as e:
+            print(e)
+
+        try:
+            depth_image = self.bridge.imgmsg_to_cv2(depth_image_message, "32FC1")
+        except CvBridgeError as e:
+            print(e)
+
+        # Set the dimensions of the image
+        self.dims = rgb_image.shape
+        h = self.dims[0]
+        w = self.dims[1]
+
+
+        # Tranform image to gayscale
+        #gray = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2GRAY)
+
+        # Do histogram equlization
+        #img = cv2.equalizeHist(gray)
+
+        # Detect the faces in the image
+        #face_rectangles = self.face_detector(rgb_image, 0)
+        blob = cv2.dnn.blobFromImage(cv2.resize(rgb_image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
+        self.face_net.setInput(blob)
+
+        # no false positives yet, will keep as it is
+        face_detections = self.face_net.forward()
+
+        p_position = p.pose.pose.position
+        p_orientation = p.pose.pose.orientation
+
+        for i in range(0, face_detections.shape[2]):
+            confidence = face_detections[0, 0, i, 2]
+            if confidence>0.50:
+                rospy.loginfo("Saw new face.")
+                box = face_detections[0,0,i,3:7] * np.array([w,h,w,h])
+                box = box.astype('int')
+                x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
+                ratio = abs(y2-y1)/abs(x2-x1)
+                print(f"Ratio is {ratio}")
+                if  ratio > 1.5:
+                    print(f"Skipping face. Not a nice image.")
+                    return
+
+                # k_f = 554 # kinect focal length in pixels
+                #
+                # face_x = self.dims[1] / 2 - (x1+x2)/2.
+                #
+                # angle_to_target = np.arctan2(face_x,k_f)
+                # print(f"ANGLE_TO_TARGET: {angle_to_target}")
+
 
                 # Extract region containing face
                 face_region = rgb_image[y1:y2, x1:x2]
+
+                relative_path_to_face_region = os.path.join(os.path.dirname(__file__), f"../images/face_region.jpg")
+                # print(f"relative_path_to_face_region: {relative_path_to_face_region}")
+                try:
+                    cv2.imwrite(relative_path_to_face_region, face_region) # Save the face image
+                except cv2.error:
+                    # TODO: Assertion error, emtpy image
+                    print(f"face_region is None. Not saving image to {relative_path_to_face_region}.")
+                    continue
+
+
 
                 # Visualize the extracted face
                 #cv2.imshow("ImWindow", face_region)
@@ -278,7 +756,7 @@ class face_localizer:
                 pose = self.get_pose((x1,x2,y1,y2), face_distance, depth_time)
 
                 if pose is not None:
-                    
+
                     # Create a marker used for visualization
                     self.marker_num += 1
                     marker = Marker()
@@ -292,6 +770,57 @@ class face_localizer:
                     marker.id = self.marker_num
                     marker.scale = Vector3(0.1, 0.1, 0.1)
                     marker.color = ColorRGBA(0, 1, 0, 1)
+
+                    # current_time = rospy.Time().now()
+                    current_time = time.time()
+                    d = self.face_similarity(pose, relative_path_to_face_region, current_time)
+                    # TODO: check why distance is inf (probably fix face-detection)
+                    # rospy.loginfo(f"Distance to new face is {d}.")
+                    # message = "Will add" if d > self.FACE_DISTANCE_TOLERANCE else "will not add"
+                    # rospy.loginfo(message)
+                    if d > self.FACE_DISTANCE_TOLERANCE:
+                        self.bot_positions.append((p_position, p_orientation, face_distance))
+                        position = (pose.position.x, pose.position.y, pose.position.z)
+                        
+                        current_face_properties = {
+                                "position": position,
+                                "face_region_array": face_region,
+                                # "time": rospy.Time().now()
+                                "time": time.time(),
+                                # "tilt_difference":0
+                                }
+
+                        # SHOULD BE BEFORE APPENDING GREETING_POSITION
+                        filename = f"face_{len(self.face_path)}.jpg"
+                        self.faces_dictionary.update({filename:current_face_properties})
+
+                        self.face_positions_and_images.append((position, face_region))
+                        
+                        relative_path_to_image = os.path.join(os.path.dirname(__file__), f"../images/{filename}")
+                        cv2.imwrite(relative_path_to_image, face_region) # Save the face image
+
+                        greeting_pose = self.get_greeting_pose((x1,x2,y1,y2), face_distance, depth_time, p)
+                        greeting_position = (
+                                greeting_pose.position.x,
+                                greeting_pose.position.y,
+                                greeting_pose.position.z,
+                                greeting_pose.orientation.z,
+                                greeting_pose.orientation.w,
+                                )
+                        self.face_path.append(greeting_position)
+
+                        # once face is detected, cancel goal and set go_to_face to true
+                        cancel_msg = GoalID()
+
+                        # UNCOMENT TO GO TO FACES
+                        self.cancel_goal_pub.publish(cancel_msg)
+                        self.path_idx -= 1
+                        self.go_to_face = True
+
+                        self.marker_array.markers.append(marker)
+                        self.markers_pub.publish(self.marker_array)
+
+
                     d = self.marker_distance(pose)
                     message = "will add" if d > 1 else "will not add"
                     rospy.loginfo(f"Distance to new snapshot of a face is {d}, {message}.")
@@ -303,6 +832,7 @@ class face_localizer:
                         self.marker_array.markers.append(marker)
                         self.markers_pub.publish(self.marker_array)
 
+
     def depth_callback(self,data):
 
         try:
@@ -311,10 +841,10 @@ class face_localizer:
             print(e)
 
         # Do the necessairy conversion so we can visuzalize it in OpenCV
-        
+
         image_1 = depth_image / np.nanmax(depth_image)
         image_1 = image_1*255
-        
+
         image_viz = np.array(image_1, dtype=np.uint8)
 
         #cv2.imshow("Depth window", image_viz)
@@ -324,6 +854,70 @@ class face_localizer:
         #plt.show()
 
 def main():
+
+    relative_path_to_image_dir = os.path.join(os.path.dirname(__file__), f"../images/")
+    if os.path.exists(relative_path_to_image_dir):
+        shutil.rmtree(relative_path_to_image_dir)
+    os.mkdir(relative_path_to_image_dir)
+
+    face_finder = face_localizer()
+
+    # print(face_finder.path)
+    rate = rospy.Rate(10)
+
+    # BOT NEEDS TO SLEEP BEFORE TO FUNCTION!
+    rospy.sleep(1)
+    face_finder.publish_new_position()                
+
+    # seq_id = 1
+    while not rospy.is_shutdown():
+        face_finder.find_faces()
+
+        reached, status = face_finder.status_reached() 
+        if reached:
+            if status == 3 and face_finder.go_to_face:
+                speak_to_person()
+                face_finder.go_to_face = False
+                if face_finder.face_path_idx == NUMBER_OF_FACES_ON_THE_MAP:
+                    rospy.loginfo(f"Found all {NUMBER_OF_FACES_ON_THE_MAP} faces, will stop all other goals.")
+                    break
+            elif status == 4:
+                cancel_msg = GoalID()
+                face_finder.cancel_goal_pub.publish(cancel_msg)
+                rospy.sleep(1)
+            face_finder.publish_new_position()
+
+        # better to compare face_path_idx to NUMBER_OF_FACES_ON_THE_MAP then to compare length of face_path
+        # face_path_idx gets incremented only when the face is visited
+        # if face_finder.face_path_idx == NUMBER_OF_FACES_ON_THE_MAP:
+        #     if face_finder.go_to_face:
+        #         speak_to_person()
+        #         face_finder.go_to_face = False
+        #     else:
+        #         rospy.loginfo(f"Found all {NUMBER_OF_FACES_ON_THE_MAP} faces, will stop all other goals.")
+        #         face_finder.all_goals_reached = True
+        #         cancel_msg = GoalID()
+        #         face_finder.cancel_goal_pub.publish(cancel_msg)
+        #         break
+
+        elif face_finder.path_idx == len(face_finder.path):
+            # rospy.loginfo("All goals reached")
+            rospy.loginfo(f"Found {len(face_finder.face_path)}/{NUMBER_OF_FACES_ON_THE_MAP} faces, but traversed the whole path, will stop.")
+            break
+            # else:
+            #     rospy.loginfo("All goals reached.")
+            #     rospy.loginfo(face_finder.face_path)
+            #     face_finder.publish_new_position()
+            #     while not face_finder.status_reached():
+            #         pass
+            #     face_finder.publish_new_position()
+            #     break
+
+
+        rate.sleep()
+
+    cv2.destroyAllWindows()
+
         face_finder = face_localizer()
         
         pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
@@ -360,6 +954,7 @@ def main():
             rate.sleep()
 
         cv2.destroyAllWindows()
+
 
 
 if __name__ == '__main__':

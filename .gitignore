@@ -3,3 +3,5 @@
 */build/*
 */devel/*
 *.jpg
+images/*
+face_coordinates.txt
