@@ -25,13 +25,13 @@ rosrun sound_play soundplay_node.py
 ```
 
 ```bash
-rosrun task1 face_localizer_dnn
+rosrun task1 task1
 ```
 
 or (to create images)
 
 ```bash
-(rm run_info/* && rosrun task1 face_localizer_dnn) || rosrun task1 face_localizer_dnn
+(rm run_info/* && rosrun task1 task1) || rosrun task1 task1
 ```
 
 # Shorcuts, tips, tricks
