@@ -1,10 +1,8 @@
 #!/usr/bin/python3
 
-import sys
 import rospy
 import cv2
 import numpy as np
-import tf2_geometry_msgs
 import tf2_ros
 import os
 import shutil
@@ -12,6 +10,7 @@ import math
 
 from os.path import dirname, join
 import time
+
 
 import matplotlib.pyplot as plt
 from sensor_msgs.msg import Image
@@ -41,6 +40,7 @@ from facenet_pytorch import InceptionResnetV1
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 NN_FACE_SIMILARITY_TOLERANCE = 0.75
 NUMBER_OF_FACES_ON_THE_MAP = 3
+
 
 STATUS_DICT = {
     0:"The goal has yet to be processed by the action server",
@@ -89,7 +89,13 @@ def read_path_log_orientation(filename):
                 # path.append(p)
     return path
 
-def read_path_log(filename):
+def read_path_log(filename: str) -> list:
+    """
+    Reads copied published points and creates a path for the bot to follow.
+
+    :param filename: The name of the file to read from.
+    :return: A list of tuples containing the x, y, and z coordinates of the points.
+    """
     path = []
     with open(filename, "r") as f:
         for line in f:
@@ -132,6 +138,7 @@ class face_localizer:
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
         
+
         self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
         self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
 
@@ -160,6 +167,7 @@ class face_localizer:
         self.path = read_path_log_orientation(points_path)
 
         self.face_path = []
+
         
         self.path_idx = 0
         self.face_path_idx = 0
@@ -172,6 +180,7 @@ class face_localizer:
         self.goal_reached = False
 
         if self.path:
+            # Boolean marker to check if robot has a goal currently
             self.next_goal = True
 
         self.face_search = True
@@ -197,7 +206,53 @@ class face_localizer:
         # Calculate the position of the detected face
         k_f = 554 # kinect focal length in pixels
 
+        # Array containing face positions
+        self.face_positions = []
+
+        # Array of robot positions when faces are detected
+        self.bot_positions = []
+
+    def get_position(self, seq_id:int) -> PoseStamped: 
+        """
+        Creates a PoseStamped message with the next position in the path.
+
+        :param seq_id: The sequence id of the message.
+        :return: A PoseStamped message with the next position in the path.
+        """
+        msg = PoseStamped()
+        msg.header.seq = seq_id
+        msg.header.frame_id = "map"
+        msg.pose.orientation.w = 1
+        msg.pose.position.x = self.path[0][0]
+        msg.pose.position.y = self.path[0][1]
+        return msg
+
+    def check_status(self, data: GoalStatusArray) -> None:
+        """
+        Subscriber (/move_base/status) callback function. Checks the status of the goal and reacts accordingly.
+
+        :param data: The status of the goal.
+        :return: None
+        """
+        status_list = data.status_list
+        if len(status_list) == 0:
+            self.next_goal = True
+            return
+        rospy.loginfo(f"status: {status_list[-1].status}: The goal is currently")
+        rospy.loginfo(f"status {status_list[-1].status}: {STATUS_DICT[status_list[-1].status]}")
+        rospy.loginfo(f"currently_on_path: {self.path}")
+        if status_list[-1].status == 3:
+            if not self.path:
+                self.all_goals_reached = True
+            message = "All goals reached." if not self.path else "Reached a goal."
+            rospy.loginfo(message)
+            self.next_goal = True
+        elif status_list[-1].status not in (0, 1,):
+            self.next_goal = True
+
+
         x1, x2, y1, y2 = coords
+
 
         face_x = self.dims[1] / 2 - (x1+x2)/2.
         face_y = self.dims[0] / 2 - (y1+y2)/2.
@@ -322,6 +377,18 @@ class face_localizer:
         If the detected face is near other faces, nn should be run to determine if it's the same face or not.
         """
         # Calculate the distance to the marker
+
+
+    def marker_distance(self, pose: Pose) -> float:
+        """
+        Calculates the distance to the closest marker.
+        
+        WARNING: Will be depracted, once we recognize faces more intelligently.
+
+        :param pose: The current position of the robot.
+        :return: The distance to the closest marker.
+        """
+        
 
         min_dist = float("inf")
         min_face_region = None
@@ -661,6 +728,7 @@ class face_localizer:
 
                 # Extract region containing face
                 face_region = rgb_image[y1:y2, x1:x2]
+
                 relative_path_to_face_region = os.path.join(os.path.dirname(__file__), f"../images/face_region.jpg")
                 # print(f"relative_path_to_face_region: {relative_path_to_face_region}")
                 try:
@@ -669,6 +737,7 @@ class face_localizer:
                     # TODO: Assertion error, emtpy image
                     print(f"face_region is None. Not saving image to {relative_path_to_face_region}.")
                     continue
+
 
 
                 # Visualize the extracted face
@@ -686,8 +755,6 @@ class face_localizer:
                 # Find the location of the detected face
                 pose = self.get_pose((x1,x2,y1,y2), face_distance, depth_time)
 
-                # print(f"pose: {pose}")
-
                 if pose is not None:
 
                     # Create a marker used for visualization
@@ -703,6 +770,7 @@ class face_localizer:
                     marker.id = self.marker_num
                     marker.scale = Vector3(0.1, 0.1, 0.1)
                     marker.color = ColorRGBA(0, 1, 0, 1)
+
                     # current_time = rospy.Time().now()
                     current_time = time.time()
                     d = self.face_similarity(pose, relative_path_to_face_region, current_time)
@@ -753,6 +821,18 @@ class face_localizer:
                         self.markers_pub.publish(self.marker_array)
 
 
+                    d = self.marker_distance(pose)
+                    message = "will add" if d > 1 else "will not add"
+                    rospy.loginfo(f"Distance to new snapshot of a face is {d}, {message}.")
+                    if d > 1:
+                        self.bot_positions.append((p_position, p_orientation, face_distance))
+                        with open("run_info/face_coordinates.txt", "a") as f:
+                            f.write(f"face_{len(self.bot_positions)}: {p_position}\n")
+                        cv2.imwrite(f'run_info/face_{len(self.bot_positions)}.jpg', face_region) # Save the face image
+                        self.marker_array.markers.append(marker)
+                        self.markers_pub.publish(self.marker_array)
+
+
     def depth_callback(self,data):
 
         try:
@@ -774,6 +854,7 @@ class face_localizer:
         #plt.show()
 
 def main():
+
     relative_path_to_image_dir = os.path.join(os.path.dirname(__file__), f"../images/")
     if os.path.exists(relative_path_to_image_dir):
         shutil.rmtree(relative_path_to_image_dir)
@@ -836,6 +917,44 @@ def main():
         rate.sleep()
 
     cv2.destroyAllWindows()
+
+        face_finder = face_localizer()
+        
+        pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
+        sub = rospy.Subscriber("/move_base/status", GoalStatusArray, callback=face_finder.check_status)
+
+        rate = rospy.Rate(10)
+        
+        seq_id = 1
+        while not rospy.is_shutdown():
+            face_finder.find_faces()
+
+            if not face_finder.path and face_finder.all_goals_reached:
+                rospy.loginfo(face_finder.bot_positions)
+                msg = PoseStamped()
+                msg.header.seq = seq_id
+                msg.header.frame_id = "map"
+                msg.pose.orientation = face_finder.bot_positions[0][1]
+                msg.pose.position = face_finder.bot_positions[0][0]
+                pub.publish(msg)
+                break
+
+            if face_finder.next_goal:
+                rospy.loginfo(f"Next goal is: {face_finder.path[0]}")
+                msg = face_finder.get_position(seq_id) 
+                seq_id += 1
+                pub.publish(msg)
+                face_finder.path.pop(0)
+                face_finder.next_goal = False
+            else:
+                # rospy.spin()
+                pass
+
+
+            rate.sleep()
+
+        cv2.destroyAllWindows()
+
 
 
 if __name__ == '__main__':

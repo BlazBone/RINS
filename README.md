@@ -31,7 +31,7 @@ rosrun task1 face_localizer_dnn
 or (to create images)
 
 ```bash
-(rm images/* && rosrun task1 face_localizer_dnn) || rosrun task1 face_localizer_dnn
+(rm run_info/* && rosrun task1 face_localizer_dnn) || rosrun task1 face_localizer_dnn
 ```
 
 # Shorcuts, tips, tricks
