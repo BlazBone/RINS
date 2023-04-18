@@ -35,6 +35,7 @@ or (to create images)
 ```
 
 # RUN EXERCISE 6
+IMPORTANT: IF rins_world DOESN'T START, CHECK THAT YOU'RE NOT EXPORTING 'ROS_IP' AND 'ROS_MASTER_URI'
 ```bash
 roslaunch exercise6 rins_world.launch
 ```
