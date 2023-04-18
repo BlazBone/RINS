@@ -451,10 +451,11 @@ class face_localizer:
                     marker.type = Marker.CUBE
                     marker.action = Marker.ADD
                     marker.frame_locked = False
-                    marker.lifetime = rospy.Duration.from_sec(10)
+                    marker.lifetime = rospy.Duration.from_sec(100)
                     marker.id = self.marker_num
                     marker.scale = Vector3(0.1, 0.1, 0.1)
                     marker.color = ColorRGBA(0, 1, 0, 1)
+                    
                     current_time = time.time()
                     if self.should_add_new_face(pose, relative_path_to_face_region, current_time):
                         self.bot_positions.append((p_position, p_orientation, face_distance))
