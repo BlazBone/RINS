@@ -107,7 +107,7 @@ class face_localizer:
         ])
 
         # full path of the robot
-        points_path = os.path.join(os.path.dirname(__file__), "newpoints.txt")
+        points_path = os.path.join(os.path.dirname(__file__), "points_real")
         self.path = read_path_log_orientation(points_path)
 
         self.face_path = []
@@ -494,7 +494,7 @@ class face_localizer:
                         # once face is detected, cancel goal and set go_to_face to true
                         cancel_msg = GoalID()
 
-                         #UNCOMENT TO GO TO FACES
+                        # UNCOMMENT TO GO TO FACES
                         self.cancel_goal_pub.publish(cancel_msg)
                         self.path_idx -= 1
                         self.go_to_face = True
