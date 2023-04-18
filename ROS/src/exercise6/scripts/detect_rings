@@ -12,6 +12,18 @@ from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import ColorRGBA
 
+# OUR IMPORTS
+import os
+from exercise6_utils import read_path_log_orientation
+from tf2_geometry_msgs import PoseStamped
+from actionlib_msgs.msg import GoalID, GoalStatusArray
+import shutil
+from typing import List, Tuple
+import time
+
+relative_path_to_additional_info = os.path.join(os.path.dirname(__file__), f"../last_run_info/")
+dir_rings = os.path.join(os.path.dirname(__file__), f"../last_run_info/rings_images/")
+dir_cylinders = os.path.join(os.path.dirname(__file__), f"../last_run_info/cylinders_images/")
 
 class The_Ring:
     def __init__(self):
@@ -31,12 +43,60 @@ class The_Ring:
         self.image_sub = rospy.Subscriber("/camera/rgb/image_raw", Image, self.image_callback)
         # self.depth_sub = rospy.Subscriber("/camera/depth_registered/image_raw", Image, self.depth_callback)
 
-        # Publiser for the visualization markers
+        # Publisher for the visualization markers
         self.markers_pub = rospy.Publisher('markers', MarkerArray, queue_size=1000)
 
         # Object we use for transforming between coordinate frames
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
+
+        # OUR ATTRIBUTES
+        points_path = os.path.join(os.path.dirname(__file__), "newpoints.txt")
+        self.path = read_path_log_orientation(points_path)
+        self.path_idx = 0
+
+        self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
+        self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
+
+    
+    def publish_new_position(self, log:bool=True) -> None:
+        """
+        Publishes a new position to the robot.
+
+        Go to path_idx.
+        Function updates self.path_idx.
+        """
+        msg = PoseStamped()
+        msg.header.frame_id = "map"
+        msg.header.stamp = rospy.Time().now()
+        if self.path_idx >= len(self.path):
+            return
+        msg.pose.orientation.w = 1
+        msg.pose.position.x = self.path[self.path_idx][0]
+        msg.pose.position.y = self.path[self.path_idx][1]
+        msg.pose.orientation.z = self.path[self.path_idx][3]
+        msg.pose.orientation.w = self.path[self.path_idx][4]
+        self.path_idx += 1
+        if log:
+            self.simple_goal_pub.publish(msg)
+            rospy.loginfo(f"Visiting POINT @ index {self.path_idx} in path.")
+            rospy.loginfo(f"\n{msg.pose}")
+
+    def status_reached(self) -> Tuple[bool, int]:
+        """
+        Function listenes for status updates on topic /move_base/status.
+
+        If status is 3 (goal reached) or 4 (goal terminated), the goal is 'reached'.
+        If status is 0 or 1 the goal is 'being processed', else there is an error.
+        """
+        status = rospy.wait_for_message("/move_base/status", GoalStatusArray)
+        if status.status_list[-1].status in (0, 1):
+            # goal is being processed
+            return False,status.status_list[-1].status
+        else:
+            # goal is done (successfully or not)
+            return True,status.status_list[-1].status
+
 
 
     def get_pose(self,e,dist):
@@ -48,7 +108,7 @@ class The_Ring:
         elipse_y = self.dims[0] / 2 - e[0][1]
 
         angle_to_target = np.arctan2(elipse_x,k_f)
-
+        dist -= 0.4
         # Get the angles in the base_link relative coordinate system
         x,y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
 
@@ -96,7 +156,7 @@ class The_Ring:
 
 
     def image_callback(self,data):
-        print('I got a new image!')
+        # print('I got a new image!')
 
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -146,7 +206,7 @@ class The_Ring:
                 if dist < 5:
                     candidates.append((e1,e2))
 
-        print("Processing is done! found", len(candidates), "candidates for rings")
+        # print("Processing is done! found", len(candidates), "candidates for rings")
 
         try:
             depth_img = rospy.wait_for_message('/camera/depth/image_raw', Image)
@@ -167,19 +227,99 @@ class The_Ring:
             size = (e1[1][0]+e1[1][1])/2
             center = (e1[0][1], e1[0][0])
 
+            # TODO CHECK IF cv_image.shape[0] is x and cv_image.shape[1] is y
             x1 = int(center[0] - size / 2)
             x2 = int(center[0] + size / 2)
             x_min = x1 if x1>0 else 0
-            x_max = x2 if x2<cv_image.shape[0] else cv_image.shape[0]
+            x_max = x2 if x2 < cv_image.shape[1] else cv_image.shape[1]
 
             y1 = int(center[1] - size / 2)
             y2 = int(center[1] + size / 2)
             y_min = y1 if y1 > 0 else 0
-            y_max = y2 if y2 < cv_image.shape[1] else cv_image.shape[1]
-
+            y_max = y2 if y2 < cv_image.shape[0] else cv_image.shape[0]
+ 
             depth_image = self.bridge.imgmsg_to_cv2(depth_img, "16UC1")
 
+            dist_l = np.mean(depth_image[x_min,y_min:y_max])
+            dist_r = np.mean(depth_image[x_max,y_min:y_max])
+            
+            x1_center = int(center[0] - size / 4)
+            x2_center = int(center[0] + size / 4)
+            x_min_center = x1_center if x1_center>0 else 0
+            x_max_center = x2_center if x2_center<cv_image.shape[1] else cv_image.shape[1]
+
+            y1_center = int(center[1] - size / 4)
+            y2_center = int(center[1] + size / 4)
+            y_min_center = y1_center if y1_center > 0 else 0
+            y_max_center = y2_center if y2_center < cv_image.shape[0] else cv_image.shape[0]
+            
+            dist_center = np.mean(depth_image[x_min_center:x_max_center,y_min_center:y_max_center])
+            
+            # TODO add legend to image
+            # TODO add a separate fun for this
+            x_line_left_coord = 0
+            x_line_right_coord = cv_image.shape[1]
+            y_threshold = int(cv_image.shape[0] / 2)
+
+            left_line_point = (x_line_left_coord, y_threshold)
+            right_line_point = (x_line_right_coord, y_threshold)
+            # line colour in BGR format
+            line_colour = (0, 255, 0)
+            line_thickness = 2
+
+            # x_center_line_left_coord = x_min_center
+            # x_center_line_right_coord = x_max_center
+            # y_center_threshold = y_min_center + int((y_max_center - y_min_center)/2)
+            #
+            # left_center_line_point = (x_center_line_left_coord, y_center_threshold)
+            # right_center_line_point = (x_center_line_right_coord, y_center_threshold)
+            # # center_line colour in BGR format
+            # center_line_colour = (255, 0, 0)
+            # center_line_thickness = 2
+
+            # x_line_min_left_coord = 0
+            # x_line_min_right_coord = cv_image.shape[1]
+            # y_threshold_min = int(y_min_center)
+            #
+            # left_line_min_point = (x_line_min_left_coord, y_threshold_min)
+            # right_line_min_point = (x_line_min_right_coord, y_threshold_min)
+            # line_min_colour = (255, 0, 0)
+            # line_min_thickness = 2
+            #
+            # x_line_max_left_coord = 0
+            # x_line_max_right_coord = cv_image.shape[1]
+            # y_threshold_max = int(y_max_center)
+            #
+            # left_line_max_point = (x_line_max_left_coord, y_threshold_max)
+            # right_line_max_point = (x_line_max_right_coord, y_threshold_max)
+            # line_max_colour = (255, 0, 0)
+            # line_max_thickness = 2
+
+            # if dist_center > max(dist_l, dist_r) or dist_center < min(dist_l, dist_r):
+            if dist_center > max(dist_l, dist_r) and y_threshold < y_center_threshold:
+                image_name = f"{dir_rings}{time.time()}.jpg"
+                print(f"Found a ring! Image saved under: {image_name}")
+                print(f"Image shape: {cv_image.shape}")
+                print(f"y_threshold: {y_threshold}")
+                print(f"min(y_min, y_max): {min(y_min, y_max)}")
+
+                cv2.line(cv_image, left_line_point, right_line_point, line_colour, line_thickness)
+
+                cv2.rectangle(cv_image, )
+
+                # cv2.rectangle(cv_image, left_center_line_point, right_center_line_point, center_line_colour, center_line_thickness)
+                # cv2.line(cv_image, left_line_min_point, right_line_min_point, line_min_colour, line_min_thickness)
+                # cv2.line(cv_image, left_line_max_point, right_line_max_point, line_max_colour, line_max_thickness)
+                # dir = dir_cylinders if dist_center < min(dist_l, dist_r) else dir_rings
+                cv2.imwrite(image_name, cv_image) # Save the face image
+            else:
+                # print(f"Skipping image, y_threshold: {y_threshold}, min(y_min, y_max): {min(y_min, y_max)}")
+                print(f"Skipping image, dist_center: {dist_center}, y_threshold: {y_threshold}, center[1]: {center[1]}")
+                pass
+            
+            sys.exit()
             self.get_pose(e1, float(np.mean(depth_image[x_min:x_max,y_min:y_max]))/1000.0)
+
 
         if len(candidates)>0:
                 cv2.imshow("Image window",cv_image)
@@ -203,14 +343,33 @@ class The_Ring:
 
 
 def main():
+    for path in (relative_path_to_additional_info, dir_rings, dir_cylinders):
+        if os.path.exists(path):
+            shutil.rmtree(path)
+        os.mkdir(path)
 
     ring_finder = The_Ring()
+    
+    rate = rospy.Rate(10)
+        
+    rospy.sleep(1)
+    ring_finder.publish_new_position()                
 
-    try:
-        rospy.spin()
-    except KeyboardInterrupt:
-        print("Shutting down")
+    while not rospy.is_shutdown():
+        reached, status = ring_finder.status_reached()
 
+        if reached:
+            # no need to implement anything more sophisticated for exercise 6
+            message = "REACHED GOAL" if status == 3 else "CANCEL STATUS"
+            rospy.loginfo(message)
+            ring_finder.publish_new_position()
+
+        elif ring_finder.path_idx == len(ring_finder.path):
+            rospy.loginfo("FINISHED PATH")
+            break
+
+        rate.sleep()
+    
     cv2.destroyAllWindows()
 
 
