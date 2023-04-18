@@ -455,7 +455,12 @@ class face_localizer:
                     marker.id = self.marker_num
                     marker.scale = Vector3(0.1, 0.1, 0.1)
                     marker.color = ColorRGBA(0, 1, 0, 1)
-                    
+                    marker.pose.orientation.w = p_orientation.w
+                    marker.pose.orientation.x = p_orientation.x
+                    marker.pose.orientation.y = p_orientation.y
+                    marker.pose.orientation.z = p_orientation.z
+
+
                     current_time = time.time()
                     if self.should_add_new_face(pose, relative_path_to_face_region, current_time):
                         self.bot_positions.append((p_position, p_orientation, face_distance))
