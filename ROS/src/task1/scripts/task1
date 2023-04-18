@@ -439,6 +439,10 @@ class face_localizer:
 
                 # Find the location of the detected face
                 pose = self.get_pose((x1,x2,y1,y2), face_distance, depth_time)
+                # ONLY FOR REAL WORLD
+                pose.position.x = p_position.x / 1000
+                pose.position.y = p_position.y / 1000
+                pose.position.z = p_position.z / 1000
 
                 if pose is not None:
 
