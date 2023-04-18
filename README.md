@@ -49,7 +49,7 @@ roslaunch turtlebot_rviz_launchers view_navigation.launch
 ```
 
 ```bash
-roslaunch exercise6 detect_rings
+rosrun exercise6 detect_rings
 ```
 # Shorcuts, tips, tricks
 
