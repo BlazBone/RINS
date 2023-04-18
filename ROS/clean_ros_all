@@ -1,3 +1,0 @@
-#!/bin/sh
-
-ps aux | grep -ie ros | awk '{print $2}' | xargs kill -9
