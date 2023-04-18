@@ -34,6 +34,22 @@ or (to create images)
 (rm run_info/* && rosrun task1 task1) || rosrun task1 task1
 ```
 
+# RUN EXERCISE 6
+```bash
+roslaunch exercise6 rins_world.launch
+```
+
+```bash
+roslaunch turtlebot_custom_navigation amcl_simulation.launch
+```
+
+```bash
+roslaunch turtlebot_rviz_launchers view_navigation.launch
+```
+
+```bash
+roslaunch exercise6 detect_rings
+```
 # Shorcuts, tips, tricks
 
 ### Change border sensitivity of a robot
