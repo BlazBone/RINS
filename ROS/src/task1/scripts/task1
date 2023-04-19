@@ -32,6 +32,8 @@ from sound_play.libsoundplay import SoundClient
 
 from task1_utils import read_path_log_orientation
 
+from time import sleep
+
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 NN_FACE_SIMILARITY_TOLERANCE = 0.75
 NUMBER_OF_FACES_ON_THE_MAP = 3
@@ -107,7 +109,7 @@ class face_localizer:
         ])
 
         # full path of the robot
-        points_path = os.path.join(os.path.dirname(__file__), "points_real")
+        points_path = os.path.join(os.path.dirname(__file__), "RW")
         self.path = read_path_log_orientation(points_path)
 
         self.face_path = []
@@ -131,7 +133,7 @@ class face_localizer:
         self.faces_dictionary = {}
 
         # This number is made up. The greatest measured distance is 4. The distance is probably in meters. 
-        self.FACE_DISTANCE_TOLERANCE = 0.5
+        self.FACE_DISTANCE_TOLERANCE = 1.5
 
         # array of robot positions when faces are detected
         self.bot_positions = []
@@ -152,8 +154,14 @@ class face_localizer:
 
         # Get the angles in the base_link relative coordinate system
         # step away from image 0.4 units (probably meters)
-        dist -= 0.4
+        # dist -= 0.4
+
+        # REAL WORLD DISTANCE
+        # dist -= 500
+        dist /= 1000
+        dist -= 0.6
         x, y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
+        print(f"dist: {dist}, x: {x}, y: {y}, angle: {angle_to_target}")
 
 
         # Define a stamped message for transformation - in the "camera rgb frame"
@@ -439,19 +447,22 @@ class face_localizer:
 
                 # Find the location of the detected face
                 pose = self.get_pose((x1,x2,y1,y2), face_distance, depth_time)
-                # ONLY FOR REAL WORLD
-                pose.position.x = p_position.x / 1000
-                pose.position.y = p_position.y / 1000
-                pose.position.z = p_position.z / 1000
+                print("BEFORE DIVIDING")
+                print(pose.position.x, pose.position.y, pose.position.z)
+                X = pose.position.x / 1000
+                Y = pose.position.y / 1000
+                Z = pose.position.z / 1000
 
                 if pose is not None:
-
                     # Create a marker used for visualization
                     self.marker_num += 1
                     marker = Marker()
                     marker.header.stamp = rospy.Time(0)
                     marker.header.frame_id = 'map'
-                    marker.pose = pose
+                    marker.pose.position.x = X
+                    marker.pose.position.y = Y
+                    marker.pose.position.z = Z
+                    print("ADDED NEW MARKER WITH COORDS ", X, Y, Z, "")
                     marker.type = Marker.CUBE
                     marker.action = Marker.ADD
                     marker.frame_locked = False
@@ -466,10 +477,17 @@ class face_localizer:
 
 
                     current_time = time.time()
-                    if self.should_add_new_face(pose, relative_path_to_face_region, current_time):
+                    # if self.should_add_new_face(pose, relative_path_to_face_region, current_time):
+                    # POINTS ARE SET IN A WAY THIS MAKES SENSE, ELSE DOESN'T
+                    if True:
+                        # ISN'T USED ANYWHERE
                         self.bot_positions.append((p_position, p_orientation, face_distance))
-                        position = (pose.position.x, pose.position.y, pose.position.z)
-                        
+                        # position = (pose.position.x, pose.position.y, pose.position.z)
+                        position = (X, Y, Z)
+                        print(f"New position of the detected face")
+                        print(position)
+                        print()
+
                         current_face_properties = {
                                 "position": position,
                                 "face_region_array": face_region,
@@ -500,7 +518,7 @@ class face_localizer:
 
                         # UNCOMMENT TO GO TO FACES
                         self.cancel_goal_pub.publish(cancel_msg)
-                        self.path_idx -= 1
+                        # self.path_idx -= 1
                         self.go_to_face = True
 
                         self.marker_array.markers.append(marker)
@@ -522,7 +540,7 @@ def main():
 
     while not rospy.is_shutdown():
         # We scan for faces every 1/10 of a second.
-        face_finder.find_faces()
+        # face_finder.find_faces()
 
         # check status
         reached, status = face_finder.status_reached() 
@@ -545,6 +563,11 @@ def main():
                 face_finder.cancel_goal_pub.publish(cancel_msg)
                 rospy.sleep(1)
             # if we reached the goal, but we are not going to a face, we need to go to the next position
+            elif status == 3 and not face_finder.go_to_face: 
+                sleep(0.5)
+                face_finder.find_faces()
+                sleep(0.5)
+
             face_finder.publish_new_position()
         # check if we finished the path
         elif face_finder.path_idx == len(face_finder.path):
