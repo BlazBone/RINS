@@ -34,6 +34,55 @@ or (to create images)
 (rm run_info/* && rosrun task1 task1) || rosrun task1 task1
 ```
 
+### RUN TASK 1 ON REAL ROBOT
+
+#### SSH to laptop which is connected to robot
+
+connect to Turtlenet wifi
+
+add this to .bashrc
+
+```bash
+export ROS_IP={YOUR_IP}
+export ROS_MASTER_URI=http://kili.local:11311/
+```
+
+```bash
+ssh team_ai_avengers@kili.local
+```
+
+```
+password: 068bd410
+```
+
+#### Commands running on laptop connected to robot
+
+```bash
+export TURTLEBOT_MAP_FILE=/home/team_ai_avengers/RW_map.yaml
+```
+
+```bash
+roslaunch *something* minimal.launch
+```
+
+```bash
+roslaunch *something* amcl_demo.launch
+```
+
+#### Commands running localy on workstation
+
+```bash
+roslaunch turtlebot_rviz_launchers view_navigation.launch
+```
+
+```bash
+rosrun sound_play soundplay_node.py
+```
+
+```bash
+rosrun task1 task1
+```
+
 # Shorcuts, tips, tricks
 
 ### Change border sensitivity of a robot
