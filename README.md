@@ -38,9 +38,9 @@ or (to create images)
 
 #### SSH to laptop which is connected to robot
 
-connect to Turtlenet wifi
+- connect to Turtlenet wifi
 
-add this to .bashrc
+- add this to .bashrc
 
 ```bash
 export ROS_IP={YOUR_IP}
