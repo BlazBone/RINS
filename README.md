@@ -69,7 +69,7 @@ roslaunch *something* minimal.launch
 roslaunch *something* amcl_demo.launch
 ```
 
-#### Commands running localy on workstation
+#### Commands running locally on workstation
 
 ```bash
 roslaunch turtlebot_rviz_launchers view_navigation.launch
