@@ -1,0 +1,420 @@
+#!/usr/bin/python3
+
+import rospy
+import cv2
+import numpy as np
+import tf2_ros
+
+from os.path import dirname, join
+
+#import matplotlib.pyplot as plt
+from sensor_msgs.msg import Image
+from geometry_msgs.msg import PointStamped, Vector3, Pose
+from cv_bridge import CvBridge, CvBridgeError
+from visualization_msgs.msg import Marker, MarkerArray
+from std_msgs.msg import ColorRGBA
+
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
+from actionlib_msgs.msg import GoalStatusArray
+
+import logging
+
+STATUS_DICT = {
+    0:"The goal has yet to be processed by the action server",
+    1:"The goal is currently being processed by the action server",
+    2:"The goal received a cancel request after it started executing and has since completed its execution (Terminal State)",
+    3:"The goal was achieved successfully by the action server (Terminal State)",
+    4:"The goal was aborted during execution by the action server due to some failure (Terminal State)",
+    5:"The goal was rejected by the action server without being processed, because the goal was unattainable or invalid (Terminal State)",
+    6:"The goal received a cancel request after it started executing and has not yet completed execution",
+    7:"The goal received a cancel request before it started executing but the action server has not yet confirmed that the goal is canceled",
+    8:"The goal received a cancel request before it started executing and was successfully cancelled (Terminal State)",
+    9:"An action client can determine that a goal is LOST. This should not be sent over the wire by an action server",
+}
+
+
+def read_path_log(filename: str) -> list:
+    """
+    Reads given filename, contaning a sequence of published points on topic /amcl_pose.
+    Published points are separated with '---' and start with 'header:'.
+    
+    TODO: Add orientation when different points are published.
+    Example message (always the same order):
+        header:
+        seq: int
+        stamp:
+        secs: int
+        nsecs: int
+        frame_id: "map"
+        point:
+        x: float
+        y: float
+        z: float
+        ---
+    """
+    path = []
+    p = Pose()
+    with open(filename, "r") as f:
+        for line in f:
+            if line.strip().startswith("header:"):
+                #seq
+                f.readline()
+                #stamp
+                f.readline()
+                #secs
+                f.readline()
+                #nsecs
+                f.readline()
+                #frame_id
+                f.readline()
+                #point
+                f.readline()
+                p.position.x = float(f.readline().strip().split(" ")[1])
+                p.position.y = float(f.readline().strip().split(" ")[1])
+                p.position.z = float(f.readline().strip().split(" ")[1])
+                path.append(p)
+    return path
+
+class face_localizer:
+
+    def __init__(self):
+        rospy.init_node('face_localizer', anonymous=True)
+
+        # An object we use for converting images between ROS format and OpenCV format
+        self.bridge = CvBridge()
+        
+        # The function for performin HOG face detection
+        #self.face_detector = dlib.get_frontal_face_detector()
+        protoPath = join(dirname(__file__), "deploy.prototxt.txt")
+        modelPath = join(dirname(__file__), "res10_300x300_ssd_iter_140000.caffemodel")
+
+        self.face_net = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
+
+        # A help variable for holding the dimensions of the image
+        self.dims = (0, 0, 0)
+
+        # Marker array object used for showing markers in Rviz
+        self.marker_array = MarkerArray()
+        self.marker_num = 1
+
+        # Subscribe to the image and/or depth topic
+        # self.image_sub = rospy.Subscriber("/camera/rgb/image_raw", Image, self.image_callback)
+        # self.depth_sub = rospy.Subscriber("/camera/depth/image_raw", Image, self.depth_callback)
+
+        # Publiser for the visualization markers
+        self.markers_pub = rospy.Publisher('face_markers', MarkerArray, queue_size=1000)
+
+        # Object we use for transforming between coordinate frames
+        self.tf_buf = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
+        
+        # full path of the robot
+                # use 'points_full_small' when testing
+        self.path = read_path_log("points_full")
+        # self.path = read_path_log("points_full_small")
+
+        self.all_goals_reached = False
+
+        if self.path:
+            self.next_goal = True
+
+        self.face_search = True
+        # array containing face positions
+        self.face_positions = []
+        # array of robot positions when faces are detected
+        self.bot_positions = []
+   
+    def get_position(self, seq_id: int) -> PoseStamped: 
+        """
+        Creates a PoseStamped message from given pose.
+
+        :param seq_id: Sequence id of the message
+
+        :return: PoseStamped message
+        """
+        msg = PoseStamped()
+        msg.header.seq = seq_id
+        msg.header.frame_id = "map"
+        rospy.loginfo(f"self.path[0]: {self.path[0]}")
+        rospy.loginfo(f"len(self.path): {len(self.path)}")
+        msg.pose.position = self.path[seq_id].position
+        msg.pose.orientation = self.path[seq_id].orientation
+
+        return msg
+
+    def check_status(self, data: GoalStatusArray) -> None:
+        """
+        Subscriber callback function, checks the status of the goal.
+
+        :param data: GoalStatusArray message
+        :return: None
+        """
+        status_list = data.status_list
+        if len(status_list) == 0:
+            self.next_goal = True
+            return
+        logging.info(f"status: {status_list[-1].status}: The goal is currently")
+        logging.info(f"status {status_list[-1].status}: {STATUS_DICT[status_list[-1].status]}")
+        logging.info("currently_on_path:")
+        logging.info(self.path)
+        if status_list[-1].status == 3:
+            if not self.path:
+                self.all_goals_reached = True
+                rospy.loginfo("All goals reached.")
+            self.next_goal = True
+        elif status_list[-1].status not in (0, 1,):
+            self.next_goal = True
+
+
+    def marker_distance(self, pose: Pose) -> float:
+        """
+        Calculates the distance to the closest marker. Used for checking is two images are too close.
+        
+        WARNING: Will have to get depracted once we use better face recognition tool that is based on the similarity of faces rather than the distance of when the face was detected.
+
+        :param pose: Pose of the robot
+        :return: Distance to the closest marker
+        """
+        
+        min_distance = float("inf")
+
+        if not self.bot_positions:
+            return float("inf")
+
+        for p in self.bot_positions:
+            distance = np.sqrt((pose.position.x - p.position.x)**2 + (pose.position.y - p.position.y)**2 + (pose.position.z - p.position.z)**2)
+            if distance < min_distance:
+                min_distance = distance
+
+        if min_distance == float("inf") and self.face_positions:
+            return 0
+
+        return min_distance
+
+    def get_pose(self,coords,dist,stamp):
+        # Calculate the position of the detected face
+
+        k_f = 554 # kinect focal length in pixels
+
+        x1, x2, y1, y2 = coords
+
+        face_x = self.dims[1] / 2 - (x1+x2)/2.
+        face_y = self.dims[0] / 2 - (y1+y2)/2.
+
+        angle_to_target = np.arctan2(face_x,k_f)
+
+        # Get the angles in the base_link relative coordinate system
+        x, y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
+
+        ### Define a stamped message for transformation - directly in "base_link"
+        #point_s = PointStamped()
+        #point_s.point.x = x
+        #point_s.point.y = y
+        #point_s.point.z = 0.3
+        #point_s.header.frame_id = "base_link"
+        #point_s.header.stamp = rospy.Time(0)
+
+        # Define a stamped message for transformation - in the "camera rgb frame"
+        point_s = PointStamped()
+        point_s.point.x = -y
+        point_s.point.y = 0
+        point_s.point.z = x
+        point_s.header.frame_id = "camera_rgb_optical_frame"
+        point_s.header.stamp = stamp
+
+        # Get the point in the "map" coordinate system
+        try:
+            point_world = self.tf_buf.transform(point_s, "map")
+
+            # Create a Pose object with the same position
+            pose = Pose()
+            pose.position.x = point_world.point.x
+            pose.position.y = point_world.point.y
+            pose.position.z = point_world.point.z
+        except Exception as e:
+            print(e)
+            pose = None
+
+        return pose
+    
+    def find_faces(self):
+        # print('I got a new image!')
+
+        # Get the next rgb and depth images that are posted from the camera
+        try:
+            rgb_image_message = rospy.wait_for_message("/camera/rgb/image_raw", Image)
+        except Exception as e:
+            print(e)
+            return 0
+
+        try:
+            depth_image_message = rospy.wait_for_message("/camera/depth/image_raw", Image)
+        except Exception as e:
+            print(e)
+            return 0
+
+        # Convert the images into a OpenCV (numpy) format
+
+        try:
+            rgb_image = self.bridge.imgmsg_to_cv2(rgb_image_message, "bgr8")
+        except CvBridgeError as e:
+            print(e)
+
+        try:
+            depth_image = self.bridge.imgmsg_to_cv2(depth_image_message, "32FC1")
+        except CvBridgeError as e:
+            print(e)
+
+        # Set the dimensions of the image
+        self.dims = rgb_image.shape
+        h = self.dims[0]
+        w = self.dims[1]
+
+        # Tranform image to gayscale
+        #gray = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2GRAY)
+
+        # Do histogram equlization
+        #img = cv2.equalizeHist(gray)
+
+        # Detect the faces in the image
+        #face_rectangles = self.face_detector(rgb_image, 0)
+        blob = cv2.dnn.blobFromImage(cv2.resize(rgb_image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
+        self.face_net.setInput(blob)
+        face_detections = self.face_net.forward()
+        p = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
+        p_position = p.pose.pose.position
+        p_orientation = p.pose.pose.orientation
+
+        for i in range(0, face_detections.shape[2]):
+            confidence = face_detections[0, 0, i, 2]
+            if confidence>0.75:
+                box = face_detections[0,0,i,3:7] * np.array([w,h,w,h])
+                box = box.astype('int')
+                x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
+
+                # Extract region containing face
+                face_region = rgb_image[y1:y2, x1:x2]
+                # cv2.imwrite('face.jpg', face_region) # Save the face image
+
+                # Visualize the extracted face
+                #cv2.imshow("ImWindow", face_region)
+                #cv2.waitKey(1)
+
+                # Find the distance to the detected face
+                face_distance = float(np.nanmean(depth_image[y1:y2,x1:x2]))
+
+                # print('Distance to face', face_distance)
+
+                # Get the time that the depth image was recieved
+                depth_time = depth_image_message.header.stamp
+
+                # Find the location of the detected face
+                pose = self.get_pose((x1,x2,y1,y2), face_distance, depth_time)
+
+                # print(f"pose: {pose}")
+
+                if pose is not None:
+                    
+                    # Create a marker used for visualization
+                    self.marker_num += 1
+                    marker = Marker()
+                    marker.header.stamp = rospy.Time(0)
+                    marker.header.frame_id = 'map'
+                    marker.pose = pose
+                    marker.type = Marker.CUBE
+                    marker.action = Marker.ADD
+                    marker.frame_locked = False
+                    marker.lifetime = rospy.Duration.from_sec(10)
+                    marker.id = self.marker_num
+                    marker.scale = Vector3(0.1, 0.1, 0.1)
+                    marker.color = ColorRGBA(0, 1, 0, 1)
+                    d = self.marker_distance(pose)
+                    # TODO: check why distance is inf (probably fix face-detection)
+                    logging.info(f"Distance is {d}")
+                    message = "Will add" if d > 1 else "will not add"
+                    logging.info(message)
+                    if d > 1:
+                        self.bot_positions.append((p_position, p_orientation, face_distance))
+                        # position = (pose.position.x, pose.position.y, pose.position.z)
+                        # self.face_positions.append(position)
+                        # self.path.append(position)
+                        # rospy.loginfo(f"Added position {position}, curr len: {len(self.face_positions)}")
+                        # added to images as I am deleting it on every run
+                        # with open("images/face_coordinates.txt", "a") as f:
+                        #     f.write(f"face_{len(self.face_positions)}: {position}\n")
+                        # cv2.imwrite(f'images/face_{len(self.face_positions)}.jpg', face_region) # Save the face image
+                        self.marker_array.markers.append(marker)
+                        self.markers_pub.publish(self.marker_array)
+    
+                    # self.face_positions.append(pose)
+                    # print(f"Added position, curr len: {len(self.face_positions)}")
+                    # self.marker_array.markers.append(marker)
+                    # self.markers_pub.publish(self.marker_array)
+
+    def depth_callback(self,data):
+
+        try:
+            depth_image = self.bridge.imgmsg_to_cv2(data, "32FC1")
+        except CvBridgeError as e:
+            print(e)
+
+        # Do the necessairy conversion so we can visuzalize it in OpenCV
+        
+        image_1 = depth_image / np.nanmax(depth_image)
+        image_1 = image_1*255
+        
+        image_viz = np.array(image_1, dtype=np.uint8)
+
+        #cv2.imshow("Depth window", image_viz)
+        #cv2.waitKey(1)
+
+        #plt.imshow(depth_image)
+        #plt.show()
+
+def main():
+        logging.basicConfig(filename='task1.log', filemode='w', level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+        logging.info("Started")
+        face_finder = face_localizer()
+
+        TOPIC="/move_base_simple/goal"
+        pub = rospy.Publisher(TOPIC, PoseStamped, queue_size=10)
+        # rospy.loginfo(f"Publishing on {TOPIC}")
+        sub = rospy.Subscriber("/move_base/status", GoalStatusArray, callback=face_finder.check_status)
+
+
+        # print(face_finder.path)
+        rate = rospy.Rate(10)
+
+        seq_id = 1
+        while not rospy.is_shutdown():
+            face_finder.find_faces()
+
+            if not face_finder.path and face_finder.all_goals_reached:
+                rospy.loginfo("All goals reached, shutting down.")
+                logging.info("All goals reached, shutting down.")
+                msg = PoseStamped()
+                msg.header.seq = seq_id
+                msg.header.frame_id = "map"
+                msg.pose.orientation = face_finder.bot_positions[0][1]
+                msg.pose.position = face_finder.bot_positions[0][0]
+                pub.publish(msg)
+                break
+
+            if face_finder.next_goal:
+                msg = face_finder.get_position(seq_id) 
+                seq_id += 1
+                pub.publish(msg)
+                # face_finder.path.pop(0)
+                face_finder.next_goal = False
+            else:
+                # rospy.spin()
+                pass
+
+
+            rate.sleep()
+
+        cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+    main()

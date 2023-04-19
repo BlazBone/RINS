@@ -36,7 +36,7 @@ from time import sleep
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 NN_FACE_SIMILARITY_TOLERANCE = 0.75
-NUMBER_OF_FACES_ON_THE_MAP = 3
+NUMBER_OF_FACES_ON_THE_MAP = 5
 
 STATUS_DICT = {
     0:"The goal has yet to be processed by the action server",
