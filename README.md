@@ -66,3 +66,7 @@ source /opt/ros/noetic/setup.zsh
 source /home/bone/RINS/ROS/devel/setup.zsh
 source /home/bone/RINS/ROS_TURTLE/devel/setup.zsh --extend
 ```
+
+```bash
+ps aux | grep -ie ros | awk '{print $2}' | xargs kill -9
+```
