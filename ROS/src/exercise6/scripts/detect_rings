@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+# DISABLE SHADOWS IN RINS_WORLD BEFORE STARTING THE PROGRAM - CLEARS THE IMAGE SIGNIFICANTLY
+
 import sys
 import rospy
 import cv2
@@ -22,8 +24,9 @@ from typing import List, Tuple
 import time
 
 relative_path_to_additional_info = os.path.join(os.path.dirname(__file__), f"../last_run_info/")
-dir_rings = os.path.join(os.path.dirname(__file__), f"../last_run_info/rings_images/")
-dir_cylinders = os.path.join(os.path.dirname(__file__), f"../last_run_info/cylinders_images/")
+dir_irregular = os.path.join(os.path.dirname(__file__), "../last_run_info/irregular")
+dir_rings = os.path.join(os.path.dirname(__file__), "../last_run_info/rings_images/")
+dir_cylinders = os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders_images/")
 
 class The_Ring:
     def __init__(self):
@@ -98,7 +101,6 @@ class The_Ring:
             return True,status.status_list[-1].status
 
 
-
     def get_pose(self,e,dist):
         # Calculate the position of the detected ellipse
 
@@ -136,7 +138,8 @@ class The_Ring:
         pose.position.x = point_world.point.x
         pose.position.y = point_world.point.y
         pose.position.z = point_world.point.z
-
+        
+        # PUBLISHING MARKER
         # Create a marker used for visualization
         self.marker_num += 1
         marker = Marker()
@@ -174,7 +177,8 @@ class The_Ring:
 
         # Binarize the image, there are different ways to do it
         #ret, thresh = cv2.threshold(img, 50, 255, 0)
-        #ret, thresh = cv2.threshold(img, 70, 255, cv2.THRESH_BINARY)
+        # ret, thresh = cv2.threshold(img, 70, 255, cv2.THRESH_BINARY)
+        # this one seeems to work best
         thresh = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 25)
 
         # Extract contours
@@ -202,128 +206,234 @@ class The_Ring:
                 e1 = elps[n]
                 e2 = elps[m]
                 dist = np.sqrt(((e1[0][0] - e2[0][0]) ** 2 + (e1[0][1] - e2[0][1]) ** 2))
-                #             print dist
                 if dist < 5:
                     candidates.append((e1,e2))
 
-        # print("Processing is done! found", len(candidates), "candidates for rings")
 
         try:
             depth_img = rospy.wait_for_message('/camera/depth/image_raw', Image)
         except Exception as e:
             print(e)
 
-        # Extract the depth from the depth image
-        for c in candidates:
+        org = (20, 20)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = 0.5
+        cv2.putText(cv_image, f"image shape: {cv_image.shape}", org, font, fontScale, (0,0,0), 1)
 
+        # Extract the depth from the depth image
+        for n,c in enumerate(candidates):
+        # for c in candidates:
             # the centers of the ellipses
+            # ellipses have the same centers
             e1 = c[0]
             e2 = c[1]
-
+            
+            # x: horizontal, y: vertical
+            # a: horizontal axis, b: vertical axis
+            # angle: rotation angle
+            (x_e1, y_e1), (a_e1, b_e1), angle_e1 = e1
+            (x_e2, y_e2), (a_e2, b_e2), angle_e2 = e2
+            
+            # due to poor design of cv2, dimensions out of scope aren't an error, but drawn by module
+            x_e1 = x_e1 % cv_image.shape[1]
+            y_e1 = y_e1 % cv_image.shape[0]
+            x_e2 = x_e2 % cv_image.shape[1]
+            y_e2 = y_e2 % cv_image.shape[0]
             # drawing the ellipses on the image
             cv2.ellipse(cv_image, e1, (0, 255, 0), 2)
             cv2.ellipse(cv_image, e2, (0, 255, 0), 2)
 
-            size = (e1[1][0]+e1[1][1])/2
-            center = (e1[0][1], e1[0][0])
+            ellipse_center = (int(x_e1) + 20, int(y_e1))
+            
+            # ROI - region of interest
+            # small region around the centre to extract the color from
+            left_x, right_x = int(x_e1-2), int(x_e1+2)
+            left_y, right_y = int(y_e1-2), int(y_e1+2)
+            roi = cv_image[left_y:right_y, left_x:right_x]
+            # [:3] -> we do not need alpha channel
+            average_color = tuple(int(channel) for channel in cv2.mean(roi))[:3]
+            average_color_value = int(sum(average_color) / len(average_color))
+            org = (330, 20 + (n+1)*20)
+            cv2.putText(cv_image, f"average color: {average_color} [{average_color_value}]", org, font, fontScale, color=(0,0,0), thickness=1)
+            
+            # FOR DEBUGGING PURPOSES ONLY - BLUE CIRCLE IS IN THE WAY OF COLOR RECOGNITION
+            # cv2.circle(cv_image, (int(x_e1), int(y_e1)), 5, (255, 0, 0), -1)
+            # font = cv2.FONT_HERSHEY_SIMPLEX
+            # fontScale = 0.5
+            # cv2.putText(cv_image, f"({int(x_e1)}, {int(x_e2)})", ellipse_center, font, fontScale, color=(255,0,0), thickness=1)
+
+            # two extreme points of the ellipse region, that allow the drawing of the ellipse
+            inside_rectangle = ((int(x_e1 - a_e1 / 2), int(y_e1 - b_e1 / 2)), (int(x_e1 + a_e1 / 2), int(y_e1 + b_e1 / 2))) 
+            outside_rectangle = ((int(x_e2 - a_e2 / 2), int(y_e2 - b_e2 / 2)), (int(x_e2 + a_e2 / 2), int(y_e2 + b_e2 / 2)))
+            
+            # DEPRACTED, NOT REALLY USABLE
+            # inside_to_outside_ratio_x = (outside_rectangle[0][0] - inside_rectangle[0][0]) / (outside_rectangle[1][0] - inside_rectangle[1][0]) if outside_rectangle[1][0] != inside_rectangle[1][0] else "OUTSIDE AND INSIDE RECTANGLES ARE THE SAME"
+            # inside_to_outside_ratio_y = (outside_rectangle[0][1] - inside_rectangle[0][1]) / (outside_rectangle[1][1] - inside_rectangle[1][1]) if outside_rectangle[1][1] != inside_rectangle[1][1] else "OUTSIDE AND INSIDE RECTANGLES ARE THE SAME"
+            # print(f"inside_to_outside_ratio_x: {inside_to_outside_ratio_x}")
+            # print(f"inside_to_outside_ratio_y: {inside_to_outside_ratio_y}")
+
+            inside_x_to_y = round((inside_rectangle[1][0] - inside_rectangle[0][0]) / (inside_rectangle[1][1] - inside_rectangle[0][1]), 2) if inside_rectangle[1][1] != inside_rectangle[0][1] else "INSIDE RECTANGLE IS A SQUARE"
+            outside_x_to_y = round((outside_rectangle[1][0] - outside_rectangle[0][0]) / (outside_rectangle[1][1] - outside_rectangle[0][1]), 2) if outside_rectangle[1][1] != outside_rectangle[0][1] else "OUTSIDE RECTANGLE IS A SQUARE"
+            # org1 = (20, 470 - (n+1)*40)
+            # org2 = (20, 450 - (n+1)*40)
+            # cv2.putText(cv_image, f"inside x to y: {inside_x_to_y}", org1, font, fontScale, color=(0,0,0), thickness=1)
+            # cv2.putText(cv_image, f"outside x to y: {outside_x_to_y}", org2, font, fontScale, color=(0,0,0), thickness=1)
+
+            # draw the elipse region rectangles (white)
+            # cv2.rectangle(cv_image, inside_rectangle[0], inside_rectangle[1], (255, 255, 255), 2)
+            # cv2.rectangle(cv_image, outside_rectangle[0], outside_rectangle[1], (255, 255, 255), 2)
+
+            # size: average of the two axes
+            # center: center of the ellipse (y,x)
+            size_e1 = (e1[1][0]+e1[1][1])/2
+            size_e2 = (e2[1][0]+e2[1][1])/2
+
+            # takes bigger of the 2 concentric elipses
+            # size = max(size_e1, size_e2)
+            size = size_e1
+            # these two should be fairly close
+            center_e1 = (e1[0][1], e1[0][0])
+            center_e2 = (e2[0][1], e2[0][0])
+
+            # not really sure if this part matters, but just to be sure
+            center = center_e1 if size == size_e1 else center_e2
 
             # TODO CHECK IF cv_image.shape[0] is x and cv_image.shape[1] is y
             x1 = int(center[0] - size / 2)
             x2 = int(center[0] + size / 2)
-            x_min = x1 if x1>0 else 0
-            x_max = x2 if x2 < cv_image.shape[1] else cv_image.shape[1]
+            # x_min = x1 if x1>0 else 0
+            # x_max = x2 if x2 < cv_image.shape[1] else cv_image.shape[1]
+            x_min = max(0, x1 % cv_image.shape[1])
+            x_max = min(x2 % cv_image.shape[1], cv_image.shape[1]-1) # -1 so it doesn't raise errors
 
             y1 = int(center[1] - size / 2)
             y2 = int(center[1] + size / 2)
-            y_min = y1 if y1 > 0 else 0
-            y_max = y2 if y2 < cv_image.shape[0] else cv_image.shape[0]
+            # y_min = y1 if y1 > 0 else 0
+            # y_max = y2 if y2 < cv_image.shape[0] else cv_image.shape[0]
+            y_min = max(0, y1 % cv_image.shape[0])
+            y_max = min(y2 % cv_image.shape[0], cv_image.shape[0]-1) # -1 so it doesn't raise errors
  
             depth_image = self.bridge.imgmsg_to_cv2(depth_img, "16UC1")
+            try:
+                # dist_l = np.mean(depth_image[x_min,y_min:y_max])
+                # dist_r = np.mean(depth_image[x_max,y_min:y_max])
 
-            dist_l = np.mean(depth_image[x_min,y_min:y_max])
-            dist_r = np.mean(depth_image[x_max,y_min:y_max])
+                dist_l = np.mean(depth_image[y_min:y_max,x_min])
+                dist_r = np.mean(depth_image[y_min:y_max,x_max])
+            except IndexError:
+                print(f"IndexError: x_min: {x_min}, x_max: {x_max}, y_min: {y_min}, y_max: {y_max}, shape: {depth_image.shape}")
+                return
+
             
             x1_center = int(center[0] - size / 4)
             x2_center = int(center[0] + size / 4)
-            x_min_center = x1_center if x1_center>0 else 0
-            x_max_center = x2_center if x2_center<cv_image.shape[1] else cv_image.shape[1]
+            # x_min_center = x1_center if x1_center>0 else 0
+            # x_max_center = x2_center if x2_center<cv_image.shape[1] else cv_image.shape[1]
+            x_min_center = max(0, x1_center % cv_image.shape[1])
+            x_max_center = min(x2_center % cv_image.shape[1], cv_image.shape[1]-1) # -1 so it doesn't raise errors
 
             y1_center = int(center[1] - size / 4)
             y2_center = int(center[1] + size / 4)
-            y_min_center = y1_center if y1_center > 0 else 0
-            y_max_center = y2_center if y2_center < cv_image.shape[0] else cv_image.shape[0]
+            # y_min_center = y1_center if y1_center > 0 else 0
+            # y_max_center = y2_center if y2_center < cv_image.shape[0] else cv_image.shape[0]
+            y_min_center = max(0, y1_center % cv_image.shape[0])
+            y_max_center = min(y2_center % cv_image.shape[0], cv_image.shape[0]-1) # -1 so it doesn't raise errors
             
+            # average pixel distance in the center of the ring
             dist_center = np.mean(depth_image[x_min_center:x_max_center,y_min_center:y_max_center])
-            
-            # TODO add legend to image
-            # TODO add a separate fun for this
-            x_line_left_coord = 0
-            x_line_right_coord = cv_image.shape[1]
+            float(np.mean(depth_image[x_min:x_max,y_min:y_max]))
+            org = (20, 40)
+            cv2.putText(cv_image, f"dist_center: {round(dist_center,2)}", org, font, fontScale, color=(0,0,0), thickness=1)
+
+            distance_difference = round(abs(dist_center - max(dist_l, dist_r)), 2)
+
+            # org = (20, 40)
+            org = (20, 40 + (n+1)*20)
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            fontScale = 0.5
+            cv2.putText(cv_image, f"distance_difference: {distance_difference}", org, font, fontScale, (0,0,0), 1)
+
+            # rings should be in the upper third
+            # should be int - represents pixels
             y_threshold = int(cv_image.shape[0] / 2)
+            # depracted - calculating by center now
+            # highest_vertical = min(outside_rectangle[0][1], outside_rectangle[1][1])
+            # lowest_vertical = max(outside_rectangle[0][1], outside_rectangle[1][1])
+            
+            # no need to log this, but if we need it again, here's the snippet
+            # start_point = (0, lowest_vertical)
+            # end_point =  (cv_image.shape[1], lowest_vertical)
+            # color = (0,0,0)
+            # thickness = 1
+            # cv2.line(cv_image, start_point, end_point, color, thickness)
+            # org = (start_point[0], start_point[1] + 20)
+            # font = cv2.FONT_HERSHEY_SIMPLEX
+            # fontScale = 0.5
+            # cv2.putText(cv_image, f"Lowest vertical: {lowest_vertical}", org, font, fontScale, color, thickness)
 
-            left_line_point = (x_line_left_coord, y_threshold)
-            right_line_point = (x_line_right_coord, y_threshold)
-            # line colour in BGR format
-            line_colour = (0, 255, 0)
-            line_thickness = 2
+            # start_point = (0, highest_vertical)
+            # end_point =  (cv_image.shape[1], highest_vertical)
+            # color = (255,255,255)
+            # thickness = 1
+            # cv2.line(cv_image, start_point, end_point, color, thickness)
+            # org = (start_point[0], start_point[1] + 20)
+            # font = cv2.FONT_HERSHEY_SIMPLEX
+            # fontScale = 0.5
+            # cv2.putText(cv_image, f"Highest vertical: {highest_vertical}", org, font, fontScale, color, thickness)
 
-            # x_center_line_left_coord = x_min_center
-            # x_center_line_right_coord = x_max_center
-            # y_center_threshold = y_min_center + int((y_max_center - y_min_center)/2)
-            #
-            # left_center_line_point = (x_center_line_left_coord, y_center_threshold)
-            # right_center_line_point = (x_center_line_right_coord, y_center_threshold)
-            # # center_line colour in BGR format
-            # center_line_colour = (255, 0, 0)
-            # center_line_thickness = 2
 
-            # x_line_min_left_coord = 0
-            # x_line_min_right_coord = cv_image.shape[1]
-            # y_threshold_min = int(y_min_center)
-            #
-            # left_line_min_point = (x_line_min_left_coord, y_threshold_min)
-            # right_line_min_point = (x_line_min_right_coord, y_threshold_min)
-            # line_min_colour = (255, 0, 0)
-            # line_min_thickness = 2
-            #
-            # x_line_max_left_coord = 0
-            # x_line_max_right_coord = cv_image.shape[1]
-            # y_threshold_max = int(y_max_center)
-            #
-            # left_line_max_point = (x_line_max_left_coord, y_threshold_max)
-            # right_line_max_point = (x_line_max_right_coord, y_threshold_max)
-            # line_max_colour = (255, 0, 0)
-            # line_max_thickness = 2
 
-            # if dist_center > max(dist_l, dist_r) or dist_center < min(dist_l, dist_r):
-            if dist_center > max(dist_l, dist_r) and y_threshold < y_center_threshold:
+            # logging of values moved to the image as it's more clear
+            # --------------------------------------------------------
+            # print(f"OUTSIDE RECTANGLE: {outside_rectangle}")
+            # print(f"LOWEST VERTICAL: {lowest_vertical}")
+            # print(f"HIGHEST VERTICAL: {highest_vertical}")
+            # print(f"cv_image.shape: {cv_image.shape}")
+            # print(f"y_threshold: {y_threshold}")
+
+            # if dist_center > max(dist_l, dist_r):
+            # if lowest_vertical > y_threshold:
+
+            # THIS SHOULD BE MOVED TO A BOOLEAN FUNCTION FOR CLARITY
+            distance_to_background = abs(average_color_value - 118)
+            distance_to_no_background = abs(average_color_value - 178)
+            if ellipse_center[1] < y_threshold and distance_difference > 0 and min(inside_x_to_y, outside_x_to_y) > 0.75 and max(average_color) < 180 and min(average_color) > 100 and distance_to_background > distance_to_no_background:
                 image_name = f"{dir_rings}{time.time()}.jpg"
-                print(f"Found a ring! Image saved under: {image_name}")
-                print(f"Image shape: {cv_image.shape}")
-                print(f"y_threshold: {y_threshold}")
-                print(f"min(y_min, y_max): {min(y_min, y_max)}")
+                print("Found a ring!")
+                # print(f"DEPTH AT CENTER: {dist_center}")
+                # print(f"Image shape: {cv_image.shape}")
+                # print(f"y_threshold: {y_threshold}")
+                # print(f"min(y_min, y_max): {min(y_min, y_max)}")
+                
+                # center line - threshold of what should be recognized and what shouldn't
+                start_point = (0, y_threshold)
+                end_point =  (cv_image.shape[1], y_threshold)
+                color = (0,255,0)
+                thickness = 1
+                cv2.line(cv_image, start_point, end_point, color, thickness)
 
-                cv2.line(cv_image, left_line_point, right_line_point, line_colour, line_thickness)
+                org = (start_point[0], start_point[1] + 20)
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                fontScale = 0.5
+                cv2.putText(cv_image, f"threshold: {y_threshold}", org, font, fontScale, color, thickness)
+                
 
-                cv2.rectangle(cv_image, )
-
-                # cv2.rectangle(cv_image, left_center_line_point, right_center_line_point, center_line_colour, center_line_thickness)
-                # cv2.line(cv_image, left_line_min_point, right_line_min_point, line_min_colour, line_min_thickness)
-                # cv2.line(cv_image, left_line_max_point, right_line_max_point, line_max_colour, line_max_thickness)
-                # dir = dir_cylinders if dist_center < min(dist_l, dist_r) else dir_rings
+                cv2.imshow("Image window", cv_image)
+                cv2.imwrite(image_name, cv_image) # Save the face image
+            elif ellipse_center[1] >= y_threshold and min(inside_x_to_y, outside_x_to_y) > 0.75:
+                image_name = f"{dir_cylinders}{time.time()}.jpg"
+                print("WROTE CYLINDER")
                 cv2.imwrite(image_name, cv_image) # Save the face image
             else:
-                # print(f"Skipping image, y_threshold: {y_threshold}, min(y_min, y_max): {min(y_min, y_max)}")
-                print(f"Skipping image, dist_center: {dist_center}, y_threshold: {y_threshold}, center[1]: {center[1]}")
-                pass
+                # print(f"Skipping image, dist_center: {dist_center}, y_threshold: {y_threshold}, center[1]: {center[1]}")
+                # print(f"Skipping image, distance: {dist}, type: {type(dist)}")
+                return
             
-            sys.exit()
             self.get_pose(e1, float(np.mean(depth_image[x_min:x_max,y_min:y_max]))/1000.0)
 
-
-        if len(candidates)>0:
-                cv2.imshow("Image window",cv_image)
-                cv2.waitKey(1)
+        # if len(candidates)>0:
+        #         cv2.imshow("Image window",cv_image)
+        #         cv2.waitKey(1)
 
     def depth_callback(self,data):
 
@@ -343,7 +453,7 @@ class The_Ring:
 
 
 def main():
-    for path in (relative_path_to_additional_info, dir_rings, dir_cylinders):
+    for path in (relative_path_to_additional_info, dir_irregular, dir_rings, dir_cylinders):
         if os.path.exists(path):
             shutil.rmtree(path)
         os.mkdir(path)
