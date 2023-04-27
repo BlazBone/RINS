@@ -27,6 +27,7 @@ relative_path_to_additional_info = os.path.join(os.path.dirname(__file__), f"../
 dir_irregular = os.path.join(os.path.dirname(__file__), "../last_run_info/irregular")
 dir_rings = os.path.join(os.path.dirname(__file__), "../last_run_info/rings_images/")
 dir_cylinders = os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders_images/")
+dir_park_spaces = os.path.join(os.path.dirname(__file__), "../last_run_info/park_spaces_images/")
 
 class The_Ring:
     def __init__(self):
@@ -110,7 +111,9 @@ class The_Ring:
         elipse_y = self.dims[0] / 2 - e[0][1]
 
         angle_to_target = np.arctan2(elipse_x,k_f)
-        dist -= 0.4
+        
+        ## I DONT UNDERSTAND WHY WE SUBTRACT WHEN WE GET A POSE? Dont we want to mark the space we detected not away from it?
+        # dist -= 0.4
         # Get the angles in the base_link relative coordinate system
         x,y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
 
@@ -146,12 +149,18 @@ class The_Ring:
         marker.header.stamp = point_world.header.stamp
         marker.header.frame_id = point_world.header.frame_id
         marker.pose = pose
+        # mybe we can place different markers for different objects (param in get pose or something)
+        # so we can more 3easily destinguish them
         marker.type = Marker.CUBE
         marker.action = Marker.ADD
         marker.frame_locked = False
-        marker.lifetime = rospy.Duration.from_sec(10)
+        # i want to se markers all the time not only when we detect new ones
+        marker.lifetime = rospy.Duration.from_sec(1000)
         marker.id = self.marker_num
         marker.scale = Vector3(0.1, 0.1, 0.1)
+                # mybe we can place different markers for different objects (param in get pose or something)
+        # so we can more 3easily destinguish them
+        # same with different colors
         marker.color = ColorRGBA(0, 1, 0, 1)
         self.marker_array.markers.append(marker)
 
@@ -164,6 +173,12 @@ class The_Ring:
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
+            print(e)
+
+        # closer might meen more in sync
+        try:
+            depth_img = rospy.wait_for_message('/camera/depth/image_raw', Image)
+        except Exception as e:
             print(e)
 
         # Set the dimensions of the image
@@ -210,10 +225,6 @@ class The_Ring:
                     candidates.append((e1,e2))
 
 
-        try:
-            depth_img = rospy.wait_for_message('/camera/depth/image_raw', Image)
-        except Exception as e:
-            print(e)
 
         org = (20, 20)
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -243,6 +254,7 @@ class The_Ring:
             cv2.ellipse(cv_image, e1, (0, 255, 0), 2)
             cv2.ellipse(cv_image, e2, (0, 255, 0), 2)
 
+    # watafak ZAKAJ IMAMO PLUS 20?
             ellipse_center = (int(x_e1) + 20, int(y_e1))
             
             # ROI - region of interest
@@ -397,6 +409,9 @@ class The_Ring:
             # THIS SHOULD BE MOVED TO A BOOLEAN FUNCTION FOR CLARITY
             distance_to_background = abs(average_color_value - 118)
             distance_to_no_background = abs(average_color_value - 178)
+            # MYBE COMBINE THIS two distance_to_background -  distance_to_no_background > treshold? 
+
+            ## distance difference mybe should be grater that 1 or 0.5 or something... 0 seems to be wrong since the ring can be tilted or the depth image is not rly accurate not sure 
             if ellipse_center[1] < y_threshold and distance_difference > 0 and min(inside_x_to_y, outside_x_to_y) > 0.75 and max(average_color) < 180 and min(average_color) > 100 and distance_to_background > distance_to_no_background:
                 image_name = f"{dir_rings}{time.time()}.jpg"
                 print("Found a ring!")
@@ -424,11 +439,25 @@ class The_Ring:
                 image_name = f"{dir_cylinders}{time.time()}.jpg"
                 print("WROTE CYLINDER")
                 cv2.imwrite(image_name, cv_image) # Save the face image
-            else:
+                # ration between two elipses must be same 
+            elif ellipse_center[1] > y_threshold and abs((a_e1 / b_e1) - (a_e2 / b_e2)) < 0.07 and a_e1 / b_e1 < 0.4:
+                # abs((a_e1 / b_e1) - (a_e2 / b_e2)) < 0.07 two elipses should be simmilar shape
+                # a_e1 / b_e1 < 0.4 a (vertical should be a lot smaller)
+            # elif ellipse_center[1] > y_threshold # WORKS FOR 90% OF CASES
+                # if we are looking for rings on the ground the way we see them from camera x-diff should be grater than y diff (elipse should be flat and long not tall and thin)
+                image_name = f"{dir_park_spaces}{time.time()}.jpg"
+                print("IDK WHAT I FOULD")
+                # f string to only show 2 decimals of x_e1
+                string_nevem123 = f"a_e1: {a_e1:.2f} \n b_e1: {b_e1:.2f} \n a_e2: {a_e2:.2f} \nb_e2: {b_e2:.2f} \n"
+                # org is bottom left of cv_image
+                org = (0, cv_image.shape[0] - 20)
+                cv2.putText(cv_image, string_nevem123, org, font, fontScale, (255,255,255), 1)
+                
+                cv2.imwrite(image_name, cv_image) 
                 # print(f"Skipping image, dist_center: {dist_center}, y_threshold: {y_threshold}, center[1]: {center[1]}")
                 # print(f"Skipping image, distance: {dist}, type: {type(dist)}")
                 return
-            
+            # calculates position of detected object and published position to marker? (the position howvevr in my eexperience is not accurate)
             self.get_pose(e1, float(np.mean(depth_image[x_min:x_max,y_min:y_max]))/1000.0)
 
         # if len(candidates)>0:
@@ -453,7 +482,7 @@ class The_Ring:
 
 
 def main():
-    for path in (relative_path_to_additional_info, dir_irregular, dir_rings, dir_cylinders):
+    for path in (relative_path_to_additional_info, dir_irregular, dir_rings, dir_cylinders, dir_park_spaces):
         if os.path.exists(path):
             shutil.rmtree(path)
         os.mkdir(path)
