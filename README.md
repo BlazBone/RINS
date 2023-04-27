@@ -70,3 +70,11 @@ source /home/bone/RINS/ROS_TURTLE/devel/setup.zsh --extend
 ```bash
 ps aux | grep -ie ros | awk '{print $2}' | xargs kill -9
 ```
+
+### parking idea
+
+1. Ko zazna zelen ring najde najblizji location na zemljevidu temu ringu kamor loh gre in se tja zapelje
+2. Ko prispe extenda roko tko da gleda pravokotno na tla in se začne vrtet v krogu
+3. Ko na tleh zazna krog se obrača tako, da je center tega kroga znotraj 30px centra slike
+4. Ko je to res se začne premikat naprej dokler center kroga ni v spodnjih 50px slike
+5. Ko sta 3) in 4) izpolnjena si parked in lah pospraviš nazaj roko
