@@ -44,7 +44,7 @@ class The_Ring:
         self.marker_num = 1
 
         # Subscribe to the image and/or depth topic
-        self.image_sub = rospy.Subscriber("/camera/rgb/image_raw", Image, self.image_callback)
+        # self.image_sub = rospy.Subscriber("/camera/rgb/image_raw", Image, self.image_callback)
         # self.depth_sub = rospy.Subscriber("/camera/depth_registered/image_raw", Image, self.depth_callback)
 
         # Publisher for the visualization markers
@@ -102,7 +102,7 @@ class The_Ring:
             return True,status.status_list[-1].status
 
 
-    def get_pose(self,e,dist):
+    def get_pose(self,e,dist, marker_shape, marker_color):
         # Calculate the position of the detected ellipse
 
         k_f = 525 # kinect focal length in pixels
@@ -149,7 +149,7 @@ class The_Ring:
         marker.pose = pose
         # mybe we can place different markers for different objects (param in get pose or something)
         # so we can more 3easily destinguish them
-        marker.type = Marker.CUBE
+        marker.type = marker_shape
         marker.action = Marker.ADD
         marker.frame_locked = False
         # i want to se markers all the time not only when we detect new ones
@@ -159,14 +159,16 @@ class The_Ring:
                 # mybe we can place different markers for different objects (param in get pose or something)
         # so we can more 3easily destinguish them
         # same with different colors
-        marker.color = ColorRGBA(0, 1, 0, 1)
+        # marker.color = ColorRGBA(0, 1, 0, 1)
+        marker.color = marker_color
         self.marker_array.markers.append(marker)
 
         self.markers_pub.publish(self.marker_array)
 
 
-    def image_callback(self,data):
+    def image_callback_2(self):
         # print('I got a new image!')
+        data = rospy.wait_for_message('/camera/rgb/image_raw', Image)
 
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -433,10 +435,21 @@ class The_Ring:
 
                 cv2.imshow("Image window", cv_image)
                 cv2.imwrite(image_name, cv_image) # Save the face image
+
+                x1max = int(x_e1 + b_e1/2)
+                x1min = int(x_e1 - b_e1/2)
+                y1max = int(y_e1 + a_e1/2)
+                y1min = int(y_e1 - a_e1/2)
+                self.get_pose(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), Marker.CUBE, ColorRGBA(0, 1, 0, 1))
             elif ellipse_center[1] >= y_threshold and min(inside_x_to_y, outside_x_to_y) > 0.75:
                 image_name = f"{dir_cylinders}{time.time()}.jpg"
                 print("WROTE CYLINDER")
                 cv2.imwrite(image_name, cv_image) # Save the face image
+                x1max = int(x_e1 + b_e1/2)
+                x1min = int(x_e1 - b_e1/2)
+                y1max = int(y_e1 + a_e1/2)
+                y1min = int(y_e1 - a_e1/2)
+                self.get_pose(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), Marker.CYLINDER, ColorRGBA(1, 0, 0, 1))
                 # ration between two elipses must be same 
             elif ellipse_center[1] > y_threshold and abs((a_e1 / b_e1) - (a_e2 / b_e2)) < 0.07 and a_e1 / b_e1 < 0.4 and average_color_value > 240:
                 # abs((a_e1 / b_e1) - (a_e2 / b_e2)) < 0.07 two elipses should be simmilar shape
@@ -459,6 +472,7 @@ class The_Ring:
                 x1min = int(x_e1 - b_e1/2)
                 y1max = int(y_e1 + a_e1/2)
                 y1min = int(y_e1 - a_e1/2)
+                self.get_pose(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), Marker.SPHERE, ColorRGBA(0, 0, 1, 1))
                 # y1max = int(y_e1 + 30)
                 # y1min = int(y_e1 - 30)
                 cv2.line(cv_image, (x1max, 0), (x1max, cv_image.shape[0]), (0,0,255), 1)
@@ -468,7 +482,7 @@ class The_Ring:
                 cv2.line(cv_image, (0, y1min), (cv_image.shape[1], y1min), (255,0,0), 1)
 
                 cv2.putText(cv_image, info_ellipse_string, org, font, fontScale, (0,0,0), 1)
-                self.get_pose(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])))
+                self.get_pose(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), Marker.SPHERE, ColorRGBA(0, 0, 1, 1))
                 
                 cv2.imwrite(image_name, cv_image) 
                 # print(f"Skipping image, dist_center: {dist_center}, y_threshold: {y_threshold}, center[1]: {center[1]}")
@@ -512,7 +526,7 @@ def main():
 
     while not rospy.is_shutdown():
         reached, status = ring_finder.status_reached()
-
+        ring_finder.image_callback_2()
         if reached:
             # no need to implement anything more sophisticated for exercise 6
             message = "REACHED GOAL" if status == 3 else "CANCEL STATUS"
