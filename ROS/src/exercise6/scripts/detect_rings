@@ -29,6 +29,11 @@ dir_irregular = os.path.join(os.path.dirname(__file__), "../last_run_info/irregu
 dir_rings = os.path.join(os.path.dirname(__file__), "../last_run_info/rings_images/")
 dir_cylinders = os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders_images/")
 dir_park_spaces = os.path.join(os.path.dirname(__file__), "../last_run_info/park_spaces_images/")
+dir_rings_by_color_red = os.path.join(os.path.dirname(__file__), "../last_run_info/rings_by_color/red/")
+dir_rings_by_color_green = os.path.join(os.path.dirname(__file__), "../last_run_info/rings_by_color/green/")
+dir_rings_by_color_blue = os.path.join(os.path.dirname(__file__), "../last_run_info/rings_by_color/blue/")
+dir_rings_by_color_black = os.path.join(os.path.dirname(__file__), "../last_run_info/rings_by_color/black/")
+dirs = [dir_irregular, dir_rings, dir_cylinders, dir_park_spaces, dir_rings_by_color_red, dir_rings_by_color_green, dir_rings_by_color_blue, dir_rings_by_color_black]
 
 class The_Ring:
     def __init__(self):
@@ -185,10 +190,14 @@ class The_Ring:
 
         # Tranform image to gayscale
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        ## make bottom two thirds  of image just be black
+        # gray[self.dims[0]//3:,:] = 0
 
+
+        cv_image2 = cv_image.copy()
         hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
-        cv2.imshow('HSV image', hsv_image)
-        cv2.waitKey(0)
+        # cv2.imshow('HSV image', hsv_image)
+        # cv2.waitKey(0)
 
         # Do histogram equlization
         img = cv2.equalizeHist(gray)
@@ -204,8 +213,8 @@ class The_Ring:
 
         # Example how to draw the contours, only for visualization purposes
         cv2.drawContours(img, contours, -1, (255, 0, 0), 3)
-        cv2.imshow("Contour window",img)
-        cv2.waitKey(1)
+        # cv2.imshow("Contour window",img)
+        # cv2.waitKey(1)
 
         # Fit elipses to all extracted contours
         elps = []
@@ -413,9 +422,11 @@ class The_Ring:
             distance_to_background = abs(average_color_value - 118)
             distance_to_no_background = abs(average_color_value - 178)
             # MYBE COMBINE THIS two distance_to_background -  distance_to_no_background > treshold? 
-
+            # cv2.imshow("cv_image", cv_image)
+            # cv2.waitKey(1)
             ## distance difference mybe should be grater that 1 or 0.5 or something... 0 seems to be wrong since the ring can be tilted or the depth image is not rly accurate not sure 
             if ellipse_center[1] < y_threshold and distance_difference > 0 and min(inside_x_to_y, outside_x_to_y) > 0.75 and max(average_color) < 180 and min(average_color) > 100 and distance_to_background > distance_to_no_background:
+                print("Found a ring!")
                 
                 x, y = int(e2[0][0]), int(e2[0][1])
                 w, h = int(e2[1][0] / 2), int(e2[1][1] / 2)
@@ -423,12 +434,13 @@ class The_Ring:
                 print(f"ROI: {roi.shape}")
                 lower_range = np.array([110, 50, 50])
                 upper_range = np.array([170, 255, 255])
-                img = cv_image[y-h:y+h, x-w:x+w]
+                # cut around elipse
+                img = cv_image2[y-h:y+h, x-w:x+w]
 
 
-                cv2.imshow("roi", cv2.cvtColor(roi, cv2.COLOR_HSV2BGR))
-                print(f"ROI: {roi.shape}")
-                cv2.waitKey(0)
+                # cv2.imshow("roi", cv2.cvtColor(roi, cv2.COLOR_HSV2BGR))
+                # print(f"ROI: {roi.shape}")
+                # cv2.waitKey(0)
     
                 # Split the HSV image into separate channels
                 h, s, v = cv2.split(roi)
@@ -469,25 +481,30 @@ class The_Ring:
                 print('Dominant color is: bgr({})'.format(centers[0].astype(np.int32)))
                 print('Dominant color is: bgr({})'.format(centers[1].astype(np.int32)))
                 print('Dominant color is: bgr({})'.format(centers[2].astype(np.int32)))
+                print('Dominant color is: bgr({})'.format(centers[3].astype(np.int32)))
+                colors = centers[0:4]
+                main_color = self.get_main_color(colors)
+                # print main color
+                print(f"Main color: {main_color}")
+                timestamp_img = time.time()
+                if main_color == "RED":
+                    image_name = f"{dir_rings_by_color_red}{timestamp_img}.jpg"
+                    image_name_cutout = f"{dir_rings_by_color_red}{timestamp_img}_CUT.jpg"
+                elif main_color == "GREEN":
+                    image_name = f"{dir_rings_by_color_green}{timestamp_img}.jpg"
+                    image_name_cutout = f"{dir_rings_by_color_green}{timestamp_img}_CUT.jpg"
+                elif main_color == "BLUE":
+                    image_name = f"{dir_rings_by_color_blue}{timestamp_img}.jpg"
+                    image_name_cutout = f"{dir_rings_by_color_blue}{timestamp_img}_CUT.jpg"
+                elif main_color == "BLACK":
+                    image_name = f"{dir_rings_by_color_black}{timestamp_img}.jpg"          
+                    image_name_cutout = f"{dir_rings_by_color_black}{timestamp_img}_CUT.jpg"          
+                else:
+                    image_name = f"{dir_rings}{timestamp_img}.jpg"
+                    image_name_cutout = f"{dir_rings}{timestamp_img}_CUT.jpg"
 
-
-
-
-
-                # Sort the histogram bins by frequency
-                bins = np.argsort(hist.flatten())[::-1]
                 
-                # Get the two most dominant colors in the region
-                # color1 = tuple(reversed([int(b * 32 + 16) for b in cv2.calcBackProject([np.array([[[i // 4, j // 4, k // 4]]], np.uint8)], [0, 1, 2], hist, [0, 256, 0, 256, 0, 256], 1)]) for k, j, i in hist[bins[:2]])
-                # color2 = tuple(reversed([int(b * 32 + 16) for b in cv2.calcBackProject([np.array([[[i // 4, j // 4, k // 4]]], np.uint8)], [0, 1, 2], hist, [0, 256, 0, 256, 0, 256], 1)]) for k, j, i in hist[bins[2:4]])
-
-
-                # # Print the two most dominant colors
-                # print('Background color:', color1)
-                # print('Ellipse color:', color2)
-                
-                image_name = f"{dir_rings}{time.time()}.jpg"
-                print("Found a ring!")
+                # image_name = f"{dir_rings}{time.time()}.jpg"
                 # print(f"DEPTH AT CENTER: {dist_center}")
                 # print(f"Image shape: {cv_image.shape}")
                 # print(f"y_threshold: {y_threshold}")
@@ -506,8 +523,9 @@ class The_Ring:
                 cv2.putText(cv_image, f"threshold: {y_threshold}", org, font, fontScale, color, thickness)
                 
 
-                cv2.imshow("Image window", cv_image)
-                cv2.imwrite(image_name, cv_image) # Save the face image
+                # cv2.imshow("Image window", cv_image)
+                cv2.imwrite(image_name, cv_image) # Save the whole image
+                cv2.imwrite(image_name_cutout, img) # save ring cutout
             elif ellipse_center[1] >= y_threshold and min(inside_x_to_y, outside_x_to_y) > 0.75:
                 image_name = f"{dir_cylinders}{time.time()}.jpg"
                 print("WROTE CYLINDER")
@@ -571,9 +589,43 @@ class The_Ring:
         cv2.imshow("Depth window", image_viz)
         cv2.waitKey(1)
 
+    def get_main_color(self, colors: List):
+        """
+        recieves 4 most common colors in histogram (BGR ) values, and based on them it determines which color is dominant
+        we can only have four
+        RED, GREEN, BLUE, BLACK
+        """
+        ## here we just check first color in list 
+        ## but we could easily extend function so that it checks all colors in list and returns list of colors
+        for color in colors:
+            b = color[0]
+            g = color[1]
+            r = color[2]
+            # get max value of color
+            max_color = max(b, g, r)
+            #get all ratio of colors
+            b_ratio = b / max_color
+            g_ratio = g / max_color
+            r_ratio = r / max_color
+            # if red is dominant
+            if r_ratio == 1 and g_ratio < 0.7 and b_ratio < 0.7:
+                return "RED"
+            # if green is dominant
+            elif g_ratio == 1 and r_ratio < 0.7 and b_ratio < 0.7:
+                return "GREEN"
+            # if blue is dominant
+            elif b_ratio == 1 and r_ratio < 0.5 and g_ratio < 0.8:
+                return "BLUE"
+            # if black is dominant
+            
+            if b < 80 and g < 80 and r < 80:
+                return "BLACK"
+
+        return "UNKNOWN"
+
 
 def main():
-    for path in (relative_path_to_additional_info, dir_irregular, dir_rings, dir_cylinders, dir_park_spaces):
+    for path in dirs:
         if os.path.exists(path):
             shutil.rmtree(path)
         os.mkdir(path)
