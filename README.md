@@ -35,7 +35,10 @@ or (to create images)
 ```
 
 # RUN EXERCISE 6
+
 IMPORTANT: IF rins_world DOESN'T START, CHECK THAT YOU'RE NOT EXPORTING 'ROS_IP' AND 'ROS_MASTER_URI'
+IMPORTANT: You have to tunr shadows off in gazebo.
+
 ```bash
 roslaunch exercise6 rins_world.launch
 ```
@@ -51,6 +54,33 @@ roslaunch turtlebot_rviz_launchers view_navigation.launch
 ```bash
 rosrun exercise6 detect_rings
 ```
+
+# RUN EXERCISE 7
+
+IMPORTANT: IF rins_world DOESN'T START, CHECK THAT YOU'RE NOT EXPORTING 'ROS_IP' AND 'ROS_MASTER_URI'
+IMPORTANT: You have to tunr shadows off in gazebo.
+IMPORTANT: PLACE on more light behind everything
+
+```bash
+roslaunch exercise7 rins_world.launch
+```
+
+```bash
+roslaunch exercise3 amcl_simulation.launch
+```
+
+```bash
+roslaunch turtlebot_rviz_launchers view_navigation.launch
+```
+
+```bash
+rosrun exercise7 move_arm.py
+```
+
+```bash
+rosrun exercise6 detect_rings
+```
+
 # Shorcuts, tips, tricks
 
 ### Change border sensitivity of a robot
