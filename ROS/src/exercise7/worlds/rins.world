@@ -108,7 +108,7 @@
     <scene>
       <ambient>0.4 0.4 0.4 1</ambient>
       <background>0.7 0.7 0.7 1</background>
-      <shadows>1</shadows>
+      <shadows>0</shadows>
     </scene>
     <spherical_coordinates>
       <surface_model>EARTH_WGS84</surface_model>
@@ -118,7 +118,7 @@
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
     <light name='user_point_light_0' type='point'>
-      <pose frame=''>2.25333 0.628162 1 0 -0 0</pose>
+      <pose frame=''>-1.506116 6.586019 1 0 -0 0</pose>
       <diffuse>0.5 0.5 0.5 1</diffuse>
       <specular>0.1 0.1 0.1 1</specular>
       <attenuation>
@@ -131,7 +131,33 @@
       <direction>0 0 -1</direction>
     </light>
     <light name='user_point_light_1' type='point'>
-      <pose frame=''>-0.535106 0.456737 1 0 -0 0</pose>
+      <pose frame=''>-3.177957 -1.895689 1 0 -0 0</pose>
+      <diffuse>0.5 0.5 0.5 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation>
+        <range>20</range>
+        <constant>0.5</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <cast_shadows>0</cast_shadows>
+      <direction>0 0 -1</direction>
+    </light>
+    <light name='user_point_light_2' type='point'>
+      <pose frame=''>-3.092689 -2.329886 1 0 -0 0</pose>
+      <diffuse>0.5 0.5 0.5 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation>
+        <range>20</range>
+        <constant>0.5</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <cast_shadows>0</cast_shadows>
+      <direction>0 0 -1</direction>
+    </light>
+    <light name='user_point_light_3' type='point'>
+      <pose frame=''>6.165482 1.354794 1 0 -0 0</pose>
       <diffuse>0.5 0.5 0.5 1</diffuse>
       <specular>0.1 0.1 0.1 1</specular>
       <attenuation>
@@ -169,13 +195,16 @@
         </link>
       </model>
       <light name='user_point_light_0'>
-        <pose frame=''>2.25333 0.628162 1 0 -0 0</pose>
+        <pose frame=''>-1.506116 6.586019 1 0 -0 0</pose>
       </light>
       <light name='user_point_light_1'>
-        <pose frame=''>-0.535106 0.456737 1 0 -0 0</pose>
+        <pose frame=''>-3.177957 -1.895689 1 0 -0 0</pose>
       </light>
       <light name='user_point_light_2'>
-        <pose frame=''>1.45345 -4.02441 1 0 -0 0</pose>
+         <pose frame=''>-3.092689 2.329886 1 0 -0 0</pose>
+      </light>
+      <light name='user_point_light_3'>
+         <pose frame=''>6.165482 1.354794 1 0 -0 0</pose>
       </light>
     </state>
     <gui fullscreen='0'>
@@ -185,18 +214,5 @@
         <projection_type>perspective</projection_type>
       </camera>
     </gui>
-    <light name='user_point_light_2' type='point'>
-      <pose frame=''>1.45345 -4.02441 1 0 -0 0</pose>
-      <diffuse>0.5 0.5 0.5 1</diffuse>
-      <specular>0.1 0.1 0.1 1</specular>
-      <attenuation>
-        <range>20</range>
-        <constant>0.5</constant>
-        <linear>0.01</linear>
-        <quadratic>0.001</quadratic>
-      </attenuation>
-      <cast_shadows>0</cast_shadows>
-      <direction>0 0 -1</direction>
-    </light>
   </world>
 </sdf>
