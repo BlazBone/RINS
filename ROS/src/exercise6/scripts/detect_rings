@@ -46,8 +46,9 @@ dirs = {
             },
         }
 
-# randomly set, seems to weed out faces
+# arbitrarily set, seems to be a good filter
 MINIMAL_ACCEPTED_COLOR_PERCENTAGE = 3
+MINIMAL_ACCEPTED_AREA = 5000
 
 COLOR_DICT = {
         # COLORNAME: (lower_value, upper_value)
@@ -74,7 +75,9 @@ def apply_colour_mask(cv_image, hsv_image, show=False):
         IMAGE_EXTRACTED_DATA = {}
         
         all_pixels = cv_image.shape[0] * cv_image.shape[1]
-
+        
+        color_mask = None
+        highest_percentage = 0
         for color in COLOR_DICT:
             # create a mask for each color separately
             mask = cv2.inRange(hsv_image, COLOR_DICT[color][0], COLOR_DICT[color][1])
@@ -82,12 +85,15 @@ def apply_colour_mask(cv_image, hsv_image, show=False):
             if contains_colour.any():
                 mask_pixels = cv2.countNonZero(mask)
                 percentage = round(mask_pixels / all_pixels * 100, 2)
+                if percentage >= highest_percentage:
+                    color_mask = mask
+                    highest_percentage = percentage
                 MASK_INFO = {color: (mask, percentage)}
                 IMAGE_EXTRACTED_DATA.update(MASK_INFO)
         
         if IMAGE_EXTRACTED_DATA: 
             contains_color = True
-            color_mask = reduce(cv2.bitwise_or, [IMAGE_EXTRACTED_DATA[color][0] for color in IMAGE_EXTRACTED_DATA])
+            # color_mask = reduce(cv2.bitwise_or, [IMAGE_EXTRACTED_DATA[color][0] for color in IMAGE_EXTRACTED_DATA])
             # sort IMAGE_EXTRACTED_DATA decrasingly by percentages of colours in the image
             IMAGE_EXTRACTED_DATA = dict(sorted(IMAGE_EXTRACTED_DATA.items(), key=lambda x: x[1][1], reverse=True))
             # show the final color_mask
@@ -99,12 +105,19 @@ def apply_colour_mask(cv_image, hsv_image, show=False):
             contains_color = False
             return (contains_color, None, None)
 
-def is_mask_bottom(cv_image, mask, output=False):
+def is_mask_cylinder(cv_image, mask, percentage, output=False):
     height, width = cv_image.shape[:2]
 
-    # Create a mask that only keeps the pixels in the bottom half of the image
+    # Create a progressive mask that only keeps the pixels, based on the percentage that this is indeed cylinder
     bottom_mask = np.zeros_like(mask)
-    bottom_mask[int(height/2):, :] = 255
+    if percentage > 10:
+        # Create a bottom mask for the lower 2 thirds of the image
+        bottom_mask[int(height/3*2):, :] = 255
+    else:
+        # Create a bottom mask for the lower third of the image
+        bottom_mask[int(height/3):, :] = 255
+    #
+    # bottom_mask[int(height/2):, :] = 255
 
     # Apply the bottom mask to the input mask using bitwise AND
     bottom_masked_mask = cv2.bitwise_and(mask, bottom_mask)
@@ -298,10 +311,39 @@ class The_Ring:
             for color in image_data:
                 percentage = image_data[color][1]
                 # print(f"Color {color.upper()} ({percentage} %)")
-                if is_mask_bottom(cv_image, color_mask) and percentage > MINIMAL_ACCEPTED_COLOR_PERCENTAGE:
-                    image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
-                    print(f"Found a {color.upper()} cylinder!")
-                    cv2.imwrite(image_name, cv_image_raw)
+                if is_mask_cylinder(cv_image, color_mask, percentage) and percentage > MINIMAL_ACCEPTED_COLOR_PERCENTAGE:
+                    # find the contours of the binary color_mask
+                    contours, _ = cv2.findContours(color_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+                    for contour in contours:
+                        # Approximate the contour with a polygonal curve
+                        epsilon = 0.1 * cv2.arcLength(contour, True)
+                        approx = cv2.approxPolyDP(contour, epsilon, True)
+
+                        # Check if the polygon has four sides and if the angles are close to 90 degrees
+                        if len(approx) == 4:
+                            angles = []
+                            for i in range(4):
+                                v1 = approx[(i+1)%4][0] - approx[i][0]
+                                v2 = approx[i-1][0] - approx[i][0]
+                                cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+                                angle = np.degrees(np.arccos(cos_angle))
+                                angles.append(angle)
+
+                            area = cv2.contourArea(contour)
+                            org = (200, 200)
+                            font = cv2.FONT_HERSHEY_SIMPLEX
+                            fontScale = 0.5
+                            # color_text = (0,255,0) if color != "green" else (0,0,0)
+                            # cv2.putText(cv_image_raw, f"area: {area}", org, font, fontScale, color_text, 1)
+
+                            if all(angle > 80 and angle < 100 for angle in angles) and area > MINIMAL_ACCEPTED_AREA:
+
+                                # The contour is roughly rectangular
+                                cv2.drawContours(cv_image_raw, contour, -1, (0,0,0), 2)
+
+                                image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
+                                print(f"Found a {color.upper()} cylinder!")
+                                cv2.imwrite(image_name, cv_image_raw)
                 else:
                     # safety precaution - if it detects something above the middle of the image, don't skip
                     # DON'T DELETE!
