@@ -46,6 +46,50 @@ dirs = {
             },
         }
 
+# calculated markers for all possible objects
+ALL_MARKER_COORDS= {
+    "cylinder": {
+        "red": list(),
+        "blue": list(),
+        "green": list(),
+        "yellow": list(),
+        },
+    # if rings are above parking spaces, there's no need to include them in this dict
+    "ring": {
+        "red": list(),
+        "blue": list(),
+        "green": list(),
+        "black": list(),
+        "white": list(), # currently only used for parking spaces
+        },
+    }
+
+# best calculated markers for all possible objects
+BEST_MARKERS= {
+    "cylinder": {
+        "red": None,
+        "blue": None,
+        "green": None,
+        "yellow": None,
+        },
+    # if rings are above parking spaces, there's no need to include them in this dict
+    "ring": {
+        "red": None,
+        "blue": None,
+        "green": None,
+        "black": None,
+        "white": None, # currently only used for parking spaces
+        },
+    }
+
+def get_marker_array_to_publish():
+    marker_array = MarkerArray()
+    for shape in BEST_MARKERS:
+        for color in BEST_MARKERS[shape]:
+            if BEST_MARKERS[shape][color]:
+                marker_array.markers.append(BEST_MARKERS[shape][color])
+    return marker_array
+
 # arbitrarily set, seems to be a good filter
 MINIMAL_ACCEPTED_COLOR_PERCENTAGE = 3
 MINIMAL_ACCEPTED_AREA = 5000
@@ -204,11 +248,16 @@ class The_Ring:
         else:
             # goal is done (successfully or not)
             return True,status.status_list[-1].status
+    
+    def get_pose(self,e,dist, time_stamp, marker_shape, marker_color, detected_object, detected_color):
+        # parking_spaces are below rings - can share markers
+        if detected_object == "parking_space":
+            detected_object = "ring"
+        if detected_color.lower() not in ("red", "green", "blue", "black", "yellow"):
+            # skip 'unknown' color
+            return
 
-
-    def get_pose(self,e,dist, time_stamp, marker_shape, marker_color):
         # Calculate the position of the detected ellipse
-
         k_f = 525 # kinect focal length in pixels
 
         elipse_x = self.dims[1] / 2 - e[0][0]
@@ -240,17 +289,28 @@ class The_Ring:
         # Get the point in the "map" coordinate system
         point_world = self.tf_buf.transform(point_s, "map")
 
+        marker_coords = (point_world.point.x, point_world.point.y, point_world.point.z)
+        ALL_MARKER_COORDS[detected_object][detected_color].append(marker_coords)
+
+        print(f"added {detected_color.upper()} marker for {detected_object}!")
+        print(f"Current markers for color {detected_color} and object {detected_object} are: {len(ALL_MARKER_COORDS[detected_object][detected_color])}")
+
+        all_coordinates = np.array(ALL_MARKER_COORDS[detected_object][detected_color])
+        avg_x = np.mean(all_coordinates[:, 0])
+        avg_y = np.mean(all_coordinates[:, 1])
+        avg_z = np.mean(all_coordinates[:, 2])
+
         # Create a Pose object with the same position
         pose = Pose()
-        pose.position.x = point_world.point.x
-        pose.position.y = point_world.point.y
-        pose.position.z = point_world.point.z
+        pose.position.x = avg_x
+        pose.position.y = avg_y
+        pose.position.z = avg_z
+
         # so we get no errors
         pose.orientation.z = 1
         pose.orientation.w = 0
         pose.orientation.x = 0
         pose.orientation.y = 0
-        
         
         # PUBLISHING MARKER
         # Create a marker used for visualization
@@ -265,16 +325,23 @@ class The_Ring:
         marker.action = Marker.ADD
         marker.frame_locked = False
         # i want to se markers all the time not only when we detect new ones
-        marker.lifetime = rospy.Duration.from_sec(1000)
+        marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
         marker.id = self.marker_num
         marker.scale = Vector3(0.1, 0.1, 0.1)
                 # mybe we can place different markers for different objects (param in get pose or something)
         # so we can more 3easily destinguish them
         # same with different colors
         marker.color = marker_color
-        self.marker_array.markers.append(marker)
+        
+        BEST_MARKERS[detected_object][detected_color] = marker
+        
+        # self.marker_array = get_marker_array_to_publish()
+        # print(f"marker_array is {self.marker_array}")
+        #
+        markers_to_publish = get_marker_array_to_publish()
+        self.markers_pub.publish(markers_to_publish)
+        print(f"PUBLISHED MARKER ARRAY OF LEN {len(markers_to_publish.markers)}!")
 
-        self.markers_pub.publish(self.marker_array)
 
 
     def image_callback(self,data):
@@ -333,13 +400,13 @@ class The_Ring:
                             org = (200, 200)
                             font = cv2.FONT_HERSHEY_SIMPLEX
                             fontScale = 0.5
-                            # color_text = (0,255,0) if color != "green" else (0,0,0)
+                            color_text = (0,255,0) if color != "green" else (255,255,255)
                             # cv2.putText(cv_image_raw, f"area: {area}", org, font, fontScale, color_text, 1)
 
                             if all(angle > 80 and angle < 100 for angle in angles) and area > MINIMAL_ACCEPTED_AREA:
 
                                 # The contour is roughly rectangular
-                                cv2.drawContours(cv_image_raw, contour, -1, (0,0,0), 2)
+                                cv2.drawContours(cv_image_raw, contour, -1, color_text, 2)
 
                                 image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
                                 print(f"Found a {color.upper()} cylinder!")
@@ -705,7 +772,7 @@ class The_Ring:
 
                 # print(f"distance is: {float(sum(min100) / len(min100))}")
 
-                self.get_pose(e1, mean, depth_time, Marker.CUBE, marker_colors[main_color])                
+                self.get_pose(e1, mean, depth_time, Marker.CUBE, marker_colors[main_color], "ring", main_color)                
 
                 # cv2.imshow("Image window", cv_image)
                 cv2.imwrite(image_name, cv_image) # Save the whole image
@@ -745,7 +812,7 @@ class The_Ring:
                 
                 print(f"distance is: {float(np.nanmean(depth_image[x1min:x1max,y1min:y1max]))}")
 
-                self.get_pose(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), depth_time, Marker.CYLINDER, ColorRGBA(1, 1, 1, 0.8))
+                self.get_pose(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), depth_time, Marker.CYLINDER, ColorRGBA(1, 1, 1, 0.8), "parking_space", "white")
                 
                 cv2.imwrite(image_name, cv_image) 
                 # print(f"Skipping image, dist_center: {dist_center}, y_threshold: {y_threshold}, center[1]: {center[1]}")
