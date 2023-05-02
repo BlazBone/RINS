@@ -2,6 +2,7 @@
 
 # DISABLE SHADOWS IN RINS_WORLD BEFORE STARTING THE PROGRAM - CLEARS THE IMAGE SIGNIFICANTLY
 
+from operator import contains
 import sys
 import rospy
 import cv2
@@ -23,17 +24,101 @@ from actionlib_msgs.msg import GoalID, GoalStatusArray
 import shutil
 from typing import List, Tuple
 import time
+from functools import reduce
 
-relative_path_to_additional_info = os.path.join(os.path.dirname(__file__), f"../last_run_info/")
-dir_irregular = os.path.join(os.path.dirname(__file__), "../last_run_info/irregular")
-dir_rings = os.path.join(os.path.dirname(__file__), "../last_run_info/rings_images/")
-dir_cylinders = os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders_images/")
-dir_park_spaces = os.path.join(os.path.dirname(__file__), "../last_run_info/park_spaces_images/")
-dir_rings_by_color_red = os.path.join(os.path.dirname(__file__), "../last_run_info/rings_by_color/red/")
-dir_rings_by_color_green = os.path.join(os.path.dirname(__file__), "../last_run_info/rings_by_color/green/")
-dir_rings_by_color_blue = os.path.join(os.path.dirname(__file__), "../last_run_info/rings_by_color/blue/")
-dir_rings_by_color_black = os.path.join(os.path.dirname(__file__), "../last_run_info/rings_by_color/black/")
-dirs = [dir_irregular, dir_rings, dir_cylinders, dir_park_spaces, dir_rings_by_color_red, dir_rings_by_color_green, dir_rings_by_color_blue, dir_rings_by_color_black]
+dirs = {
+        "dir_last_run_info" : os.path.join(os.path.dirname(__file__), f"../last_run_info/"),
+        "dir_irregular" : os.path.join(os.path.dirname(__file__), "../last_run_info/irregular/"),
+        "dir_cylinders" : os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/"),
+        "dir_rings" : os.path.join(os.path.dirname(__file__), "../last_run_info/rings/"),
+        "dir_park_spaces" : os.path.join(os.path.dirname(__file__), "../last_run_info/park_spaces_images/"),
+        "cylinders": {
+            "red": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/red/"),
+            "blue": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/blue/"),
+            "green": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/green/"),
+            "yellow": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/yellow/"),
+            },
+        "rings": {
+            "red": os.path.join(os.path.dirname(__file__), "../last_run_info/rings/red/"),
+            "blue": os.path.join(os.path.dirname(__file__), "../last_run_info/rings/blue/"),
+            "green": os.path.join(os.path.dirname(__file__), "../last_run_info/rings/green/"),
+            "black": os.path.join(os.path.dirname(__file__), "../last_run_info/rings/black/"),
+            },
+        }
+
+# randomly set, seems to weed out faces
+MINIMAL_ACCEPTED_COLOR_PERCENTAGE = 3
+
+COLOR_DICT = {
+        # COLORNAME: (lower_value, upper_value)
+        "blue": (
+               np.array([100, 50, 50]),
+               np.array([130, 255, 255])
+            ),
+        "red": (
+               np.array([0, 50, 50]),
+               np.array([10, 255, 255])
+            ),
+        "green": (
+               np.array([50, 50, 50]),
+               np.array([70, 255, 255])
+            ),
+        "yellow": (
+               np.array([20, 100, 100]),
+               np.array([40, 255, 255])
+            )
+        }
+
+def apply_colour_mask(cv_image, hsv_image, show=False):
+        
+        IMAGE_EXTRACTED_DATA = {}
+        
+        all_pixels = cv_image.shape[0] * cv_image.shape[1]
+
+        for color in COLOR_DICT:
+            # create a mask for each color separately
+            mask = cv2.inRange(hsv_image, COLOR_DICT[color][0], COLOR_DICT[color][1])
+            contains_colour = cv2.bitwise_and(cv_image, cv_image, mask=mask)
+            if contains_colour.any():
+                mask_pixels = cv2.countNonZero(mask)
+                percentage = round(mask_pixels / all_pixels * 100, 2)
+                MASK_INFO = {color: (mask, percentage)}
+                IMAGE_EXTRACTED_DATA.update(MASK_INFO)
+        
+        if IMAGE_EXTRACTED_DATA: 
+            contains_color = True
+            color_mask = reduce(cv2.bitwise_or, [IMAGE_EXTRACTED_DATA[color][0] for color in IMAGE_EXTRACTED_DATA])
+            # sort IMAGE_EXTRACTED_DATA decrasingly by percentages of colours in the image
+            IMAGE_EXTRACTED_DATA = dict(sorted(IMAGE_EXTRACTED_DATA.items(), key=lambda x: x[1][1], reverse=True))
+            # show the final color_mask
+            if show:
+                cv2.imshow('color_mask', color_mask)
+                cv2.waitKey(1)
+            return (contains_color, color_mask, IMAGE_EXTRACTED_DATA)
+        else:
+            contains_color = False
+            return (contains_color, None, None)
+
+def is_mask_bottom(cv_image, mask, output=False):
+    height, width = cv_image.shape[:2]
+
+    # Create a mask that only keeps the pixels in the bottom half of the image
+    bottom_mask = np.zeros_like(mask)
+    bottom_mask[int(height/2):, :] = 255
+
+    # Apply the bottom mask to the input mask using bitwise AND
+    bottom_masked_mask = cv2.bitwise_and(mask, bottom_mask)
+
+    # Check if any pixels in the masked image are non-zero
+    if np.any(bottom_masked_mask != 0):
+        if output:
+            print("The mask is in the bottom half of the image.")
+        return True
+    else:
+        if output:
+            print("The mask is not in the bottom half of the image.")
+        return False
+
 
 class The_Ring:
     def __init__(self):
@@ -176,6 +261,7 @@ class The_Ring:
 
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            hsv_image =  cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
         except CvBridgeError as e:
             print(e)
 
@@ -194,11 +280,29 @@ class The_Ring:
         # gray[self.dims[0]//3:,:] = 0
 
 
-        cv_image2 = cv_image.copy()
-        hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
-        # cv2.imshow('HSV image', hsv_image)
-        # cv2.waitKey(0)
+        cv_image_raw = cv_image.copy()
 
+
+        has_color, color_mask, image_data = apply_colour_mask(cv_image, hsv_image)
+        if has_color:
+            # percentages = ", ".join([f"{color} ({image_data[color][1]}%)" for color in image_data])
+            # print(f"Image contains colors: {percentages}")
+            for color in image_data:
+                percentage = image_data[color][1]
+                # print(f"Color {color.upper()} ({percentage} %)")
+                if is_mask_bottom(cv_image, color_mask) and percentage > MINIMAL_ACCEPTED_COLOR_PERCENTAGE:
+                    image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
+                    print(f"Found a {color.upper()} cylinder!")
+                    cv2.imwrite(image_name, cv_image_raw)
+                else:
+                    # safety precaution - if it detects something above the middle of the image, don't skip
+                    # DON'T DELETE!
+                    break
+
+        else:
+            # print("Image does not contain cylinders!")
+            # returns here - if no color, nothing interests us, skip
+            return
         # Do histogram equlization
         img = cv2.equalizeHist(gray)
 
@@ -208,6 +312,8 @@ class The_Ring:
         # this one seeems to work best
         thresh = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 25)
 
+        # played with this also, not many changes
+        # thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
         # Extract contours
         contours, hierarchy = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -235,7 +341,6 @@ class The_Ring:
                 dist = np.sqrt(((e1[0][0] - e2[0][0]) ** 2 + (e1[0][1] - e2[0][1]) ** 2))
                 if dist < 5:
                     candidates.append((e1,e2))
-
 
 
         org = (20, 20)
@@ -406,7 +511,6 @@ class The_Ring:
             # cv2.putText(cv_image, f"Highest vertical: {highest_vertical}", org, font, fontScale, color, thickness)
 
 
-
             # logging of values moved to the image as it's more clear
             # --------------------------------------------------------
             # print(f"OUTSIDE RECTANGLE: {outside_rectangle}")
@@ -435,7 +539,7 @@ class The_Ring:
                 lower_range = np.array([110, 50, 50])
                 upper_range = np.array([170, 255, 255])
                 # cut around elipse
-                img = cv_image2[y-h:y+h, x-w:x+w]
+                img = cv_image_raw[y-h:y+h, x-w:x+w]
 
 
                 # cv2.imshow("roi", cv2.cvtColor(roi, cv2.COLOR_HSV2BGR))
@@ -483,25 +587,16 @@ class The_Ring:
                 print('Dominant color is: bgr({})'.format(centers[2].astype(np.int32)))
                 print('Dominant color is: bgr({})'.format(centers[3].astype(np.int32)))
                 colors = centers[0:4]
-                main_color = self.get_main_color(colors)
+                main_color = self.get_main_color(colors).lower()
                 # print main color
                 print(f"Main color: {main_color}")
                 timestamp_img = time.time()
-                if main_color == "RED":
-                    image_name = f"{dir_rings_by_color_red}{timestamp_img}.jpg"
-                    image_name_cutout = f"{dir_rings_by_color_red}{timestamp_img}_CUT.jpg"
-                elif main_color == "GREEN":
-                    image_name = f"{dir_rings_by_color_green}{timestamp_img}.jpg"
-                    image_name_cutout = f"{dir_rings_by_color_green}{timestamp_img}_CUT.jpg"
-                elif main_color == "BLUE":
-                    image_name = f"{dir_rings_by_color_blue}{timestamp_img}.jpg"
-                    image_name_cutout = f"{dir_rings_by_color_blue}{timestamp_img}_CUT.jpg"
-                elif main_color == "BLACK":
-                    image_name = f"{dir_rings_by_color_black}{timestamp_img}.jpg"          
-                    image_name_cutout = f"{dir_rings_by_color_black}{timestamp_img}_CUT.jpg"          
+                if main_color in ("red", "green", "blue", "black"):
+                    image_name = f"{dirs['rings'][main_color]}{timestamp_img}.jpg"
+                    image_name_cutout = f"{dirs['rings'][main_color]}{timestamp_img}_CUT.jpg"
                 else:
-                    image_name = f"{dir_rings}{timestamp_img}.jpg"
-                    image_name_cutout = f"{dir_rings}{timestamp_img}_CUT.jpg"
+                    image_name = f"{dirs['dir_irregular']}{timestamp_img}.jpg"
+                    image_name_cutout = f"{dirs['dir_irregular']}{timestamp_img}_CUT.jpg"
 
                 
                 # image_name = f"{dir_rings}{time.time()}.jpg"
@@ -526,17 +621,14 @@ class The_Ring:
                 # cv2.imshow("Image window", cv_image)
                 cv2.imwrite(image_name, cv_image) # Save the whole image
                 cv2.imwrite(image_name_cutout, img) # save ring cutout
-            elif ellipse_center[1] >= y_threshold and min(inside_x_to_y, outside_x_to_y) > 0.75:
-                image_name = f"{dir_cylinders}{time.time()}.jpg"
-                print("WROTE CYLINDER")
-                cv2.imwrite(image_name, cv_image) # Save the face image
+
                 # ration between two elipses must be same 
-            elif ellipse_center[1] > y_threshold and abs((a_e1 / b_e1) - (a_e2 / b_e2)) < 0.07 and a_e1 / b_e1 < 0.4 and average_color_value > 240:
-                # abs((a_e1 / b_e1) - (a_e2 / b_e2)) < 0.07 two elipses should be simmilar shape
-                # a_e1 / b_e1 < 0.4 a (vertical should be a lot smaller)
-            # elif ellipse_center[1] > y_threshold and average_color_value > 240: # WORKS FOR 90% OF CASES
+            # elif ellipse_center[1] > y_threshold and abs((a_e1 / b_e1) - (a_e2 / b_e2)) < 0.07 and a_e1 / b_e1 < 0.4 and average_color_value > 240:
+            #     # abs((a_e1 / b_e1) - (a_e2 / b_e2)) < 0.07 two elipses should be simmilar shape
+            #     # a_e1 / b_e1 < 0.4 a (vertical should be a lot smaller)
+            elif ellipse_center[1] > y_threshold and average_color_value > 240: # WORKS FOR 90% OF CASES
                 # if we are looking for rings on the ground the way we see them from camera x-diff should be grater than y diff (elipse should be flat and long not tall and thin)
-                image_name = f"{dir_park_spaces}{time.time()}.jpg"
+                image_name = f"{dirs['dir_park_spaces']}{time.time()}.jpg"
                 print("PARKING SPACE FOUND")
                 # f string to only show 2 decimals of x_e1
                 info_ellipse_string = f"a_e1: {a_e1:.2f} b_e1: {b_e1:.2f} a_e2: {a_e2:.2f} b_e2: {b_e2:.2f} ratio1: {a_e1 / b_e1:.2f} ratio2: {a_e2 / b_e2:.2f}"
@@ -566,6 +658,7 @@ class The_Ring:
                 cv2.imwrite(image_name, cv_image) 
                 # print(f"Skipping image, dist_center: {dist_center}, y_threshold: {y_threshold}, center[1]: {center[1]}")
                 # print(f"Skipping image, distance: {dist}, type: {type(dist)}")
+
             
             # calculates position of detected object and published position to marker? (the position howvevr in my eexperience is not accurate)
 
@@ -625,10 +718,16 @@ class The_Ring:
 
 
 def main():
-    for path in dirs:
-        if os.path.exists(path):
-            shutil.rmtree(path)
-        os.mkdir(path)
+    for dirname, path in dirs.items():
+        if "dir" in dirname:
+            if os.path.exists(path):
+                shutil.rmtree(path)
+            os.mkdir(path)
+        else:
+            for color in dirs[dirname]:
+                if os.path.exists(dirs[dirname][color]):
+                    shutil.rmtree(dirs[dirname][color])
+                os.mkdir(dirs[dirname][color])
 
     ring_finder = The_Ring()
     
