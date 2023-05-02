@@ -193,7 +193,7 @@ class The_Ring:
             return True,status.status_list[-1].status
 
 
-    def get_pose(self,e,dist):
+    def get_pose(self,e,dist, time_stamp, marker_shape, marker_color):
         # Calculate the position of the detected ellipse
 
         k_f = 525 # kinect focal length in pixels
@@ -202,6 +202,7 @@ class The_Ring:
         elipse_y = self.dims[0] / 2 - e[0][1]
 
         angle_to_target = np.arctan2(elipse_x,k_f)
+        print("angle_to_target: ", angle_to_target)
         
         # Get the angles in the base_link relative coordinate system
         x,y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
@@ -220,7 +221,8 @@ class The_Ring:
         point_s.point.y = 0
         point_s.point.z = x
         point_s.header.frame_id = "camera_rgb_optical_frame"
-        point_s.header.stamp = rospy.Time(0)
+        # point_s.header.stamp = rospy.Time(0) # tle damo current time have to fix
+        point_s.header.stamp = time_stamp
 
         # Get the point in the "map" coordinate system
         point_world = self.tf_buf.transform(point_s, "map")
@@ -230,6 +232,12 @@ class The_Ring:
         pose.position.x = point_world.point.x
         pose.position.y = point_world.point.y
         pose.position.z = point_world.point.z
+        # so we get no errors
+        pose.orientation.z = 1
+        pose.orientation.w = 0
+        pose.orientation.x = 0
+        pose.orientation.y = 0
+        
         
         # PUBLISHING MARKER
         # Create a marker used for visualization
@@ -240,7 +248,7 @@ class The_Ring:
         marker.pose = pose
         # mybe we can place different markers for different objects (param in get pose or something)
         # so we can more 3easily destinguish them
-        marker.type = Marker.CUBE
+        marker.type = marker_shape
         marker.action = Marker.ADD
         marker.frame_locked = False
         # i want to se markers all the time not only when we detect new ones
@@ -250,7 +258,7 @@ class The_Ring:
                 # mybe we can place different markers for different objects (param in get pose or something)
         # so we can more 3easily destinguish them
         # same with different colors
-        marker.color = ColorRGBA(0, 1, 0, 1)
+        marker.color = marker_color
         self.marker_array.markers.append(marker)
 
         self.markers_pub.publish(self.marker_array)
@@ -258,9 +266,9 @@ class The_Ring:
 
     def image_callback(self,data):
         # print('I got a new image!')
-
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            time_stamp_image_capture = rospy.Time.now()
             hsv_image =  cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
         except CvBridgeError as e:
             print(e)
@@ -443,6 +451,7 @@ class The_Ring:
             y_max = min(y2 % cv_image.shape[0], cv_image.shape[0]-1) # -1 so it doesn't raise errors
  
             depth_image = self.bridge.imgmsg_to_cv2(depth_img, "16UC1")
+            depth_time = depth_img.header.stamp
             try:
                 # dist_l = np.mean(depth_image[x_min,y_min:y_max])
                 # dist_r = np.mean(depth_image[x_max,y_min:y_max])
@@ -547,10 +556,10 @@ class The_Ring:
                 # cv2.waitKey(0)
     
                 # Split the HSV image into separate channels
-                h, s, v = cv2.split(roi)
+                hu, s, v = cv2.split(roi)
 
                 # Only keep the Hue channel
-                hue = h
+                hue = hu
 
                 # Calculate the histogram of the Hue channel
                 hist = cv2.calcHist([hue], [0], None, [180], [0, 180])
@@ -591,6 +600,15 @@ class The_Ring:
                 # print main color
                 print(f"Main color: {main_color}")
                 timestamp_img = time.time()
+
+                marker_colors = {
+                    "red": ColorRGBA(1,0,0,1),
+                    "green": ColorRGBA(0,1,0,1),
+                    "blue": ColorRGBA(0,0,1,1),
+                    "black": ColorRGBA(0,0,0,1),
+                    "unknown": ColorRGBA(0,0,0,1)
+                }
+
                 if main_color in ("red", "green", "blue", "black"):
                     image_name = f"{dirs['rings'][main_color]}{timestamp_img}.jpg"
                     image_name_cutout = f"{dirs['rings'][main_color]}{timestamp_img}_CUT.jpg"
@@ -616,7 +634,36 @@ class The_Ring:
                 font = cv2.FONT_HERSHEY_SIMPLEX
                 fontScale = 0.5
                 cv2.putText(cv_image, f"threshold: {y_threshold}", org, font, fontScale, color, thickness)
-                
+
+                x1max = int(x_e2 + b_e2/2)
+                x1min = int(x_e2 - b_e2/2)
+                y1max = int(y_e2 + a_e2/2)
+                y1min = int(y_e2 - a_e2/2)
+                # y1max = int(y_e1 + 30)
+                # y1min = int(y_e1 - 30)
+                cv2.line(cv_image, (x1max, 0), (x1max, cv_image.shape[0]), (0,0,255), 1)
+                cv2.line(cv_image, (x1min, 0), (x1min, cv_image.shape[0]), (0,0,255), 1)
+
+                cv2.line(cv_image, (0, y1max), (cv_image.shape[1], y1max), (255,0,0), 1)
+                cv2.line(cv_image, (0, y1min), (cv_image.shape[1], y1min), (255,0,0), 1)
+                print(f"y1min: {y1min}")
+                print(f"y1max: {y1max}")
+                print(f"x1min: {x1min}")
+                print(f"x1max: {x1max}")
+
+                # get minimal 100 values from depth_image[x1min:x1max,y1min:y1max]
+                print(f"depth_image shape: {depth_image}")
+                # Create a masked array where zeros are masked
+                depth_ring = depth_image[y-h:y+h, x-w:x+w]
+                masked_a = np.ma.masked_equal(depth_ring, 0)
+                # Compute the mean of the masked array
+                mean = masked_a.mean()
+                print(f"mean: {mean}")
+
+
+                # print(f"distance is: {float(sum(min100) / len(min100))}")
+
+                self.get_pose(e1, mean, depth_time, Marker.CUBE, marker_colors[main_color])                
 
                 # cv2.imshow("Image window", cv_image)
                 cv2.imwrite(image_name, cv_image) # Save the whole image
@@ -653,7 +700,10 @@ class The_Ring:
                 cv2.line(cv_image, (0, y1min), (cv_image.shape[1], y1min), (255,0,0), 1)
 
                 cv2.putText(cv_image, info_ellipse_string, org, font, fontScale, (0,0,0), 1)
-                self.get_pose(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])))
+                
+                print(f"distance is: {float(np.nanmean(depth_image[x1min:x1max,y1min:y1max]))}")
+
+                self.get_pose(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), depth_time, Marker.CYLINDER, ColorRGBA(1, 1, 1, 0.8))
                 
                 cv2.imwrite(image_name, cv_image) 
                 # print(f"Skipping image, dist_center: {dist_center}, y_threshold: {y_threshold}, center[1]: {center[1]}")
@@ -747,6 +797,8 @@ def main():
 
         elif ring_finder.path_idx == len(ring_finder.path):
             rospy.loginfo("FINISHED PATH")
+            time.sleep(5)
+            # sleep mybe to finish processing images.
             break
 
         rate.sleep()
