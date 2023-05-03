@@ -57,6 +57,7 @@ class Arm_Mover():
 if __name__ == "__main__":
     am = Arm_Mover()
     time.sleep(.5)
+    print("Arm mover ready!")
     am.arm_movement_pub.publish(am.retract)
     print('Retracted arm!')
     

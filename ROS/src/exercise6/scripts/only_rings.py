@@ -519,7 +519,6 @@ class The_Ring:
             # cv2.waitKey(1)
             ## distance difference mybe should be grater that 1 or 0.5 or something... 0 seems to be wrong since the ring can be tilted or the depth image is not rly accurate not sure 
             if distance_difference > 0 and min(inside_x_to_y, outside_x_to_y) > 0.75 and max(average_color) < 180 and min(average_color) > 100 and distance_to_background > distance_to_no_background:
-                # print("Found a ring!")
                 
                 x, y = int(e2[0][0]), int(e2[0][1])
                 w, h = int(e2[1][0] / 2), int(e2[1][1] / 2)
@@ -556,13 +555,24 @@ class The_Ring:
                 else:
                     image_name = f"{dirs['dir_irregular']}{timestamp_img}.jpg"
                 
+                print(f"Found a {main_color.upper()} ring!")
                 # Create a masked array where zeros are masked
                 depth_ring = depth_image[y-h:y+h, x-w:x+w]
                 masked_a = np.ma.masked_equal(depth_ring, 0)
                 # Compute the mean of the masked array
                 mean = masked_a.mean()
+                if main_color in ("black", "unknown") and bool(mean):
+                    mean = 2.9
+                    print("...")
+                    # print(depth_ring)
+                    # print("x", x)
+                    # print("y", y)
+                    # print("w", w)
+                    # print("h", h)
+                    # cv2.imshow("depth_ring", depth_ring)
+                    # cv2.waitKey(1)
 
-                if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 4 and self.needs_to_be_parked:
+                if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 10 and self.needs_to_be_parked and mean is not None:
                     print("STARTED SCANNING FOR PARKING")
                     self.needs_to_be_parked = False
 

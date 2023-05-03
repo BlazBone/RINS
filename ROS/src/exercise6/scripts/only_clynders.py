@@ -394,7 +394,7 @@ class The_Ring:
                                 cv2.drawContours(cv_image_raw, contour, -1, color_text, 2)
 
                                 image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
-                                # print(f"Found a {color.upper()} cylinder!")
+                                print(f"Found a {color.upper()} cylinder!")
                                 cv2.imwrite(image_name, cv_image_raw)
                 else:
                     # safety precaution - if it detects something above the middle of the image, don't skip

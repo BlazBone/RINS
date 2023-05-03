@@ -176,6 +176,28 @@ class Parking:
     
     def in_circle(self):
         return False
+    
+    def fine_manouvering(self):
+        try:
+            # get extended camera image
+            data = rospy.wait_for_message('/camera/rgb/image_raw', Image)
+            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+
+        except CvBridgeError as e:
+            print(e)
+
+        # change cv_image to grayscale
+        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+
+        # check if black outline on image
+        black_pixels = np.where(gray <= 10)
+
+        if black_pixels:
+            print("GOT PIXELS")
+
+        self.is_parked = True
+
+
 
     def go_to_parking_space(self, e, dist, pose_of_detection):
         quaternion_array = self.get_parking_center_quaternion_array(e, dist, pose_of_detection)
@@ -376,26 +398,26 @@ class Parking:
                 print(f"distance is: {float(np.nanmean(depth_image[x1min:x1max,y1min:y1max]))}")
 
                 self.get_pose(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), depth_time, Marker.SPHERE, ColorRGBA(1, 1, 1, 1), "parking_space", "white")
-                self.go_to_parking_space(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), p)
+                # self.go_to_parking_space(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), p)
                 
                 cv2.imwrite(image_name, cv_image) 
 
+                # self.greeting_position_green_ring = None
+            if self.greeting_position_green_ring is not None:
+                print("NOT PARKING SPACE")
+                print("TYPE OF POSITION SENT", type(self.greeting_position_green_ring))
+                print(self.greeting_position_green_ring)
+                self.simple_goal_pub.publish(self.greeting_position_green_ring)
+                print("GOING TO GREEN RING, DELETING ITS POSITION")
+                print("WAITING 5 SECONDS")
+                rospy.sleep(5)
                 self.greeting_position_green_ring = None
-            else:
-                if self.greeting_position_green_ring is not None:
-                    print("NOT PARKING SPACE")
-                    print("TYPE OF POSITION SENT", type(self.greeting_position_green_ring))
-                    print(self.greeting_position_green_ring)
-                    self.simple_goal_pub.publish(self.greeting_position_green_ring)
-                    print("GOING TO GREEN RING, DELETING ITS POSITION")
-                    print("WAITING 5 SECONDS")
-                    rospy.sleep(5)
-                    self.greeting_position_green_ring = None
 
-                    while not self.status_reached()[0]:
-                        rospy.sleep(.1)
+                while not self.status_reached()[0]:
+                    rospy.sleep(.1)
 
-                    print("GREEN RING GREETING POSE REACHED")
+                print("GREEN RING GREETING POSE REACHED")
+                self.fine_manouvering()
 
 
 def main():
