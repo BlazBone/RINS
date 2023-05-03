@@ -80,6 +80,7 @@ def get_marker_array_to_publish():
         for color in BEST_MARKERS[shape]:
             if BEST_MARKERS[shape][color]:
                 marker_array.markers.append(BEST_MARKERS[shape][color])
+    marker_array.markers.lifetime = rospy.Duration(0.0)
     return marker_array
 
 # arbitrarily set, seems to be a good filter
@@ -287,6 +288,10 @@ class The_Ring:
         # self.marker_array = get_marker_array_to_publish()
         # print(f"marker_array is {self.marker_array}")
         #
+        
+        self.markers_pub.publish(MarkerArray())
+
+
         markers_to_publish = get_marker_array_to_publish()
         self.markers_pub.publish(markers_to_publish)
         print(f"PUBLISHED MARKER ARRAY OF LEN {len(markers_to_publish.markers)}!")
