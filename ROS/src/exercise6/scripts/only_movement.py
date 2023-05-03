@@ -52,6 +52,10 @@ class Movement:
         
         self.cancel_goal()
         print("CANCELED GOAL, PARKING IS TAKING OVER")
+        if data.data:
+            self.arm_mover_pub.publish("extend")
+        else:
+            self.arm_mover_pub.publish("retract")
 
 
     # def park_callback(self, green_marker):

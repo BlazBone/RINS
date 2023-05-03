@@ -11,7 +11,7 @@ import tf2_geometry_msgs
 import tf2_ros
 from tf.transformations import *
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import PointStamped, Vector3, Pose, Quaternion, PoseWithCovarianceStamped
+from geometry_msgs.msg import PointStamped, Vector3, Pose, Quaternion, PoseWithCovarianceStamped, Twist
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import ColorRGBA, Bool
@@ -59,7 +59,12 @@ class Parking:
         self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
         self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
 
+        self.twist_pub = rospy.Publisher("/cmd_vel_mux/input/navi", Twist, queue_size=10)
+
         self.is_parked = False
+
+        self.greeting_position_green_ring = None
+
 
     
     
@@ -153,6 +158,24 @@ class Parking:
         # markers_to_publish = get_marker_array_to_publish()
         self.markers_pub.publish(self.marker_array)
         # print(f"PUBLISHED MARKER ARRAY OF LEN {len(markers_to_publish.markers)}!")
+    
+    def status_reached(self) -> Tuple[bool, int]:
+        """
+        Function listenes for status updates on topic /move_base/status.
+
+        If status is 3 (goal reached) or 4 (goal terminated), the goal is 'reached'.
+        If status is 0 or 1 the goal is 'being processed', else there is an error.
+        """
+        status = rospy.wait_for_message("/move_base/status", GoalStatusArray)
+        if status.status_list[-1].status in (0, 1):
+            # goal is being processed
+            return False,status.status_list[-1].status
+        else:
+            # goal is done (successfully or not)
+            return True,status.status_list[-1].status
+    
+    def in_circle(self):
+        return False
 
     def go_to_parking_space(self, e, dist, pose_of_detection):
         quaternion_array = self.get_parking_center_quaternion_array(e, dist, pose_of_detection)
@@ -167,16 +190,31 @@ class Parking:
         msg.pose.orientation.z = quaternion_array[2]
         msg.pose.orientation.w = quaternion_array[3]
         
-        cancel_msg = GoalID()
-        self.cancel_goal_pub.publish(cancel_msg)
-        print("CANCELED GOAL IN go_to_parking_space")
-
         self.simple_goal_pub.publish(msg)
         print("PUBLISHED ROTATION")
         print(msg)
-        rospy.sleep(10)
-        print("SLEPT OFF")
-        self.is_parked = True
+        while not self.status_reached()[0]:
+            pass
+        print("CENTERED PARKING SPACE")
+        
+        rospy.sleep(2)
+
+        twist_msg = Twist()
+        # velocity
+        twist_msg.linear.x = dist/2
+        # angular velocity
+        twist_msg.angular.z = 0.0
+
+        self.twist_pub.publish(twist_msg)
+        print("PUBLISHED TWIST")
+
+        rospy.sleep(2)
+        print("PARKED")
+        
+        if self.in_circle():
+            self.is_parked = True
+        else:
+            self.parking_image_callback()
 
     def get_parking_center_quaternion_array(self, e, dist : float, pose_of_detection: PoseWithCovarianceStamped) -> Tuple[float,float,float,float]:
         # Calculate the position of the detected face
@@ -338,11 +376,26 @@ class Parking:
                 print(f"distance is: {float(np.nanmean(depth_image[x1min:x1max,y1min:y1max]))}")
 
                 self.get_pose(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), depth_time, Marker.SPHERE, ColorRGBA(1, 1, 1, 1), "parking_space", "white")
-                # self.go_to_parking_space(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), p)
+                self.go_to_parking_space(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), p)
                 
                 cv2.imwrite(image_name, cv_image) 
-                # image has no ring we skip it
 
+                self.greeting_position_green_ring = None
+            else:
+                if self.greeting_position_green_ring is not None:
+                    print("NOT PARKING SPACE")
+                    print("TYPE OF POSITION SENT", type(self.greeting_position_green_ring))
+                    print(self.greeting_position_green_ring)
+                    self.simple_goal_pub.publish(self.greeting_position_green_ring)
+                    print("GOING TO GREEN RING, DELETING ITS POSITION")
+                    print("WAITING 5 SECONDS")
+                    rospy.sleep(5)
+                    self.greeting_position_green_ring = None
+
+                    while not self.status_reached()[0]:
+                        rospy.sleep(.1)
+
+                    print("GREEN RING GREETING POSE REACHED")
 
 
 def main():
@@ -351,7 +404,9 @@ def main():
     parking_no_movement_pub = rospy.Publisher("/only_movement/parking_is_going_on", Bool, queue_size=10)
     rospy.sleep(0.5)
     rospy.loginfo("Starting the parking finder node")
-    start_scanning = rospy.wait_for_message("/only_movement/parking_search", Bool)    
+    parking.greeting_position_green_ring = rospy.wait_for_message("/only_movement/parking_search", PoseStamped)    
+    # print("GOT GREEN RING GREETING POSE", parking.greeting_position_green_ring)
+
     rospy.loginfo("STARTED PARKING")
 
     
@@ -365,21 +420,10 @@ def main():
     parking_no_movement_msg.data = True
     parking_no_movement_pub.publish(parking_no_movement_msg)
 
-    # print("PUBLISHED MESSAGE", parking_no_movement_msg)
-    
-    # cancel_msg = GoalID()
-    # cancel_msg.id = ""
-    # parking.cancel_goal_pub.publish(cancel_msg)
-    # print("CANCELED GOAL, PARKING IS TAKING OVER")
-
     rospy.sleep(1)
     
-    loop_counter = 0
     while not rospy.is_shutdown() and not parking.is_parked:
-        loop_counter += 1
         parking.parking_image_callback()
-        if loop_counter >= 30:
-            parking.is_parked = True
 
     rospy.loginfo("Parking finder node finished.")
 

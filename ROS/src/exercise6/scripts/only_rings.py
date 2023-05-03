@@ -10,14 +10,16 @@ import numpy as np
 import tf2_geometry_msgs
 import tf2_ros
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import PointStamped, Vector3, Pose
+from geometry_msgs.msg import PointStamped, Vector3, Pose, Quaternion, PoseWithCovarianceStamped
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import ColorRGBA
 from matplotlib import pyplot as plt
+from tf.transformations import *
 
 # OUR IMPORTS
 import os
+import math
 import subprocess
 from exercise6_utils import read_path_log_orientation
 from tf2_geometry_msgs import PoseStamped
@@ -105,7 +107,7 @@ class The_Ring:
         self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
 
         self.park_pub = rospy.Publisher("/only_movement/park", Marker, queue_size=10)
-        self.park_scanner_pub = rospy.Publisher("/only_movement/parking_search", Bool, queue_size=10)
+        self.park_scanner_pub = rospy.Publisher("/only_movement/parking_search", PoseStamped, queue_size=10)
 
         self.needs_to_be_parked = True
 
@@ -220,12 +222,101 @@ class The_Ring:
         self.markers_pub.publish(markers_to_publish)
         # print(f"PUBLISHED MARKER ARRAY OF LEN {len(markers_to_publish.markers)}!")
 
+    def get_greeting_pose(self, e, dist, stamp, pose_of_detection):
+        # Calculate the position of the detected face
+        k_f = 554 # kinect focal length in pixels
+
+        elipse_x = self.dims[1] / 2 - e[0][0]
+
+        angle_to_target = np.arctan2(elipse_x,k_f)
+        
+        # Get the angles in the base_link relative coordinate system
+        dist -= .6
+        x,y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
+
+
+        # Define a stamped message for transformation - in the "camera rgb frame"
+        point_s = PointStamped()
+        point_s.point.x = -y
+        point_s.point.y = 0
+        point_s.point.z = x
+        point_s.header.frame_id = "camera_rgb_optical_frame"
+        point_s.header.stamp = stamp
+
+        # Define a quaternion for the rotation
+        # Roatation is such that the image of the face is in the center of the robot view.
+        q = Quaternion()
+        q.x = 0
+        q.y = 0
+        q.z = math.sin(angle_to_target)
+        q.w = math.cos(angle_to_target)
+
+    
+        q2 = pose_of_detection.pose.pose.orientation
+
+        goal_quaternion = quaternion_multiply((q2.x, q2.y, q2.z, q2.w), (q.x, q.y, q.z, q.w))
+
+        # Get the point in the "map" coordinate system
+        try:
+            point_world = self.tf_buf.transform(point_s, "map")
+
+            # Create a Pose object with the same position
+            pose = PoseStamped()
+             
+            pose.header.stamp = rospy.Time().now()
+            pose.header.frame_id = "map"
+
+            pose.pose.position.x = point_world.point.x
+            pose.pose.position.y = point_world.point.y
+            pose.pose.position.z = point_world.point.z
+
+            pose.pose.orientation.x = goal_quaternion[0]
+            pose.pose.orientation.y = goal_quaternion[1]
+            pose.pose.orientation.z = goal_quaternion[2]
+            pose.pose.orientation.w = goal_quaternion[3]
+            
+        except Exception as e:
+            print(e)
+            pose = None
+
+        marker = Marker()
+        marker.header.stamp = rospy.Time().now()
+        marker.header.frame_id = "map"
+        marker.pose = pose.pose
+        # mybe we can place different markers for different objects (param in get pose or something)
+        # so we can more 3easily destinguish them
+        marker.type = Marker.SPHERE
+        marker.action = Marker.ADD
+        marker.frame_locked = False
+        # i want to se markers all the time not only when we detect new ones
+        marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
+        marker.id = self.marker_num
+        marker.scale = Vector3(0.2, 0.2, 0.2)
+                # mybe we can place different markers for different objects (param in get pose or something)
+        # so we can more 3easily destinguish them
+        # same with different colors
+        marker.color = ColorRGBA(1, 1, 1, 1)
+
+        BEST_MARKERS["ring"]["white"] = marker
+        marker_array_to_publish = get_marker_array_to_publish()
+
+        # delete_arr = MarkerArray()
+        # delete_marker = Marker()
+        # delete_marker.action = Marker.DELETEALL
+        # delete_marker.header.frame_id = 'map'
+        # delete_arr.markers.append(delete_marker)
+        # self.markers_pub.publish(delete_arr)
+
+        self.markers_pub.publish(marker_array_to_publish)
+
+        return pose
 
 
     def image_callback(self):
         try:
             data = rospy.wait_for_message('/camera/rgb/image_raw', Image)
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            p = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
         except CvBridgeError as e:
             print(e)
 
@@ -465,13 +556,20 @@ class The_Ring:
                 else:
                     image_name = f"{dirs['dir_irregular']}{timestamp_img}.jpg"
                 
-                if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 1 and self.needs_to_be_parked:
+                # Create a masked array where zeros are masked
+                depth_ring = depth_image[y-h:y+h, x-w:x+w]
+                masked_a = np.ma.masked_equal(depth_ring, 0)
+                # Compute the mean of the masked array
+                mean = masked_a.mean()
+
+                if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 4 and self.needs_to_be_parked:
                     print("STARTED SCANNING FOR PARKING")
                     self.needs_to_be_parked = False
 
-                    parking_scan_message = Bool()
-                    parking_scan_message.data = True
-                    self.park_scanner_pub.publish(parking_scan_message)
+                    greeting_position_green_ring = self.get_greeting_pose(e1, mean, depth_time, p)
+
+                    # parking_scan_message.data = True
+                    self.park_scanner_pub.publish(greeting_position_green_ring)
 
                     # park_message = BEST_MARKERS["ring"]["green"]
                     # self.park_pub.publish(park_message)
@@ -486,12 +584,6 @@ class The_Ring:
                 cv2.line(cv_image, (0, y-h), (cv_image.shape[1], y-h), (255,0,0), 1)
                 cv2.line(cv_image, (0, y+h), (cv_image.shape[1], y+h), (255,0,0), 1)
                 
-                # Create a masked array where zeros are masked
-                depth_ring = depth_image[y-h:y+h, x-w:x+w]
-                masked_a = np.ma.masked_equal(depth_ring, 0)
-                # Compute the mean of the masked array
-                mean = masked_a.mean()
-
                 self.get_pose(e1, mean, depth_time, Marker.SPHERE, marker_colors[main_color], "ring", main_color)                
 
                 cv2.imwrite(image_name, cv_image) # Save the whole image
