@@ -1,0 +1,8 @@
+<launch>
+
+  <node pkg="exercise6" type="only_rings.py" name="only_rings"  output="screen" required="true"/>
+  <node pkg="exercise6" type="only_clynders.py" name="only_clynders"  output="screen"/>
+  <node pkg="exercise6" type="only_parking.py" name="only_parking"  output="screen"/>
+
+  <!-- <node pkg="exercise6" type="shutdown_node2.py" name="shutdown_node2" output="screen" required="true" launch-prefix="xterm -hold -e"/> -->
+</launch>
