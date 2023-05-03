@@ -101,54 +101,13 @@ class The_Ring:
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
 
-        # OUR ATTRIBUTES
-        points_path = os.path.join(os.path.dirname(__file__), "newpoints.txt")
-        self.path = read_path_log_orientation(points_path)
-        self.path_idx = 0
-
         self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
         self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
 
-        self.is_parked = False
+        self.park_pub = rospy.Publisher("/only_movement/park", Marker, queue_size=10)
+        self.park_scanner_pub = rospy.Publisher("/only_movement/parking_search", Bool, queue_size=10)
 
-    
-    def publish_new_position(self, log:bool=True) -> None:
-        """
-        Publishes a new position to the robot.
-
-        Go to path_idx.
-        Function updates self.path_idx.
-        """
-        msg = PoseStamped()
-        msg.header.frame_id = "map"
-        msg.header.stamp = rospy.Time().now()
-        if self.path_idx >= len(self.path):
-            return
-        msg.pose.orientation.w = 1
-        msg.pose.position.x = self.path[self.path_idx][0]
-        msg.pose.position.y = self.path[self.path_idx][1]
-        msg.pose.orientation.z = self.path[self.path_idx][3]
-        msg.pose.orientation.w = self.path[self.path_idx][4]
-        self.path_idx += 1
-        if log:
-            self.simple_goal_pub.publish(msg)
-            rospy.loginfo(f"Visiting POINT @ index {self.path_idx} in path.")
-            # rospy.loginfo(f"\n{msg.pose}")
-
-    def status_reached(self) -> Tuple[bool, int]:
-        """
-        Function listenes for status updates on topic /move_base/status.
-
-        If status is 3 (goal reached) or 4 (goal terminated), the goal is 'reached'.
-        If status is 0 or 1 the goal is 'being processed', else there is an error.
-        """
-        status = rospy.wait_for_message("/move_base/status", GoalStatusArray)
-        if status.status_list[-1].status in (0, 1):
-            # goal is being processed
-            return False,status.status_list[-1].status
-        else:
-            # goal is done (successfully or not)
-            return True,status.status_list[-1].status
+        self.needs_to_be_parked = True
 
     def get_pose(self,e,dist, time_stamp, marker_shape, marker_color, detected_object, detected_color):
         # parking_spaces are below rings - can share markers
@@ -259,7 +218,7 @@ class The_Ring:
         #
         markers_to_publish = get_marker_array_to_publish()
         self.markers_pub.publish(markers_to_publish)
-        print(f"PUBLISHED MARKER ARRAY OF LEN {len(markers_to_publish.markers)}!")
+        # print(f"PUBLISHED MARKER ARRAY OF LEN {len(markers_to_publish.markers)}!")
 
 
 
@@ -469,7 +428,7 @@ class The_Ring:
             # cv2.waitKey(1)
             ## distance difference mybe should be grater that 1 or 0.5 or something... 0 seems to be wrong since the ring can be tilted or the depth image is not rly accurate not sure 
             if distance_difference > 0 and min(inside_x_to_y, outside_x_to_y) > 0.75 and max(average_color) < 180 and min(average_color) > 100 and distance_to_background > distance_to_no_background:
-                print("Found a ring!")
+                # print("Found a ring!")
                 
                 x, y = int(e2[0][0]), int(e2[0][1])
                 w, h = int(e2[1][0] / 2), int(e2[1][1] / 2)
@@ -506,8 +465,19 @@ class The_Ring:
                 else:
                     image_name = f"{dirs['dir_irregular']}{timestamp_img}.jpg"
                 
-                # if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 4 and not self.is_parked:
-                #     self.is_parked = True
+                if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 4 and self.needs_to_be_parked:
+                    print("STARTED SCANNING FOR PARKING")
+                    self.needs_to_be_parked = False
+
+                    parking_scan_message = Bool()
+                    parking_scan_message.data = True
+                    self.park_scanner_pub.publish(parking_scan_message)
+
+                    # park_message = BEST_MARKERS["ring"]["green"]
+                    # self.park_pub.publish(park_message)
+
+                    # print("READY TO BE PARKED, LISTEN TO /only_movement/park")
+
                 
 
                 cv2.line(cv_image, (x-w, 0), (x-w, cv_image.shape[0]), (0,0,255), 1)
@@ -568,6 +538,7 @@ class The_Ring:
 
 
 def main():
+    ring_finder = The_Ring()
     rospy.loginfo("Starting the ring finder node")
     for dirname, path in dirs.items():
         if "dir" in dirname:
@@ -580,43 +551,13 @@ def main():
                     shutil.rmtree(dirs[dirname][color])
                 os.mkdir(dirs[dirname][color])
 
-    ring_finder = The_Ring()
     
     # rate = rospy.Rate(100)
     rospy.sleep(1)
             
-    ring_finder.publish_new_position()                
-    loop_time = 0
-    loop_count = 0
-
-
     while not rospy.is_shutdown():
-        start_time = time.time()
-        loop_count += 1
-        reached, status = ring_finder.status_reached()
         ring_finder.image_callback()
         
-        if reached:
-            # no need to implement anything more sophisticated for exercise 6
-            message = "REACHED GOAL" if status == 3 else "CANCEL STATUS"
-            rospy.loginfo(message)
-            ring_finder.publish_new_position()
-
-        elif ring_finder.path_idx == len(ring_finder.path):
-            rospy.loginfo("FINISHED PATH")
-            # send signal to all nodes
-            end_publisher = rospy.Publisher("/end", Bool, queue_size=1)
-            msg_something = Bool()
-            msg_something.data = True
-            end_publisher.publish(msg_something)
-            # subprocess.call(['rosnode', 'kill', 'only_clyinders'])
-            # subprocess.call(['rosnode', 'kill', 'only_parking'])
-            time.sleep(5)
-            # sleep mybe to finish processing images.
-            break
-        loop_time += time.time() - start_time
-    
-    print(f"Average loop time: {loop_time / loop_count}")
     cv2.destroyAllWindows()
 
 

@@ -9,8 +9,9 @@ import cv2
 import numpy as np
 import tf2_geometry_msgs
 import tf2_ros
+from tf.transformations import *
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import PointStamped, Vector3, Pose
+from geometry_msgs.msg import PointStamped, Vector3, Pose, Quaternion, PoseWithCovarianceStamped
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import ColorRGBA, Bool
@@ -18,6 +19,7 @@ from matplotlib import pyplot as plt
 
 # OUR IMPORTS
 import os
+import math
 from exercise6_utils import read_path_log_orientation
 from tf2_geometry_msgs import PoseStamped
 from actionlib_msgs.msg import GoalID, GoalStatusArray
@@ -26,76 +28,9 @@ from typing import List, Tuple
 import time
 from functools import reduce
 
-dirs = {
-        "dir_park_spaces" : os.path.join(os.path.dirname(__file__), "../last_run_info/park_spaces_images/"),
-        }
+PARKING_DIR = os.path.join(os.path.dirname(__file__), "../last_run_info/park_spaces_images/")
 
-# calculated markers for all possible objects
-ALL_MARKER_COORDS= {
-    "cylinder": {
-        "red": list(),
-        "blue": list(),
-        "green": list(),
-        "yellow": list(),
-        },
-    # if rings are above parking spaces, there's no need to include them in this dict
-    "ring": {
-        "red": list(),
-        "blue": list(),
-        "green": list(),
-        "black": list(),
-        "white": list(), # currently only used for parking spaces
-        },
-    }
-
-# best calculated markers for all possible objects
-BEST_MARKERS= {
-    "cylinder": {
-        "red": None,
-        "blue": None,
-        "green": None,
-        "yellow": None,
-        },
-    # if rings are above parking spaces, there's no need to include them in this dict
-    "ring": {
-        "red": None,
-        "blue": None,
-        "green": None,
-        "black": None,
-        "white": None, # currently only used for parking spaces
-        },
-    }
-
-def get_marker_array_to_publish():
-    marker_array = MarkerArray()
-    for shape in BEST_MARKERS:
-        for color in BEST_MARKERS[shape]:
-            if BEST_MARKERS[shape][color]:
-                marker_array.markers.append(BEST_MARKERS[shape][color])
-    return marker_array
-
-COLOR_DICT = {
-        # COLORNAME: (lower_value, upper_value)
-        "blue": (
-               np.array([100, 50, 50]),
-               np.array([130, 255, 255])
-            ),
-        "red": (
-               np.array([0, 50, 50]),
-               np.array([10, 255, 255])
-            ),
-        "green": (
-               np.array([50, 50, 50]),
-               np.array([70, 255, 255])
-            ),
-        "yellow": (
-               np.array([20, 100, 100]),
-               np.array([40, 255, 255])
-            )
-        }
-
-
-class The_Ring:
+class Parking:
     def __init__(self):
         rospy.init_node('parking_node', anonymous=True)
 
@@ -123,6 +58,8 @@ class The_Ring:
 
         self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
         self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
+
+        self.is_parked = False
 
     
     
@@ -217,12 +154,60 @@ class The_Ring:
         self.markers_pub.publish(self.marker_array)
         # print(f"PUBLISHED MARKER ARRAY OF LEN {len(markers_to_publish.markers)}!")
 
+    def go_to_parking_space(self, e, dist, pose_of_detection):
+        quaternion_array = self.get_parking_center_quaternion_array(e, dist, pose_of_detection)
+        msg = PoseStamped()
+        msg.header.frame_id = "map"
+        msg.header.stamp = rospy.Time().now()
+        msg.pose.position.x = pose_of_detection.pose.pose.position.x
+        msg.pose.position.y = pose_of_detection.pose.pose.position.y
+        msg.pose.position.z = pose_of_detection.pose.pose.position.z
+        msg.pose.orientation.x = quaternion_array[0]
+        msg.pose.orientation.y = quaternion_array[1]
+        msg.pose.orientation.z = quaternion_array[2]
+        msg.pose.orientation.w = quaternion_array[3]
+        
+        cancel_msg = GoalID()
+        cancel_msg.id = ""
+        self.cancel_goal_pub.publish(cancel_msg)
+        print("CANCELED GOAL IN go_to_parking_space")
 
+        self.simple_goal_pub.publish(msg)
+        print("PUBLISHED ROTATION")
+        print(msg)
+        rospy.sleep(10)
+        print("SLEPT OFF")
+        self.is_parked = True
 
-    def image_callback(self):
+    def get_parking_center_quaternion_array(self, e, dist : float, pose_of_detection: PoseWithCovarianceStamped) -> Tuple[float,float,float,float]:
+        # Calculate the position of the detected face
+        k_f = 554 # kinect focal length in pixels
+
+        elipse_x = self.dims[1] / 2 - e[0][0]
+        angle_to_target = np.arctan2(elipse_x,k_f)
+        
+        # Get the angles in the base_link relative coordinate system
+
+        # Define a quaternion for the rotation
+        # Roatation is such that the image of the face is in the center of the robot view.
+        q = Quaternion()
+        q.x = 0
+        q.y = 0
+        q.z = math.sin(angle_to_target)
+        q.w = math.cos(angle_to_target)
+
+    
+        q2 = pose_of_detection.pose.pose.orientation
+
+        goal_quaternion_array = quaternion_multiply((q2.x, q2.y, q2.z, q2.w), (q.x, q.y, q.z, q.w))
+        
+        return goal_quaternion_array
+
+    def parking_image_callback(self):
         try:
             data = rospy.wait_for_message('/camera/rgb/image_raw', Image)
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            p = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
         except CvBridgeError as e:
             print(e)
 
@@ -325,7 +310,7 @@ class The_Ring:
 
             if y_e1 > y_threshold and average_color_value > 240: # WORKS FOR 90% OF CASES
                 # if we are looking for rings on the ground the way we see them from camera x-diff should be grater than y diff (elipse should be flat and long not tall and thin)
-                image_name = f"{dirs['dir_park_spaces']}{time.time()}.jpg"
+                image_name = f"{PARKING_DIR}{time.time()}.jpg"
                 print("PARKING SPACE FOUND")
                 # f string to only show 2 decimals of x_e1
                 info_ellipse_string = f"a_e1: {a_e1:.2f} b_e1: {b_e1:.2f} a_e2: {a_e2:.2f} b_e2: {b_e2:.2f} ratio1: {a_e1 / b_e1:.2f} ratio2: {a_e2 / b_e2:.2f}"
@@ -354,6 +339,7 @@ class The_Ring:
                 print(f"distance is: {float(np.nanmean(depth_image[x1min:x1max,y1min:y1max]))}")
 
                 self.get_pose(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), depth_time, Marker.SPHERE, ColorRGBA(1, 1, 1, 1), "parking_space", "white")
+                # self.go_to_parking_space(e1, float(np.nanmean(depth_image[x1min:x1max,y1min:y1max])), p)
                 
                 cv2.imwrite(image_name, cv_image) 
                 # image has no ring we skip it
@@ -361,35 +347,57 @@ class The_Ring:
 
 
 def main():
+    parking = Parking()
+
     rospy.loginfo("Starting the parking finder node")
-    # for dirname, path in dirs.items():
-    #     if "dir" in dirname:
-    #         if os.path.exists(path):
-    #             shutil.rmtree(path)
-    #         os.mkdir(path)
-    #     else:
-    #         for color in dirs[dirname]:
-    #             if os.path.exists(dirs[dirname][color]):
-    #                 shutil.rmtree(dirs[dirname][color])
-    #             os.mkdir(dirs[dirname][color])
+    start_scanning = rospy.wait_for_message("/only_movement/parking_search", Bool)    
+    rospy.loginfo("Starting parking")
 
-    ring_finder = The_Ring()
-
-    rate = rospy.Rate(10)
-        
+    
     rospy.sleep(2)
+    
+    # PARKING NODE TAKES CONTROL OVER MOVEMENT
+    parking_no_movement_pub = rospy.Publisher("/only_movement/parking_is_going_on", Bool, queue_size=10)
+    parking_no_movement_msg = Bool()
+    parking_no_movement_msg.data = True
+    parking_no_movement_pub.publish(parking_no_movement_msg)
+    rospy.sleep(1)
+    parking_no_movement_msg = Bool()
+    parking_no_movement_msg.data = True
+    parking_no_movement_pub.publish(parking_no_movement_msg)
+    rospy.sleep(1)
+    parking_no_movement_msg = Bool()
+    parking_no_movement_msg.data = True
+    parking_no_movement_pub.publish(parking_no_movement_msg)
+    rospy.sleep(1)
+    parking_no_movement_msg = Bool()
+    parking_no_movement_msg.data = True
+    parking_no_movement_pub.publish(parking_no_movement_msg)
 
-    loop_time = 0
-    loop_count = 0
-    while not rospy.is_shutdown():
-        start_time = time.time()
-        ring_finder.image_callback()
-        loop_count += 1
-        loop_time += time.time() - start_time
-        rate.sleep()
+    rospy.sleep(1)
+    print("PUBLISHED MESSAGE", parking_no_movement_msg)
+    
+    cancel_msg = GoalID()
+    cancel_msg.id = ""
+    parking.cancel_goal_pub.publish(cancel_msg)
+    print("CANCELED GOAL, PARKING IS TAKING OVER")
 
-    print(f"Average loop time: {loop_time / loop_count}")
-    cv2.destroyAllWindows()
+    rospy.sleep(1)
+    
+    loop_counter = 0
+    while not rospy.is_shutdown() and not parking.is_parked:
+        loop_counter += 1
+        parking.parking_image_callback()
+        if loop_counter >= 200:
+            parking.is_parked = True
+
+    rospy.loginfo("Parking finder node finished.")
+
+    # MOVEMENT NODE TAKES CONTROL OVER MOVEMENT
+    parking_no_movement_msg = Bool()
+    parking_no_movement_msg.data = False
+    parking_no_movement_pub.publish(parking_no_movement_msg)
+
 
 
 if __name__ == '__main__':

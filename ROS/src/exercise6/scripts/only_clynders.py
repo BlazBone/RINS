@@ -308,7 +308,7 @@ class The_Ring:
         #
         markers_to_publish = get_marker_array_to_publish()
         self.markers_pub.publish(markers_to_publish)
-        print(f"PUBLISHED MARKER ARRAY OF LEN {len(markers_to_publish.markers)}!")
+        # print(f"PUBLISHED MARKER ARRAY OF LEN {len(markers_to_publish.markers)}!")
 
 
     def image_callback(self):
@@ -394,7 +394,7 @@ class The_Ring:
                                 cv2.drawContours(cv_image_raw, contour, -1, color_text, 2)
 
                                 image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
-                                print(f"Found a {color.upper()} cylinder!")
+                                # print(f"Found a {color.upper()} cylinder!")
                                 cv2.imwrite(image_name, cv_image_raw)
                 else:
                     # safety precaution - if it detects something above the middle of the image, don't skip
