@@ -109,6 +109,8 @@ class The_Ring:
         self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
         self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
 
+        self.is_parked = False
+
     
     def publish_new_position(self, log:bool=True) -> None:
         """
@@ -147,7 +149,7 @@ class The_Ring:
         else:
             # goal is done (successfully or not)
             return True,status.status_list[-1].status
-    
+
     def get_pose(self,e,dist, time_stamp, marker_shape, marker_color, detected_object, detected_color):
         # parking_spaces are below rings - can share markers
         if detected_object == "parking_space":
@@ -157,7 +159,8 @@ class The_Ring:
             return
 
         # Calculate the position of the detected ellipse
-        k_f = 525 # kinect focal length in pixels
+        # k_f = 525 # kinect focal length in pixels
+        k_f = 554 # kinect focal length in pixels
 
         elipse_x = self.dims[1] / 2 - e[0][0]
         elipse_y = self.dims[0] / 2 - e[0][1]
@@ -190,20 +193,30 @@ class The_Ring:
         marker_coords = (point_world.point.x, point_world.point.y, point_world.point.z)
         ALL_MARKER_COORDS[detected_object][detected_color].append(marker_coords)
 
-        print(f"added {detected_color.upper()} marker for {detected_object}!")
-        print(f"Current markers for color {detected_color} and object {detected_object} are: {len(ALL_MARKER_COORDS[detected_object][detected_color])}")
+        # print(f"added {detected_color.upper()} marker for {detected_object}!")
+        # print(f"Current markers for color {detected_color} and object {detected_object} are: {len(ALL_MARKER_COORDS[detected_object][detected_color])}")
 
         all_coordinates = np.array(ALL_MARKER_COORDS[detected_object][detected_color])
-        avg_x = np.mean(all_coordinates[:, 0])
-        avg_y = np.mean(all_coordinates[:, 1])
-        avg_z = np.mean(all_coordinates[:, 2])
+        avg_x = np.nanmean(all_coordinates[:, 0])
+        avg_y = np.nanmean(all_coordinates[:, 1])
+        avg_z = np.nanmean(all_coordinates[:, 2])
 
         # Create a Pose object with the same position
         pose = Pose()
         pose.position.x = avg_x
         pose.position.y = avg_y
         pose.position.z = avg_z
-
+        
+        if not dist:
+            print(f"DIST: {dist}")
+            print(marker_coords)
+            print(f"avg_x: {avg_x}")
+            print(f"avg_y: {avg_y}")
+            print(f"avg_z: {avg_z}")
+            print(f"detected_object: {detected_object}")
+            print(f"detected_color: {detected_color}")
+            return
+        
         # so we get no errors
         pose.orientation.z = 1
         pose.orientation.w = 0
@@ -225,7 +238,7 @@ class The_Ring:
         # i want to se markers all the time not only when we detect new ones
         marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
         marker.id = self.marker_num
-        marker.scale = Vector3(0.1, 0.1, 0.1)
+        marker.scale = Vector3(0.2, 0.2, 0.2)
                 # mybe we can place different markers for different objects (param in get pose or something)
         # so we can more 3easily destinguish them
         # same with different colors
@@ -235,12 +248,13 @@ class The_Ring:
         
         BEST_MARKERS[detected_object][detected_color] = marker
         
-        delte_arr = MarkerArray()
-        delte_marker = Marker()
-        delte_marker.action = Marker.DELETEALL
-        delte_marker.header.frame_id = 'map'
-        delte_arr.markers.append(delte_marker)
-        self.markers_pub.publish(delte_arr)
+        delete_arr = MarkerArray()
+        delete_marker = Marker()
+        delete_marker.action = Marker.DELETEALL
+        delete_marker.header.frame_id = 'map'
+        delete_arr.markers.append(delete_marker)
+        self.markers_pub.publish(delete_arr)
+
         # self.marker_array = get_marker_array_to_publish()
         #
         markers_to_publish = get_marker_array_to_publish()
@@ -491,7 +505,9 @@ class The_Ring:
                     image_name = f"{dirs['rings'][main_color]}{timestamp_img}.jpg"
                 else:
                     image_name = f"{dirs['dir_irregular']}{timestamp_img}.jpg"
-
+                
+                # if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 4 and not self.is_parked:
+                #     self.is_parked = True
                 
 
                 cv2.line(cv_image, (x-w, 0), (x-w, cv_image.shape[0]), (0,0,255), 1)
@@ -506,7 +522,7 @@ class The_Ring:
                 # Compute the mean of the masked array
                 mean = masked_a.mean()
 
-                self.get_pose(e1, mean, depth_time, Marker.CUBE, marker_colors[main_color], "ring", main_color)                
+                self.get_pose(e1, mean, depth_time, Marker.SPHERE, marker_colors[main_color], "ring", main_color)                
 
                 cv2.imwrite(image_name, cv_image) # Save the whole image
 

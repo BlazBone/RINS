@@ -200,7 +200,6 @@ class The_Ring:
         self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
 
 
-    
     def get_pose(self,x_center,dist, time_stamp, marker_shape, marker_color, detected_object, detected_color):
         # parking_spaces are below rings - can share markers
         if detected_object == "parking_space":
@@ -210,7 +209,8 @@ class The_Ring:
             return
 
         # Calculate the position of the detected ellipse
-        k_f = 525 # kinect focal length in pixels
+        # k_f = 525 # kinect focal length in pixels
+        k_f = 554 # kinect focal length in pixels
 
         elipse_x = self.dims[1] / 2 - x_center
 
@@ -246,16 +246,26 @@ class The_Ring:
         # print(f"Current markers for color {detected_color} and object {detected_object} are: {len(ALL_MARKER_COORDS[detected_object][detected_color])}")
 
         all_coordinates = np.array(ALL_MARKER_COORDS[detected_object][detected_color])
-        avg_x = np.mean(all_coordinates[:, 0])
-        avg_y = np.mean(all_coordinates[:, 1])
-        avg_z = np.mean(all_coordinates[:, 2])
+        avg_x = np.nanmean(all_coordinates[:, 0])
+        avg_y = np.nanmean(all_coordinates[:, 1])
+        avg_z = np.nanmean(all_coordinates[:, 2])
 
         # Create a Pose object with the same position
         pose = Pose()
         pose.position.x = avg_x
         pose.position.y = avg_y
         pose.position.z = avg_z
-
+        
+        if not dist:
+            print(f"DIST: {dist}")
+            print(marker_coords)
+            print(f"avg_x: {avg_x}")
+            print(f"avg_y: {avg_y}")
+            print(f"avg_z: {avg_z}")
+            print(f"detected_object: {detected_object}")
+            print(f"detected_color: {detected_color}")
+            return
+        
         # so we get no errors
         pose.orientation.z = 1
         pose.orientation.w = 0
@@ -277,28 +287,28 @@ class The_Ring:
         # i want to se markers all the time not only when we detect new ones
         marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
         marker.id = self.marker_num
-        marker.scale = Vector3(0.1, 0.1, 0.1)
+        marker.scale = Vector3(0.2, 0.2, 0.2)
                 # mybe we can place different markers for different objects (param in get pose or something)
         # so we can more 3easily destinguish them
         # same with different colors
         marker.color = marker_color
+
+
         
         BEST_MARKERS[detected_object][detected_color] = marker
         
-        # self.marker_array = get_marker_array_to_publish()
-        # print(f"marker_array is {self.marker_array}")
-        #
-        delte_arr = MarkerArray()
-        delte_marker = Marker()
-        delte_marker.action = Marker.DELETEALL
-        delte_marker.header.frame_id = 'map'
-        delte_arr.markers.append(delte_marker)
-        self.markers_pub.publish(delte_arr)
+        delete_arr = MarkerArray()
+        delete_marker = Marker()
+        delete_marker.action = Marker.DELETEALL
+        delete_marker.header.frame_id = 'map'
+        delete_arr.markers.append(delete_marker)
+        self.markers_pub.publish(delete_arr)
 
+        # self.marker_array = get_marker_array_to_publish()
+        #
         markers_to_publish = get_marker_array_to_publish()
         self.markers_pub.publish(markers_to_publish)
         print(f"PUBLISHED MARKER ARRAY OF LEN {len(markers_to_publish.markers)}!")
-
 
 
     def image_callback(self):

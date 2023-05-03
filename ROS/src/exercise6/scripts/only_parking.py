@@ -135,7 +135,7 @@ class The_Ring:
             # return
 
         # Calculate the position of the detected ellipse
-        k_f = 525 # kinect focal length in pixels
+        k_f = 554 # kinect focal length in pixels
 
         elipse_x = self.dims[1] / 2 - e[0][0]
         elipse_y = self.dims[0] / 2 - e[0][1]
