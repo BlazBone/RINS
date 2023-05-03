@@ -572,7 +572,7 @@ class The_Ring:
                     # cv2.imshow("depth_ring", depth_ring)
                     # cv2.waitKey(1)
 
-                if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 10 and self.needs_to_be_parked and mean is not None:
+                if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 10 and self.needs_to_be_parked and bool(mean):
                     print("STARTED SCANNING FOR PARKING")
                     self.needs_to_be_parked = False
 
