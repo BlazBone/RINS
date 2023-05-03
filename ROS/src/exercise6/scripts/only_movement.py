@@ -42,7 +42,6 @@ class Movement:
 
     def cancel_goal(self):
         cancel_msg = GoalID()
-        cancel_msg.id = ""
         self.cancel_goal_pub.publish(cancel_msg)
     
     def park_callback(self, data):
@@ -50,6 +49,10 @@ class Movement:
         print(data)
         self.currently_parking = data.data
         print(self.currently_parking)
+        
+        self.cancel_goal()
+        print("CANCELED GOAL, PARKING IS TAKING OVER")
+
 
     # def park_callback(self, green_marker):
     #     self.currently_parking = True
@@ -108,12 +111,14 @@ class Movement:
 
 def main():
     movement = Movement()
+    rospy.sleep(1)
     rospy.loginfo("Starting the movement node")
     
     # rate = rospy.Rate(100)
-    rospy.sleep(1)
+    rospy.sleep(5)
             
     movement.publish_new_position()                
+    print("PUBLISHING FIRST POSITION")
     loop_time = 0
     loop_count = 0
 

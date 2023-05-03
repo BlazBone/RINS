@@ -465,7 +465,7 @@ class The_Ring:
                 else:
                     image_name = f"{dirs['dir_irregular']}{timestamp_img}.jpg"
                 
-                if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 4 and self.needs_to_be_parked:
+                if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 1 and self.needs_to_be_parked:
                     print("STARTED SCANNING FOR PARKING")
                     self.needs_to_be_parked = False
 

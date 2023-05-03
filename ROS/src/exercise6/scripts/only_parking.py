@@ -168,7 +168,6 @@ class Parking:
         msg.pose.orientation.w = quaternion_array[3]
         
         cancel_msg = GoalID()
-        cancel_msg.id = ""
         self.cancel_goal_pub.publish(cancel_msg)
         print("CANCELED GOAL IN go_to_parking_space")
 
@@ -348,39 +347,30 @@ class Parking:
 
 def main():
     parking = Parking()
-
+    rospy.sleep(1)
+    parking_no_movement_pub = rospy.Publisher("/only_movement/parking_is_going_on", Bool, queue_size=10)
+    rospy.sleep(0.5)
     rospy.loginfo("Starting the parking finder node")
     start_scanning = rospy.wait_for_message("/only_movement/parking_search", Bool)    
-    rospy.loginfo("Starting parking")
+    rospy.loginfo("STARTED PARKING")
 
     
-    rospy.sleep(2)
     
     # PARKING NODE TAKES CONTROL OVER MOVEMENT
-    parking_no_movement_pub = rospy.Publisher("/only_movement/parking_is_going_on", Bool, queue_size=10)
-    parking_no_movement_msg = Bool()
-    parking_no_movement_msg.data = True
-    parking_no_movement_pub.publish(parking_no_movement_msg)
-    rospy.sleep(1)
-    parking_no_movement_msg = Bool()
-    parking_no_movement_msg.data = True
-    parking_no_movement_pub.publish(parking_no_movement_msg)
-    rospy.sleep(1)
-    parking_no_movement_msg = Bool()
-    parking_no_movement_msg.data = True
-    parking_no_movement_pub.publish(parking_no_movement_msg)
-    rospy.sleep(1)
     parking_no_movement_msg = Bool()
     parking_no_movement_msg.data = True
     parking_no_movement_pub.publish(parking_no_movement_msg)
 
-    rospy.sleep(1)
-    print("PUBLISHED MESSAGE", parking_no_movement_msg)
+    parking_no_movement_msg = Bool()
+    parking_no_movement_msg.data = True
+    parking_no_movement_pub.publish(parking_no_movement_msg)
+
+    # print("PUBLISHED MESSAGE", parking_no_movement_msg)
     
-    cancel_msg = GoalID()
-    cancel_msg.id = ""
-    parking.cancel_goal_pub.publish(cancel_msg)
-    print("CANCELED GOAL, PARKING IS TAKING OVER")
+    # cancel_msg = GoalID()
+    # cancel_msg.id = ""
+    # parking.cancel_goal_pub.publish(cancel_msg)
+    # print("CANCELED GOAL, PARKING IS TAKING OVER")
 
     rospy.sleep(1)
     
@@ -388,7 +378,7 @@ def main():
     while not rospy.is_shutdown() and not parking.is_parked:
         loop_counter += 1
         parking.parking_image_callback()
-        if loop_counter >= 200:
+        if loop_counter >= 30:
             parking.is_parked = True
 
     rospy.loginfo("Parking finder node finished.")
