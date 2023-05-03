@@ -235,6 +235,12 @@ class The_Ring:
         
         BEST_MARKERS[detected_object][detected_color] = marker
         
+        delte_arr = MarkerArray()
+        delte_marker = Marker()
+        delte_marker.action = Marker.DELETEALL
+        delte_marker.header.frame_id = 'map'
+        delte_arr.markers.append(delte_marker)
+        self.markers_pub.publish(delte_arr)
         # self.marker_array = get_marker_array_to_publish()
         #
         markers_to_publish = get_marker_array_to_publish()

@@ -17,6 +17,7 @@ from std_msgs.msg import ColorRGBA
 from matplotlib import pyplot as plt
 
 # OUR IMPORTS
+
 import os
 from exercise6_utils import read_path_log_orientation
 from tf2_geometry_msgs import PoseStamped
@@ -80,7 +81,6 @@ def get_marker_array_to_publish():
         for color in BEST_MARKERS[shape]:
             if BEST_MARKERS[shape][color]:
                 marker_array.markers.append(BEST_MARKERS[shape][color])
-    marker_array.markers.lifetime = rospy.Duration(0.0)
     return marker_array
 
 # arbitrarily set, seems to be a good filter
@@ -288,9 +288,12 @@ class The_Ring:
         # self.marker_array = get_marker_array_to_publish()
         # print(f"marker_array is {self.marker_array}")
         #
-        
-        self.markers_pub.publish(MarkerArray())
-
+        delte_arr = MarkerArray()
+        delte_marker = Marker()
+        delte_marker.action = Marker.DELETEALL
+        delte_marker.header.frame_id = 'map'
+        delte_arr.markers.append(delte_marker)
+        self.markers_pub.publish(delte_arr)
 
         markers_to_publish = get_marker_array_to_publish()
         self.markers_pub.publish(markers_to_publish)
