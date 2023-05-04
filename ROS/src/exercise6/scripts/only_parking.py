@@ -30,6 +30,44 @@ from functools import reduce
 
 PARKING_DIR = os.path.join(os.path.dirname(__file__), "../last_run_info/park_spaces_images/")
 
+def get_angle(image):
+    point = (image.shape[0], image.shape[1]//2)
+    closes_point = find_closest_pixel(image)    
+    print(closes_point)
+    return np.arctan2(closes_point[0]-point[0], closes_point[1]-point[1])
+
+def find_closest_pixel(image):
+    point = (image.shape[0], image.shape[1]//2)
+    closes_point = None
+    for i in range(0,image.shape[0]-50):
+        for j in range(image.shape[1]):
+            if image[i,j] == 0:
+                if closes_point is None:
+                    closes_point = (i,j)
+                else:
+                    if np.linalg.norm(np.array(point)-np.array(closes_point)) > np.linalg.norm(np.array(point)-np.array((i,j))):
+                        closes_point = (i,j)
+    return closes_point
+
+def get_angle_furthers_point(image):
+
+    point = (image.shape[0], image.shape[1]//2)
+    furthers_point = None
+    for i in range(0,image.shape[0]-50):
+        for j in range(image.shape[1]):
+            if image[i,j] == 0:
+                furthers_point = (i,j)
+                return np.arctan2(furthers_point[0]-point[0], furthers_point[1]-point[1])
+
+    return None
+
+def get_highest_black_pixel(image):
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            if image[i,j] == 0:
+                return i, j
+    return None
+
 class Parking:
     def __init__(self):
         rospy.init_node('parking_node', anonymous=True)
@@ -64,9 +102,31 @@ class Parking:
         self.is_parked = False
 
         self.greeting_position_green_ring = None
+        
+    def get_binary_arm_image(self):
+        try:
+            # get extended camera image
+            data = rospy.wait_for_message('/arm_camera/rgb/image_raw', Image)
+            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+        except CvBridgeError as e:
+            print(e)
 
+        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
 
-    
+        # # cut 10 pixels from the top and bottom right and left
+        gray = gray[10:gray.shape[0]-10, 10:gray.shape[1]-10]
+
+        # copy and bin image
+        img = gray.copy()
+        img[img < 10] = 0
+        img[img >= 10] = 255
+
+        # if there is no black pixel, binarize again
+        if not np.any(img == 0):
+            img = gray.copy()
+            img[img >= 200] = 0
+
+        return img
     
     def get_pose(self,e,dist, time_stamp, marker_shape, marker_color, detected_object, detected_color):
         # parking_spaces are below rings - can share markers
@@ -176,26 +236,123 @@ class Parking:
     
     def in_circle(self):
         return False
-    
-    def fine_manouvering(self):
-        try:
-            # get extended camera image
-            data = rospy.wait_for_message('/camera/rgb/image_raw', Image)
-            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+    def publish_second_greeting_pose(self):
+        # header: 
+        #   seq: 202
+        #   stamp: 
+        #     secs: 1549
+        #     nsecs: 627000000
+        #   frame_id: "map"
+        # pose: 
+        #   pose: 
+        #     position: 
+        #       x: 2.091554422903801
+        #       y: 0.3509621880975083
+        #       z: 0.0
+        #     orientation: 
+        #       x: 0.0
+        #       y: 0.0
+        #       z: -0.9171601902651947
+        #       w: 0.3985187390734743
+        #   covariance: [0.0022698431204277725, -0.000405965448689094, 0.0, 0.0, 0.0, 0.0, -0.000405965448689094, 0.0026165707487205703, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.002780653885771563]
+        green_pose = PoseStamped()
+         
+        green_pose.header.stamp = rospy.Time().now()
+        green_pose.header.frame_id = "map"
 
-        except CvBridgeError as e:
-            print(e)
+        green_pose.pose.position.x = 2.091554422903801
+        green_pose.pose.position.y = 0.3509621880975083
 
-        # change cv_image to grayscale
-        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        green_pose.pose.orientation.z = -0.9171601902651947
+        green_pose.pose.orientation.w = 0.3985187390734743
 
-        # check if black outline on image
-        black_pixels = np.where(gray <= 10)
+        self.simple_goal_pub.publish(green_pose)
+        print("PUBLISHED SECOND GREEN POSE")
+        rospy.sleep(5)
+        
 
-        if black_pixels:
-            print("GOT PIXELS")
+    def fine_manouvering_rotation(self):
+        img = self.get_binary_arm_image()
+        
+        if not np.any(img == 0):
+            print("SECOND GREETING POSE")
+            self.publish_second_greeting_pose()
+
+        angle = -(get_angle(img) + np.pi/2)
+
+        # change to degrees
+        twist_msg = Twist()
+        twist_msg.linear.x = 0.00
+        twist_msg.angular.z = angle
+
+        self.twist_pub.publish(twist_msg)
+        print("ROTATED THE APROPRIATE AMOUNT")
+        print("ANGLE IS ", angle)
+        rospy.sleep(0.2)
+
+        img = self.get_binary_arm_image() 
+
+        # cv2.imshow("arm_image", img)
+        # cv2.waitKey(0)
+        while get_highest_black_pixel(img)[0] < 10:
+            print("FIRST LOOP")
+            print(get_highest_black_pixel(img)[0])
+            img = self.get_binary_arm_image()
+            # cv2.imshow("arm_image", img)
+            # cv2.waitKey(0)
+            twist_msg = Twist()
+            twist_msg.linear.x = 0.1
+            twist_msg.angular.z = 0.00
+            self.twist_pub.publish(twist_msg)
+            rospy.sleep(0.2)
+        
+        img = self.get_binary_arm_image()
+
+        # cv2.imshow("arm_image", img)
+        # cv2.waitKey(0)
+
+        angle_furthest = -(get_angle_furthers_point(img) + np.pi/2)
+        # change to degrees
+        twist_msg = Twist()
+        twist_msg.linear.x = 0.00
+        twist_msg.angular.z = angle_furthest
+
+        self.twist_pub.publish(twist_msg)
+        print("ROTATED THE APROPRIATE AMOUNT")
+        print("ANGLE IS ", angle_furthest)
+        rospy.sleep(0.2)
+
+        img = self.get_binary_arm_image() 
+        highest_pixel = get_highest_black_pixel(img)[0]
+        print("HIGHEST PIXEL BEFORE 2ND LOOP")
+        print(highest_pixel)
+        while get_highest_black_pixel(img)[0] < img.shape[0]-150:
+            print("SECOND LOOP")
+            print(get_highest_black_pixel(img)[0])
+            img = self.get_binary_arm_image()
+            twist_msg = Twist()
+            twist_msg.linear.x = 0.05
+            twist_msg.angular.z = 0.00
+            self.twist_pub.publish(twist_msg)
+            rospy.sleep(0.2)
+            angle_furthest = -(get_angle_furthers_point(img) + np.pi/2)
+            # change to degrees
+            twist_msg = Twist()
+            twist_msg.linear.x = 0.00
+            twist_msg.angular.z = angle_furthest
+
+            self.twist_pub.publish(twist_msg)
+            print("ROTATED THE APROPRIATE AMOUNT IN 2ND LOOP")
+            print("ANGLE IS ", angle_furthest)
+            rospy.sleep(0.2)
+
 
         self.is_parked = True
+
+        # i = 0
+        # while i < 100:
+        #     i+=1
+        print("PARKED IS TRUE")
 
 
 
@@ -405,7 +562,6 @@ class Parking:
                 # self.greeting_position_green_ring = None
             if self.greeting_position_green_ring is not None:
                 print("NOT PARKING SPACE")
-                print("TYPE OF POSITION SENT", type(self.greeting_position_green_ring))
                 print(self.greeting_position_green_ring)
                 self.simple_goal_pub.publish(self.greeting_position_green_ring)
                 print("GOING TO GREEN RING, DELETING ITS POSITION")
@@ -417,7 +573,8 @@ class Parking:
                     rospy.sleep(.1)
 
                 print("GREEN RING GREETING POSE REACHED")
-                self.fine_manouvering()
+                self.fine_manouvering_rotation()
+
 
 
 def main():
@@ -427,7 +584,7 @@ def main():
     rospy.sleep(0.5)
     rospy.loginfo("Starting the parking finder node")
     parking.greeting_position_green_ring = rospy.wait_for_message("/only_movement/parking_search", PoseStamped)    
-    # print("GOT GREEN RING GREETING POSE", parking.greeting_position_green_ring)
+    print("GOT GREEN RING GREETING POSE", parking.greeting_position_green_ring)
 
     rospy.loginfo("STARTED PARKING")
 
@@ -444,8 +601,15 @@ def main():
 
     rospy.sleep(1)
     
+    print(parking.greeting_position_green_ring)
+    parking.simple_goal_pub.publish(parking.greeting_position_green_ring)
+    print("(IN MAIN) GOING TO GREEN RING, DELETING ITS POSITION")
+    print("WAITING 5 SECONDS")
+    rospy.sleep(5)
+    parking.greeting_position_green_ring = None
+    parking.fine_manouvering_rotation()
     while not rospy.is_shutdown() and not parking.is_parked:
-        parking.parking_image_callback()
+        pass
 
     rospy.loginfo("Parking finder node finished.")
 
@@ -458,3 +622,24 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# header: 
+#   seq: 202
+#   stamp: 
+#     secs: 1549
+#     nsecs: 627000000
+#   frame_id: "map"
+# pose: 
+#   pose: 
+#     position: 
+#       x: 2.091554422903801
+#       y: 0.3509621880975083
+#       z: 0.0
+#     orientation: 
+#       x: 0.0
+#       y: 0.0
+#       z: -0.9171601902651947
+#       w: 0.3985187390734743
+#   covariance: [0.0022698431204277725, -0.000405965448689094, 0.0, 0.0, 0.0, 0.0, -0.000405965448689094, 0.0026165707487205703, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.002780653885771563]
+# ---
+#

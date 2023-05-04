@@ -111,6 +111,8 @@ class The_Ring:
 
         self.needs_to_be_parked = True
 
+        self.all_green_ring_greeting_positions_array = []
+
     def get_pose(self,e,dist, time_stamp, marker_shape, marker_color, detected_object, detected_color):
         # parking_spaces are below rings - can share markers
         if detected_object == "parking_space":
@@ -231,7 +233,7 @@ class The_Ring:
         angle_to_target = np.arctan2(elipse_x,k_f)
         
         # Get the angles in the base_link relative coordinate system
-        dist -= .6
+        dist -= .7
         x,y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
 
 
@@ -571,15 +573,43 @@ class The_Ring:
                     # print("h", h)
                     # cv2.imshow("depth_ring", depth_ring)
                     # cv2.waitKey(1)
+                
+                if main_color == "green" and bool(mean):
+                    greeting_position_green_ring = self.get_greeting_pose(e1, mean, depth_time, p)
+                    self.all_green_ring_greeting_positions_array.append(greeting_position_green_ring)
 
                 if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 10 and self.needs_to_be_parked and bool(mean):
                     print("STARTED SCANNING FOR PARKING")
                     self.needs_to_be_parked = False
+                    
+                    x_green,y_green,w_green,z_green = 0,0,0,0
 
-                    greeting_position_green_ring = self.get_greeting_pose(e1, mean, depth_time, p)
+                    for pose in self.all_green_ring_greeting_positions_array:
+                        x_green += pose.pose.position.x
+                        y_green += pose.pose.position.y
+                        z_green += pose.pose.orientation.z
+                        w_green += pose.pose.orientation.w
 
+                    x_green /= len(self.all_green_ring_greeting_positions_array)
+                    y_green /= len(self.all_green_ring_greeting_positions_array)
+                    z_green /= len(self.all_green_ring_greeting_positions_array)
+                    w_green /= len(self.all_green_ring_greeting_positions_array)
+
+                    green_pose = PoseStamped()
+                     
+                    green_pose.header.stamp = rospy.Time().now()
+                    green_pose.header.frame_id = "map"
+
+                    green_pose.pose.position.x = x_green
+                    green_pose.pose.position.y = y_green
+
+                    green_pose.pose.orientation.z = z_green
+                    green_pose.pose.orientation.w = w_green
+            
                     # parking_scan_message.data = True
-                    self.park_scanner_pub.publish(greeting_position_green_ring)
+                    self.park_scanner_pub.publish(green_pose)
+                    print("PUBLISHING GREEN_POSE")
+                    print(green_pose)
 
                     # park_message = BEST_MARKERS["ring"]["green"]
                     # self.park_pub.publish(park_message)

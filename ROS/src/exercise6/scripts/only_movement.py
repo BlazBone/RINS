@@ -122,7 +122,6 @@ def main():
     rospy.sleep(5)
             
     movement.publish_new_position()                
-    print("PUBLISHING FIRST POSITION")
     loop_time = 0
     loop_count = 0
 
