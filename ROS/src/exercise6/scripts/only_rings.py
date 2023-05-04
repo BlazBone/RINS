@@ -16,6 +16,7 @@ from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import ColorRGBA
 from matplotlib import pyplot as plt
 from tf.transformations import *
+from sound_play.libsoundplay import SoundClient
 
 # OUR IMPORTS
 import os
@@ -112,6 +113,18 @@ class The_Ring:
         self.needs_to_be_parked = True
 
         self.all_green_ring_greeting_positions_array = []
+
+    def speak_msg(self, msg):
+        """
+        Function for speaking to a person.
+        """
+        soundhandle = SoundClient()
+        rospy.sleep(0.1)
+
+        voice = "voice_kal_diphone"
+        volume = 1.
+        rospy.loginfo(f"volume: {volume}, voice: {voice}, text:{msg}")
+        soundhandle.say(msg, voice, volume)
 
     def get_pose(self,e,dist, time_stamp, marker_shape, marker_color, detected_object, detected_color):
         # parking_spaces are below rings - can share markers
@@ -558,6 +571,10 @@ class The_Ring:
                     image_name = f"{dirs['dir_irregular']}{timestamp_img}.jpg"
                 
                 print(f"Found a {main_color.upper()} ring!")
+                
+                if main_color != "unknown" and len(ALL_MARKER_COORDS["ring"][main_color]) == 0:
+                    self.speak_msg(f"{main_color} ring")
+                    
                 # Create a masked array where zeros are masked
                 depth_ring = depth_image[y-h:y+h, x-w:x+w]
                 masked_a = np.ma.masked_equal(depth_ring, 0)

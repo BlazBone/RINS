@@ -15,7 +15,7 @@ from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import ColorRGBA
 from matplotlib import pyplot as plt
-
+from sound_play.libsoundplay import SoundClient
 # OUR IMPORTS
 
 import os
@@ -198,6 +198,18 @@ class The_Ring:
 
         self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
         self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
+    
+    def speak_msg(self, msg):
+        """
+        Function for speaking to a person.
+        """
+        soundhandle = SoundClient()
+        rospy.sleep(0.1)
+
+        voice = "voice_kal_diphone"
+        volume = 1.
+        rospy.loginfo(f"volume: {volume}, voice: {voice}, text:{msg}")
+        soundhandle.say(msg, voice, volume)
 
 
     def get_pose(self,x_center,dist, time_stamp, marker_shape, marker_color, detected_object, detected_color):
@@ -388,13 +400,19 @@ class The_Ring:
                                     "yellow": ColorRGBA(1,1,0,1),
                                 }
                             
-                                depth = depth_image[cy][cx]
+                                image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
+                                print(f"Found a {color.upper()} cylinder!")
+                                # print(len(ALL_MARKER_COORDS["cylinder"][color]))
+                                if len(ALL_MARKER_COORDS["cylinder"][color]) == 0:
+                                    # print("SPOKE")
+                                    self.speak_msg(f"{color} cylinder")
+
                                 # The contour is roughly rectangular
+                                depth = depth_image[cy][cx]
                                 self.get_pose(cx,depth, depth_time, Marker.CYLINDER, marker_colors[color], detected_object="cylinder", detected_color=color)
                                 cv2.drawContours(cv_image_raw, contour, -1, color_text, 2)
 
-                                image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
-                                print(f"Found a {color.upper()} cylinder!")
+
                                 cv2.imwrite(image_name, cv_image_raw)
                 else:
                     # safety precaution - if it detects something above the middle of the image, don't skip
