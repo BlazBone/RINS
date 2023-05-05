@@ -1,0 +1,38 @@
+header: 
+  seq: 0
+  stamp: 
+    secs: 1069
+    nsecs: 668000000
+  frame_id: "map"
+ns: ''
+id: 5
+type: 1
+action: 0
+pose: 
+  position: 
+    x: -1.4695751843052574
+    y: 1.0028304622991424
+    z: 0.2972023396009404
+  orientation: 
+    x: 0
+    y: 0
+    z: 1
+    w: 0
+scale: 
+  x: 0.1
+  y: 0.1
+  z: 0.1
+color: 
+  r: 0
+  g: 1
+  b: 0
+  a: 1
+lifetime: 
+  secs: 1000
+  nsecs:         0
+frame_locked: False
+points: []
+colors: []
+text: ''
+mesh_resource: ''
+mesh_use_embedded_materials: False
