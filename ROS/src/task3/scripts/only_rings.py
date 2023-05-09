@@ -14,15 +14,12 @@ from geometry_msgs.msg import PointStamped, Vector3, Pose, Quaternion, PoseWithC
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import ColorRGBA
-from matplotlib import pyplot as plt
 from tf.transformations import *
 from sound_play.libsoundplay import SoundClient
 
 # OUR IMPORTS
 import os
 import math
-import subprocess
-from exercise6_utils import read_path_log_orientation
 from tf2_geometry_msgs import PoseStamped
 from actionlib_msgs.msg import GoalID, GoalStatusArray
 import shutil
@@ -31,18 +28,24 @@ import time
 from std_msgs.msg import Bool
 from functools import reduce
 
+
+
+
 dirs = {
         "dir_last_run_info" : os.path.join(os.path.dirname(__file__), f"../last_run_info/"),
+
         "dir_irregular" : os.path.join(os.path.dirname(__file__), "../last_run_info/irregular/"),
         "dir_cylinders" : os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/"),
         "dir_rings" : os.path.join(os.path.dirname(__file__), "../last_run_info/rings/"),
-        "dir_park_spaces" : os.path.join(os.path.dirname(__file__), "../last_run_info/park_spaces_images/"),
+        "dir_faces" : os.path.join(os.path.dirname(__file__), "../last_run_info/faces/"),
+
         "cylinders": {
             "red": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/red/"),
             "blue": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/blue/"),
             "green": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/green/"),
             "yellow": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/yellow/"),
             },
+
         "rings": {
             "red": os.path.join(os.path.dirname(__file__), "../last_run_info/rings/red/"),
             "blue": os.path.join(os.path.dirname(__file__), "../last_run_info/rings/blue/"),
@@ -75,6 +78,8 @@ BEST_MARKERS= {
         },
     }
 
+MARKERS_NEEDED_FOR_PARKING = 6
+
 def get_marker_array_to_publish():
     marker_array = MarkerArray()
     for shape in BEST_MARKERS:
@@ -98,7 +103,7 @@ class The_Ring:
         self.marker_num = 1
 
         # Publisher for the visualization markers
-        self.markers_pub = rospy.Publisher('markers', MarkerArray, queue_size=1000)
+        self.markers_pub = rospy.Publisher('markers_rings', MarkerArray, queue_size=1000)
 
         # Object we use for transforming between coordinate frames
         self.tf_buf = tf2_ros.Buffer()
@@ -126,20 +131,17 @@ class The_Ring:
         rospy.loginfo(f"volume: {volume}, voice: {voice}, text:{msg}")
         soundhandle.say(msg, voice, volume)
 
-    def get_pose(self,e,dist, time_stamp, marker_shape, marker_color, detected_object, detected_color):
+    def get_pose(self,e,dist, time_stamp, marker_color, detected_object, detected_color):
         # parking_spaces are below rings - can share markers
         if detected_object == "parking_space":
             detected_object = "ring"
-        if detected_color.lower() not in ("red", "green", "blue", "black", "yellow"):
+        if detected_color.lower() not in ("red", "green", "blue", "black"):
             # skip 'unknown' color
             return
 
-        # Calculate the position of the detected ellipse
-        # k_f = 525 # kinect focal length in pixels
         k_f = 554 # kinect focal length in pixels
 
         elipse_x = self.dims[1] / 2 - e[0][0]
-        elipse_y = self.dims[0] / 2 - e[0][1]
 
         angle_to_target = np.arctan2(elipse_x,k_f)
         
@@ -206,18 +208,12 @@ class The_Ring:
         marker.header.stamp = point_world.header.stamp
         marker.header.frame_id = point_world.header.frame_id
         marker.pose = pose
-        # mybe we can place different markers for different objects (param in get pose or something)
-        # so we can more 3easily destinguish them
-        marker.type = marker_shape
+        marker.type = Marker.SPHERE
         marker.action = Marker.ADD
         marker.frame_locked = False
-        # i want to se markers all the time not only when we detect new ones
         marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
         marker.id = self.marker_num
         marker.scale = Vector3(0.2, 0.2, 0.2)
-                # mybe we can place different markers for different objects (param in get pose or something)
-        # so we can more 3easily destinguish them
-        # same with different colors
         marker.color = marker_color
 
 
@@ -231,11 +227,8 @@ class The_Ring:
         delete_arr.markers.append(delete_marker)
         self.markers_pub.publish(delete_arr)
 
-        # self.marker_array = get_marker_array_to_publish()
-        #
         markers_to_publish = get_marker_array_to_publish()
         self.markers_pub.publish(markers_to_publish)
-        # print(f"PUBLISHED MARKER ARRAY OF LEN {len(markers_to_publish.markers)}!")
 
     def get_greeting_pose(self, e, dist, stamp, pose_of_detection):
         # Calculate the position of the detected face
@@ -298,29 +291,17 @@ class The_Ring:
         marker.header.stamp = rospy.Time().now()
         marker.header.frame_id = "map"
         marker.pose = pose.pose
-        # mybe we can place different markers for different objects (param in get pose or something)
-        # so we can more 3easily destinguish them
         marker.type = Marker.SPHERE
         marker.action = Marker.ADD
         marker.frame_locked = False
-        # i want to se markers all the time not only when we detect new ones
         marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
         marker.id = self.marker_num
         marker.scale = Vector3(0.2, 0.2, 0.2)
-                # mybe we can place different markers for different objects (param in get pose or something)
-        # so we can more 3easily destinguish them
-        # same with different colors
         marker.color = ColorRGBA(1, 1, 1, 1)
 
+        # hardcoded because this is for parking space only
         BEST_MARKERS["ring"]["white"] = marker
         marker_array_to_publish = get_marker_array_to_publish()
-
-        # delete_arr = MarkerArray()
-        # delete_marker = Marker()
-        # delete_marker.action = Marker.DELETEALL
-        # delete_marker.header.frame_id = 'map'
-        # delete_arr.markers.append(delete_marker)
-        # self.markers_pub.publish(delete_arr)
 
         self.markers_pub.publish(marker_array_to_publish)
 
@@ -332,14 +313,10 @@ class The_Ring:
             data = rospy.wait_for_message('/camera/rgb/image_raw', Image)
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
             p = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
+            depth_img = rospy.wait_for_message('/camera/depth/image_raw', Image)
         except CvBridgeError as e:
             print(e)
 
-        # closer might meen more in sync
-        try:
-            depth_img = rospy.wait_for_message('/camera/depth/image_raw', Image)
-        except Exception as e:
-            print(e)
 
         # Set the dimensions of the image
         self.dims = cv_image.shape
@@ -391,9 +368,6 @@ class The_Ring:
 
         # Extract the depth from the depth image
         for n,c in enumerate(candidates):
-        # for c in candidates:
-            # the centers of the ellipses
-            # ellipses have the same centers
             e1 = c[0]
             e2 = c[1]
             
@@ -412,8 +386,6 @@ class The_Ring:
             cv2.ellipse(cv_image, e1, (0, 255, 0), 2)
             cv2.ellipse(cv_image, e2, (0, 255, 0), 2)
 
-    # watafak ZAKAJ IMAMO PLUS 20?
-            ellipse_center = (int(x_e1) + 20, int(y_e1))
             
             # ROI - region of interest
             # small region around the centre to extract the color from
@@ -529,9 +501,7 @@ class The_Ring:
             # THIS SHOULD BE MOVED TO A BOOLEAN FUNCTION FOR CLARITY
             distance_to_background = abs(average_color_value - 118)
             distance_to_no_background = abs(average_color_value - 178)
-            # MYBE COMBINE THIS two distance_to_background -  distance_to_no_background > treshold? 
-            # cv2.imshow("cv_image", cv_image)
-            # cv2.waitKey(1)
+
             ## distance difference mybe should be grater that 1 or 0.5 or something... 0 seems to be wrong since the ring can be tilted or the depth image is not rly accurate not sure 
             if distance_difference > 0 and min(inside_x_to_y, outside_x_to_y) > 0.75 and max(average_color) < 180 and min(average_color) > 100 and distance_to_background > distance_to_no_background:
                 
@@ -551,7 +521,6 @@ class The_Ring:
                 flags = cv2.KMEANS_RANDOM_CENTERS
                 _,_,centers = cv2.kmeans(data,5,None,criteria,10,flags)
                
-                # TA SHIT PRAVILNO NRDI BARVE SAMO SO V RGB VALUES (HARD TO UNDERSTAND) THE JE FORA DA SE IZLOCIMO UNO SIVO IN UPORABIMO DRUGO SLIKO, KI NIMA NARISANIH ELIPS Z ZELENO.
                 colors = centers[0:4]
                 main_color = self.get_main_color(colors).lower()
                 # print main color
@@ -583,19 +552,12 @@ class The_Ring:
                 if main_color in ("black", "unknown") and bool(mean):
                     mean = 2.9
                     print("...")
-                    # print(depth_ring)
-                    # print("x", x)
-                    # print("y", y)
-                    # print("w", w)
-                    # print("h", h)
-                    # cv2.imshow("depth_ring", depth_ring)
-                    # cv2.waitKey(1)
-                
+                   
                 if main_color == "green" and bool(mean):
                     greeting_position_green_ring = self.get_greeting_pose(e1, mean, depth_time, p)
                     self.all_green_ring_greeting_positions_array.append(greeting_position_green_ring)
 
-                if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= 10 and self.needs_to_be_parked and bool(mean):
+                if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= MARKERS_NEEDED_FOR_PARKING and self.needs_to_be_parked and bool(mean):
                     print("STARTED SCANNING FOR PARKING")
                     self.needs_to_be_parked = False
                     
@@ -627,12 +589,6 @@ class The_Ring:
                     self.park_scanner_pub.publish(green_pose)
                     print("PUBLISHING GREEN_POSE")
                     print(green_pose)
-
-                    # park_message = BEST_MARKERS["ring"]["green"]
-                    # self.park_pub.publish(park_message)
-
-                    # print("READY TO BE PARKED, LISTEN TO /only_movement/park")
-
                 
 
                 cv2.line(cv_image, (x-w, 0), (x-w, cv_image.shape[0]), (0,0,255), 1)
@@ -641,13 +597,10 @@ class The_Ring:
                 cv2.line(cv_image, (0, y-h), (cv_image.shape[1], y-h), (255,0,0), 1)
                 cv2.line(cv_image, (0, y+h), (cv_image.shape[1], y+h), (255,0,0), 1)
                 
-                self.get_pose(e1, mean, depth_time, Marker.SPHERE, marker_colors[main_color], "ring", main_color)                
+                self.get_pose(e1, mean, depth_time, marker_colors[main_color], "ring", main_color)                
 
                 cv2.imwrite(image_name, cv_image) # Save the whole image
 
-            else:
-                pass
-                # image has no ring we skip it
 
 
 
@@ -689,6 +642,7 @@ class The_Ring:
 def main():
     ring_finder = The_Ring()
     rospy.loginfo("Starting the ring finder node")
+    # this creates all the last run info folders
     for dirname, path in dirs.items():
         if "dir" in dirname:
             if os.path.exists(path):
@@ -701,7 +655,6 @@ def main():
                 os.mkdir(dirs[dirname][color])
 
     
-    # rate = rospy.Rate(100)
     rospy.sleep(1)
             
     while not rospy.is_shutdown():

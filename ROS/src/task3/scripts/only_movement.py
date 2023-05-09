@@ -4,12 +4,8 @@
 
 # from operator import contains
 import rospy
-import numpy as np
 import tf2_geometry_msgs
 import tf2_ros
-from sensor_msgs.msg import Image
-from geometry_msgs.msg import PointStamped, Vector3, Pose
-from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import String, Bool
 
 # OUR IMPORTS
@@ -27,7 +23,6 @@ class Movement:
         # OUR ATTRIBUTES
 
         points_path = os.path.join(os.path.dirname(__file__), "./paths/task2_points.txt")
-        print(points_path)
         self.path = read_path_log_orientation(points_path)
         self.path_idx = 0
 
@@ -60,21 +55,6 @@ class Movement:
             self.arm_mover_pub.publish("retract")
 
 
-    # def park_callback(self, green_marker):
-    #     self.currently_parking = True
-    #
-    #     # stop current goal
-    #     self.cancel_goal()
-    #
-    #     # extend arm
-    #     self.arm_mover_pub.publish("extend")
-    #     print("Extended arm!")
-    #
-    #     parking_done = rospy.wait_for_message("/only_movement/park_done", Bool)
-    #     print("PARKING DONE!")
-    #     self.currently_parking = False
-
-        
     def publish_new_position(self, log:bool=True) -> None:
         """
         Publishes a new position to the robot.
@@ -96,7 +76,6 @@ class Movement:
         if log:
             self.simple_goal_pub.publish(msg)
             rospy.loginfo(f"Visiting POINT @ index {self.path_idx} in path.")
-            # rospy.loginfo(f"\n{msg.pose}")
 
     def status_reached(self) -> Tuple[bool, int]:
         """
@@ -117,11 +96,9 @@ class Movement:
 
 def main():
     movement = Movement()
-    rospy.sleep(1)
     rospy.loginfo("Starting the movement node")
+    rospy.sleep(4)
     
-    # rate = rospy.Rate(100)
-    rospy.sleep(5)
             
     movement.publish_new_position()                
     loop_time = 0

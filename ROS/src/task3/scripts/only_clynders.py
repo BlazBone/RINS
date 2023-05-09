@@ -1,12 +1,10 @@
 #!/usr/bin/python3
 
 # DISABLE SHADOWS IN RINS_WORLD BEFORE STARTING THE PROGRAM - CLEARS THE IMAGE SIGNIFICANTLY
-
-from operator import contains
-import sys
 import rospy
 import cv2
 import numpy as np
+## has to be for posestamped
 import tf2_geometry_msgs
 import tf2_ros
 from sensor_msgs.msg import Image
@@ -14,30 +12,14 @@ from geometry_msgs.msg import PointStamped, Vector3, Pose
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import ColorRGBA
-from matplotlib import pyplot as plt
 from sound_play.libsoundplay import SoundClient
 # OUR IMPORTS
 
 import os
-from exercise6_utils import read_path_log_orientation
-from tf2_geometry_msgs import PoseStamped
-from actionlib_msgs.msg import GoalID, GoalStatusArray
 import shutil
-from typing import List, Tuple
+from tf2_geometry_msgs import PoseStamped
+from actionlib_msgs.msg import GoalID
 import time
-from std_msgs.msg import Bool
-from functools import reduce
-
-dirs = {
-        "dir_cylinders" : os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/"),
-        "cylinders": {
-            "red": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/red/"),
-            "blue": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/blue/"),
-            "green": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/green/"),
-            "yellow": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/yellow/"),
-            },
-        
-        }
 
 # calculated markers for all possible objects
 ALL_MARKER_COORDS= {
@@ -46,15 +28,7 @@ ALL_MARKER_COORDS= {
         "blue": list(),
         "green": list(),
         "yellow": list(),
-        },
-    # if rings are above parking spaces, there's no need to include them in this dict
-    "ring": {
-        "red": list(),
-        "blue": list(),
-        "green": list(),
-        "black": list(),
-        "white": list(), # currently only used for parking spaces
-        },
+        }
     }
 
 # best calculated markers for all possible objects
@@ -64,16 +38,18 @@ BEST_MARKERS= {
         "blue": None,
         "green": None,
         "yellow": None,
-        },
-    # if rings are above parking spaces, there's no need to include them in this dict
-    "ring": {
-        "red": None,
-        "blue": None,
-        "green": None,
-        "black": None,
-        "white": None, # currently only used for parking spaces
-        },
+        }
     }
+
+dirs = {
+
+        "cylinders": {
+            "red": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/red/"),
+            "blue": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/blue/"),
+            "green": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/green/"),
+            "yellow": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/yellow/"),
+            },
+        }
 
 def get_marker_array_to_publish():
     marker_array = MarkerArray()
@@ -130,7 +106,6 @@ def apply_colour_mask(cv_image, hsv_image, show=False):
         
         if IMAGE_EXTRACTED_DATA: 
             contains_color = True
-            # color_mask = reduce(cv2.bitwise_or, [IMAGE_EXTRACTED_DATA[color][0] for color in IMAGE_EXTRACTED_DATA])
             # sort IMAGE_EXTRACTED_DATA decrasingly by percentages of colours in the image
             IMAGE_EXTRACTED_DATA = dict(sorted(IMAGE_EXTRACTED_DATA.items(), key=lambda x: x[1][1], reverse=True))
             # show the final color_mask
@@ -153,8 +128,6 @@ def is_mask_cylinder(cv_image, mask, percentage, output=False):
     else:
         # Create a bottom mask for the lower third of the image
         bottom_mask[int(height/3):, :] = 255
-    #
-    # bottom_mask[int(height/2):, :] = 255
 
     # Apply the bottom mask to the input mask using bitwise AND
     bottom_masked_mask = cv2.bitwise_and(mask, bottom_mask)
@@ -170,9 +143,9 @@ def is_mask_cylinder(cv_image, mask, percentage, output=False):
         return False
 
 
-class The_Ring:
+class The_Cylinder:
     def __init__(self):
-        rospy.init_node('clynder', anonymous=True)
+        rospy.init_node('cylinder', anonymous=True)
 
         # An object we use for converting images between ROS format and OpenCV format
         self.bridge = CvBridge()
@@ -185,7 +158,7 @@ class The_Ring:
         self.marker_num = 1
 
         # Publisher for the visualization markers
-        self.markers_pub = rospy.Publisher('markers2', MarkerArray, queue_size=1000)
+        self.markers_pub = rospy.Publisher('markers_cylinders', MarkerArray, queue_size=1000)
 
         # Object we use for transforming between coordinate frames
         self.tf_buf = tf2_ros.Buffer()
@@ -193,8 +166,8 @@ class The_Ring:
 
         # OUR ATTRIBUTES
 
-        self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
-        self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
+        # self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
+        # self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
     
     def speak_msg(self, msg):
         """
@@ -209,16 +182,14 @@ class The_Ring:
         soundhandle.say(msg, voice, volume)
 
 
-    def get_pose(self,x_center,dist, time_stamp, marker_shape, marker_color, detected_object, detected_color):
+    def get_pose(self,x_center,dist, time_stamp, marker_color, detected_object, detected_color):
         # parking_spaces are below rings - can share markers
         if detected_object == "parking_space":
-            detected_object = "ring"
-        if detected_color.lower() not in ("red", "green", "blue", "black", "yellow"):
+            raise ValueError("parking_space is not a valid object for this function")
+        if detected_color.lower() not in ("red", "green", "blue", "yellow"):
             # skip 'unknown' color
-            return
+            raise ValueError(f"{detected_color} is not a valid color for this function")
 
-        # Calculate the position of the detected ellipse
-        # k_f = 525 # kinect focal length in pixels
         k_f = 554 # kinect focal length in pixels
 
         elipse_x = self.dims[1] / 2 - x_center
@@ -288,22 +259,14 @@ class The_Ring:
         marker.header.stamp = point_world.header.stamp
         marker.header.frame_id = point_world.header.frame_id
         marker.pose = pose
-        # mybe we can place different markers for different objects (param in get pose or something)
-        # so we can more 3easily destinguish them
-        marker.type = marker_shape
+        marker.type = Marker.CYLINDER
         marker.action = Marker.ADD
         marker.frame_locked = False
-        # i want to se markers all the time not only when we detect new ones
         marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
         marker.id = self.marker_num
         marker.scale = Vector3(0.2, 0.2, 0.2)
-                # mybe we can place different markers for different objects (param in get pose or something)
-        # so we can more 3easily destinguish them
-        # same with different colors
         marker.color = marker_color
-
-
-        
+       
         BEST_MARKERS[detected_object][detected_color] = marker
         
         delete_arr = MarkerArray()
@@ -313,8 +276,6 @@ class The_Ring:
         delete_arr.markers.append(delete_marker)
         self.markers_pub.publish(delete_arr)
 
-        # self.marker_array = get_marker_array_to_publish()
-        #
         markers_to_publish = get_marker_array_to_publish()
         self.markers_pub.publish(markers_to_publish)
         # print(f"PUBLISHED MARKER ARRAY OF LEN {len(markers_to_publish.markers)}!")
@@ -324,38 +285,22 @@ class The_Ring:
         try:
             data = rospy.wait_for_message('/camera/rgb/image_raw', Image)
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-            time_stamp_image_capture = rospy.Time.now()
             hsv_image =  cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
-        except CvBridgeError as e:
-            print(e)
-
-        # closer might meen more in sync
-        try:
             depth_img = rospy.wait_for_message('/camera/depth/image_raw', Image)
             depth_image = self.bridge.imgmsg_to_cv2(depth_img, "16UC1")
             depth_time = depth_img.header.stamp
-        except Exception as e:
+        except CvBridgeError as e:
             print(e)
 
         # Set the dimensions of the image
         self.dims = cv_image.shape
 
-        # Tranform image to gayscale
-        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
-        ## make bottom two thirds  of image just be black
-        # gray[self.dims[0]//3:,:] = 0
-
-
         cv_image_raw = cv_image.copy()
-
 
         has_color, color_mask, image_data = apply_colour_mask(cv_image, hsv_image)
         if has_color:
-            # percentages = ", ".join([f"{color} ({image_data[color][1]}%)" for color in image_data])
-            # print(f"Image contains colors: {percentages}")
             for color in image_data:
                 percentage = image_data[color][1]
-                # print(f"Color {color.upper()} ({percentage} %)")
                 if is_mask_cylinder(cv_image, color_mask, percentage) and percentage > MINIMAL_ACCEPTED_COLOR_PERCENTAGE:
                     # find the contours of the binary color_mask
                     contours, _ = cv2.findContours(color_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -375,11 +320,7 @@ class The_Ring:
                                 angles.append(angle)
 
                             area = cv2.contourArea(contour)
-                            org = (200, 200)
-                            font = cv2.FONT_HERSHEY_SIMPLEX
-                            fontScale = 0.5
                             color_text = (0,255,0) if color != "green" else (255,255,255)
-                            # cv2.putText(cv_image_raw, f"area: {area}", org, font, fontScale, color_text, 1)
 
                             if all(angle > 80 and angle < 100 for angle in angles) and area > MINIMAL_ACCEPTED_AREA:
                                 M = cv2.moments(contour)
@@ -392,21 +333,18 @@ class The_Ring:
                                     "red": ColorRGBA(1,0,0,1),
                                     "green": ColorRGBA(0,1,0,1),
                                     "blue": ColorRGBA(0,0,1,1),
-                                    "black": ColorRGBA(0,0,0,1),
                                     "unknown": ColorRGBA(0,0,0,1),
                                     "yellow": ColorRGBA(1,1,0,1),
                                 }
                             
                                 image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
                                 print(f"Found a {color.upper()} cylinder!")
-                                # print(len(ALL_MARKER_COORDS["cylinder"][color]))
                                 if len(ALL_MARKER_COORDS["cylinder"][color]) == 0:
-                                    # print("SPOKE")
                                     self.speak_msg(f"{color} cylinder")
 
                                 # The contour is roughly rectangular
                                 depth = depth_image[cy][cx]
-                                self.get_pose(cx,depth, depth_time, Marker.CYLINDER, marker_colors[color], detected_object="cylinder", detected_color=color)
+                                self.get_pose(cx,depth, depth_time, marker_colors[color], detected_object="cylinder", detected_color=color)
                                 cv2.drawContours(cv_image_raw, contour, -1, color_text, 2)
 
 
@@ -423,18 +361,8 @@ class The_Ring:
 
 def main():
     rospy.loginfo("clyinder_finder node started")
-    # for dirname, path in dirs.items():
-    #     if "dir" in dirname:
-    #         if os.path.exists(path):
-    #             shutil.rmtree(path)
-    #         os.mkdir(path)
-    #     else:
-    #         for color in dirs[dirname]:
-    #             if os.path.exists(dirs[dirname][color]):
-    #                 shutil.rmtree(dirs[dirname][color])
-    #             os.mkdir(dirs[dirname][color])
 
-    ring_finder = The_Ring()
+    ring_finder = The_Cylinder()
     
     rate = rospy.Rate(10)
         
