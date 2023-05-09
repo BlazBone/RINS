@@ -81,7 +81,6 @@ class Parking:
         # OUR ATTRIBUTES
 
         self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
-        self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
 
         self.twist_pub = rospy.Publisher("/cmd_vel_mux/input/navi", Twist, queue_size=10)
 

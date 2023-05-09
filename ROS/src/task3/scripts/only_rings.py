@@ -2,8 +2,6 @@
 
 # DISABLE SHADOWS IN RINS_WORLD BEFORE STARTING THE PROGRAM - CLEARS THE IMAGE SIGNIFICANTLY
 
-from operator import contains
-import sys
 import rospy
 import cv2
 import numpy as np
@@ -26,10 +24,6 @@ import shutil
 from typing import List, Tuple
 import time
 from std_msgs.msg import Bool
-from functools import reduce
-
-
-
 
 dirs = {
         "dir_last_run_info" : os.path.join(os.path.dirname(__file__), f"../last_run_info/"),
@@ -109,10 +103,7 @@ class The_Ring:
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
 
-        self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
-        self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
 
-        self.park_pub = rospy.Publisher("/only_movement/park", Marker, queue_size=10)
         self.park_scanner_pub = rospy.Publisher("/only_movement/parking_search", PoseStamped, queue_size=10)
 
         self.needs_to_be_parked = True

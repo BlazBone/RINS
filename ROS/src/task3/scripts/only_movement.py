@@ -31,15 +31,30 @@ class Movement:
 
         self.arm_mover_pub = rospy.Publisher("/arm_command", String, queue_size=10)
         
-        self.currently_parking = False
-        self.park_pub = rospy.Publisher("/only_movement/parking_is_going_on", Bool, queue_size=10)
         self.park_sub = rospy.Subscriber("/only_movement/parking_is_going_on", Bool, self.park_callback)
+        self.currently_parking = False
 
-        self.is_parked = False
+        self.greeting_sub = rospy.Subscriber("/only_movement/greeting_is_going_on", Bool, self.greet_callback)
+        self.currently_greeting = False
+
+        
 
     def cancel_goal(self):
         cancel_msg = GoalID()
         self.cancel_goal_pub.publish(cancel_msg)
+
+    def greet_callback(self, data):
+        print("GREETING CALLBACK")
+        print(data)
+        
+        self.currently_greeting = data.data
+        
+        print(self.currently_greeting)
+
+        self.cancel_goal()
+        
+        self.path_idx = max(0, self.path_idx-1)
+
     
     def park_callback(self, data):
         print("PARKING CALLBACK")
@@ -48,6 +63,7 @@ class Movement:
         print(self.currently_parking)
         
         self.cancel_goal()
+        self.path_idx = max(0, self.path_idx-1)
         print("CANCELED GOAL, PARKING IS TAKING OVER")
         if data.data:
             self.arm_mover_pub.publish("extend")
@@ -73,8 +89,8 @@ class Movement:
         msg.pose.orientation.z = self.path[self.path_idx][3]
         msg.pose.orientation.w = self.path[self.path_idx][4]
         self.path_idx += 1
+        self.simple_goal_pub.publish(msg)
         if log:
-            self.simple_goal_pub.publish(msg)
             rospy.loginfo(f"Visiting POINT @ index {self.path_idx} in path.")
 
     def status_reached(self) -> Tuple[bool, int]:
@@ -109,10 +125,10 @@ def main():
         start_time = time.time()
         loop_count += 1
         reached, status = movement.status_reached()
-        if movement.currently_parking:
-            if loop_count % 100000000 == 0:
-                print("Currently parking, not publishing new positions.")
+        
+        if movement.currently_greeting or movement.currently_parking:
             continue
+        
         if reached:
             # no need to implement anything more sophisticated for exercise 6
             message = "REACHED GOAL" if status == 3 else "CANCEL STATUS"
