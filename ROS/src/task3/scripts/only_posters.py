@@ -78,20 +78,16 @@ class PosterRecognizer:
         # all faces features
         # {
         #   "face1": {
-        #       "ratio": _,
-        #       "area": _,
-        #       "all_features": [],
-        #       "avg_feature": _,
+        #       "reward": _,
+        #      "prision_color": _,
         #       "all_positions": [],
         #       "avg_position": _,
         #       "all_greet_positions": [],
         #       "avg_greet_position": tuple(x,y,z),
         #   },
         #   "face2": {
-        #       "ratio": _,
-        #       "area": _,
-        #       "all_features": [],
-        #       "avg_feature": _,
+        #       "reward": _,
+        #      "prision_color": _,
         #       "all_positions": [],
         #       "avg_position": _,
         #       "all_greet_positions": [],
@@ -317,13 +313,13 @@ class PosterRecognizer:
 
         rospy.sleep(1)
 
-    def greet_person(self, greeting_pose):
+    def greet_person(self, greeting_pose, closest_poster):
         # PARKING NODE TAKES CONTROL OVER MOVEMENT
         greeting_no_movement = Bool()
         greeting_no_movement.data = True
         self.greet_pub.publish(greeting_no_movement)
         print("GREETING POSTER TAKING OVER")
-        rospy.sleep(3)
+        rospy.sleep(1)
         
         self.go_to_greet(greeting_pose)
             
@@ -352,22 +348,20 @@ class PosterRecognizer:
         gray_image = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2GRAY)
         data = pytesseract.image_to_data(gray_image, output_type=pytesseract.Output.DICT)
 
-        center_of_poster = None
+        centers_of_poster = []
         # Iterate over the detected regions choose wanted and save the middle of the wanted word location
         for i in range(len(data["text"])):
             text = data["text"][i]
             x, y, w, h = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
-            
-            # Filter text based on specific criteria
-            if "WANTED" in text:
-                # we spotted a poster
-                print("Coordinates: x={}, y={}, width={}, height={}".format(x, y, w, h))
-                center_of_poster = (y+(h-y)/2, x+(w-x)/2)
-
-
+            center_of_poster = (y+(h-y)/2, x+(w-x)/2)
+            centers_of_poster.append(center_of_poster)
         
-        if center_of_poster is None:
-            print("poster CENTER IS NONE! CHECK!")
+        # get the center of the poster
+        center_of_poster = None
+        if centers_of_poster:
+            center_of_poster = np.mean(centers_of_poster, axis=0)
+        else:
+            print("NO POSTER CENTER FOUND")
             return
 
         point = (self.dims[0], self.dims[1]//2)   
@@ -385,14 +379,65 @@ class PosterRecognizer:
 
 
         rospy.sleep(2)
-        face_distance = float(np.nanmean(depth_image[y:y+h,x:x+w]))
+        face_distance = float(np.nanmean(depth_image[int(center_of_poster[0]-10):int(center_of_poster[0]+10),int(center_of_poster[1]-10):int(center_of_poster[1]+10)]))
+        print(f"face distance: {face_distance}")
         # send twist msg to move forward
         twist_forward = Twist()
         twist_forward.angular.z = 0.0
         twist_forward.linear.x = face_distance - 0.4
         print("moving forward")
 
+        rospy.sleep(2)
+
         self.twist_pub.publish(twist_forward)
+
+        try:
+            rgb_image_message = rospy.wait_for_message("/camera/rgb/image_raw", Image)
+            rgb_image = self.bridge.imgmsg_to_cv2(rgb_image_message, "bgr8")
+        except Exception as e:
+            print(e)
+            return 0
+
+        # again detect letters
+        gray_image = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2GRAY)
+        text = pytesseract.image_to_string(gray_image)
+        
+        number_text = text.replace("o", "0")
+        # GET THE REWARD
+        lines_info = [line.replace(" ", "") for line in number_text.split("\n")]
+        # remove empy lines
+        lines_info = list(filter(lambda x: x != "", lines_info))
+
+        numbers = [0]
+        for line in lines_info:
+            #filter out only the numbers
+            str_n = "".join(filter(str.isdigit, line))
+
+            if str_n != "":
+                numbers.append(int(str_n))
+        reward = max(numbers)
+        # set reward
+        self.posters[closest_poster]["reward"] = reward
+
+
+        text = text.lower()
+        print(f"text: {text}")
+        # do the same as the gree for colors red, black, blue, green
+        if "green" in text:
+            self.posters[closest_poster]["prison"] = "green"
+        elif "red" in text:
+            self.posters[closest_poster]["prison"] = "red"
+        elif "black" in text:
+            self.posters[closest_poster]["prison"] = "black"
+        elif "blue" in text:
+            self.posters[closest_poster]["prison"] = "blue"
+        else:
+            self.posters[closest_poster]["prison"] = "none"
+
+        # save the image
+        cv2.imwrite(os.path.join(dirs["dir_posters"], f"{closest_poster}_closeup.jpg"), rgb_image)
+        print(f"found robber with reward: {reward} and prison color: {self.posters[closest_poster]['prison']}")
+
         rospy.sleep(2)
 
         greeting_no_movement = Bool()
@@ -439,8 +484,7 @@ class PosterRecognizer:
             if "WANTED" in text:
                 # we spotted a poster
                 # save it to the posters folder
-                # save the image
-                cv2.imwrite(os.path.join(dirs["dir_posters"], f"{time.time()}.jpg"), rgb_image)        
+                # save the image     
                 # Display the text and its coordinates
                 print("Text:", text)
                 print("Coordinates: x={}, y={}, width={}, height={}".format(x, y, w, h))
@@ -459,15 +503,14 @@ class PosterRecognizer:
                     if not closest_poster:
                         closest_poster = f"poster_{self.poster_counter}"
                         poster_data = {
-                            "area": w*h,
-                            "ratio": w/h,
+                            "reward": 0,
+                            "prison_color": "",
                             "all_positions": [(pose.position.x, pose.position.y, pose.position.z)],
                             "avg_position": (pose.position.x, pose.position.y, pose.position.z),
-                            "all_features": [],
-                            "avg_feature": None,
                             "all_greet_positions": [greeting_position],
                             "avg_greet_position": greeting_position,
                         }
+                        cv2.imwrite(os.path.join(dirs["dir_posters"], f"{closest_poster}_first.jpg"), rgb_image)   
                         self.posters[closest_poster] = poster_data
                         print(f"ADDED POSTER : poster_{self.poster_counter}")
                         print(f"length: {len(self.posters)}")
@@ -483,7 +526,7 @@ class PosterRecognizer:
                         if len(self.posters[closest_poster]["all_greet_positions"]) == GREET_POSITION_THRESHOLD:
                             # GO GREET PERSON
                             # center of the face
-                            self.greet_person(self.posters[closest_poster]["avg_greet_position"])
+                            self.greet_person(self.posters[closest_poster]["avg_greet_position"], closest_poster)
 
                 self.update_markers()
 

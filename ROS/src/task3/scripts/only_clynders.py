@@ -33,26 +33,6 @@ MARKER_COLORS = {
     "white": ColorRGBA(1,1,1,1),
 }
 
-# calculated markers for all possible objects
-ALL_MARKER_COORDS= {
-    "cylinder": {
-        "red": list(),
-        "blue": list(),
-        "green": list(),
-        "yellow": list(),
-        }
-    }
-
-# best calculated markers for all possible objects
-BEST_MARKERS= {
-    "cylinder": {
-        "red": None,
-        "blue": None,
-        "green": None,
-        "yellow": None,
-        }
-    }
-
 dirs = {
 
         "cylinders": {
@@ -452,9 +432,7 @@ class The_Cylinder:
                             
                                 image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
                                 print(f"Found a {color.upper()} cylinder!")
-                                if len(ALL_MARKER_COORDS["cylinder"][color]) == 0:
-                                    self.speak_msg(f"{color} cylinder")
-
+                                                            
                                 # The contour is roughly rectangular
                                 depth = depth_image[cy][cx]
                                 cylinder_pose = self.get_pose(cx,depth, depth_time, marker_colors[color], detected_object="cylinder", detected_color=color)
@@ -467,6 +445,7 @@ class The_Cylinder:
 
                                 # we dont have any face close, (either empty or too far) NEW CYLINDER
                                 if not self.cylinders.get(color):
+                                    self.speak_msg(f"{color} cylinder")
                                     cylinder_data = {
                                         "all_locations": [(greet_pose.position.x, greet_pose.position.y, greet_pose.position.z)],
                                         "location": None,

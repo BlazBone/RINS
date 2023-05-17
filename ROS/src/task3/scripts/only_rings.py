@@ -542,9 +542,10 @@ class The_Ring:
                 masked_a = np.ma.masked_equal(depth_ring, 0)
                 # Compute the mean of the masked array
                 mean = masked_a.mean()
-                if main_color in ("black", "unknown") and bool(mean):
-                    mean = 2.9
-                    print("...")
+                # ONLY IF DIST IS NONE (WAS IN TASK 2 PATH)
+                # if main_color in ("black", "unknown") and bool(mean):
+                #     mean = 2.9
+                #     print("...")
                    
                 if main_color == "green" and bool(mean):
                     greeting_position_green_ring = self.get_greeting_pose(e1, mean, depth_time, p)
