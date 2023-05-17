@@ -6,6 +6,8 @@
   <node pkg="task3" type="only_clynders.py" name="only_clynders"  output="screen"/>
   <node pkg="task3" type="only_faces.py" name="only_faces"  output="screen"/>
   <node pkg="task3" type="only_parking.py" name="only_parking"  output="screen"/>
+  <node pkg="task3" type="only_posters.py" name="only_posters"  output="screen"/>
+
   
   <node pkg="task3" type="move_arm.py" name="move_arm"  output="screen"/>
 

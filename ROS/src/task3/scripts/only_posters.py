@@ -16,12 +16,12 @@ from PIL import Image as _i
 from tf.transformations import *
 from sound_play.libsoundplay import SoundClient
 
-from facenet_pytorch import InceptionResnetV1
-import torch
-from torchvision import transforms
+
+
 
 
 # OUR IMPORTS
+import pytesseract
 import os
 import math
 from tf2_geometry_msgs import PoseStamped
@@ -31,10 +31,9 @@ from typing import List, Tuple
 import time
 from std_msgs.msg import Bool
 
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 dirs = {
-        "dir_faces" : os.path.join(os.path.dirname(__file__), "../last_run_info/faces/"),
+        "dir_posters" : os.path.join(os.path.dirname(__file__), "../last_run_info/posters/"),
         }
 
 
@@ -44,36 +43,18 @@ NN_FACE_SIMILARITY_TOLERANCE = 0.75
 NUMBER_OF_FACES_ON_THE_MAP = 3
 
 
-class FaceRecogniser:
+class PosterRecognizer:
     def __init__(self):
         rospy.init_node('face_node', anonymous=True)
         # An object we use for converting images between ROS format and OpenCV format
         self.bridge = CvBridge()
         
-        # The function for performin HOG face detection
-        protoPath = os.path.join(os.path.dirname(__file__), "./face_detector/deploy.prototxt.txt")
-        modelPath = os.path.join(os.path.dirname(__file__), "./face_detector/res10_300x300_ssd_iter_140000.caffemodel")
-
-        self.face_net = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
-
-        self.model = InceptionResnetV1(pretrained='vggface2')
-        self.model.to(DEVICE)
-        self.model.eval()
-        for param in self.model.parameters():
-            param.requires_grad = False
-        self.transform = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
-
         # A help variable for holding the dimensions of the image
         self.dims = (0, 0, 0)
 
 
         # Publiser for the visualization markers
-        self.markers_pub = rospy.Publisher('markers_faces', MarkerArray, queue_size=1000)
+        self.markers_pub = rospy.Publisher('markers_posters', MarkerArray, queue_size=1000)
 
         self.greet_pub = rospy.Publisher("/only_movement/greeting_is_going_on", Bool, queue_size=10)
         
@@ -86,14 +67,14 @@ class FaceRecogniser:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)        
 
         # array containing face positions
-        self.face_positions_and_images = []
-        self.faces_dictionary = {}
+        self.poster_positions_and_images = []
+        self.poster_dictionary = {}
 
         # This number is made up. The greatest measured distance is 4. The distance is probably in meters. 
         self.FACE_DISTANCE_TOLERANCE = 0.5
 
-        self.faces = {}
-        self.face_counter = 0
+        self.posters = {}
+        self.poster_counter = 0
         # all faces features
         # {
         #   "face1": {
@@ -117,10 +98,7 @@ class FaceRecogniser:
         #       "avg_greet_position": tuple(x,y,z),
         #   },
         # }
-
-        # array of robot positions when faces are detected
-        self.bot_positions = []
-    
+        
     def get_greeting_pose(self, coords : Tuple[int,int,int,int], dist : float, stamp, pose_of_detection: PoseWithCovarianceStamped) -> Pose:
         """
         Calculates the greeting position for the bot to travel to.
@@ -196,7 +174,7 @@ class FaceRecogniser:
         #publish new markers
         marker_array = MarkerArray()
         count = 0
-        for face_name, face_data in self.faces.items():
+        for face_name, face_data in self.posters.items():
             marker = Marker()
             marker.header.stamp = rospy.Time.now()
             marker.header.frame_id = "map"
@@ -215,13 +193,12 @@ class FaceRecogniser:
             marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
             marker.id = count
             marker.scale = Vector3(0.2, 0.2, 0.2)
-            # get me a orange color with rgba
-            marker.color = ColorRGBA(1.0, 0.5, 0.0, 1.0)
+            # get me a bright pink color
+            marker.color = ColorRGBA(1, 0, 1, 1.0)
 
             marker_array.markers.append(marker)
             count += 1
 
-            ## GREETING POSITION MARKER
             marker = Marker()
             marker.header.stamp = rospy.Time.now()
             marker.header.frame_id = "map"
@@ -230,6 +207,7 @@ class FaceRecogniser:
             marker.pose.position.y = face_data["avg_greet_position"][1]
             marker.pose.position.z = 0.0
             marker.pose.orientation.w = 1.0
+        
             marker.pose.orientation.z = 0
             marker.pose.orientation.x = 0
             marker.pose.orientation.y = 0
@@ -240,11 +218,10 @@ class FaceRecogniser:
             marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
             marker.id = count
             marker.scale = Vector3(0.1, 0.1, 0.1)
-            # get me a orange color with rgba
             marker.color = ColorRGBA(1, 1, 1, 1.0)
+            count += 1
 
             marker_array.markers.append(marker)
-            count += 1
 
 
         
@@ -267,7 +244,7 @@ class FaceRecogniser:
     def get_closest_face(self, pose):
         closest_face_file_name = None
         closest_distance = float("inf")
-        for file_name, face_data in self.faces.items():
+        for file_name, face_data in self.posters.items():
             avg_position = face_data["avg_position"]
             dist = np.sqrt((pose.position.x - avg_position[0])**2 + (pose.position.y - avg_position[1])**2)
             if dist < closest_distance:
@@ -345,7 +322,7 @@ class FaceRecogniser:
         greeting_no_movement = Bool()
         greeting_no_movement.data = True
         self.greet_pub.publish(greeting_no_movement)
-        print("GREETING TAKING OVER")
+        print("GREETING POSTER TAKING OVER")
         rospy.sleep(3)
         
         self.go_to_greet(greeting_pose)
@@ -371,32 +348,32 @@ class FaceRecogniser:
         h = self.dims[0]
         w = self.dims[1]
 
-        # Detect the faces in the image
-        blob = cv2.dnn.blobFromImage(cv2.resize(rgb_image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
-        self.face_net.setInput(blob)
+        # again detect letters
+        gray_image = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2GRAY)
+        data = pytesseract.image_to_data(gray_image, output_type=pytesseract.Output.DICT)
 
-        # no false positives yet, will keep as it is
-        face_detections = self.face_net.forward()
+        center_of_poster = None
+        # Iterate over the detected regions choose wanted and save the middle of the wanted word location
+        for i in range(len(data["text"])):
+            text = data["text"][i]
+            x, y, w, h = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
+            
+            # Filter text based on specific criteria
+            if "WANTED" in text:
+                # we spotted a poster
+                print("Coordinates: x={}, y={}, width={}, height={}".format(x, y, w, h))
+                center_of_poster = (y+(h-y)/2, x+(w-x)/2)
 
-        face_center = None
-        for i in range(0, face_detections.shape[2]):
-            confidence = face_detections[0, 0, i, 2]
-            if confidence>0.50:
-                rospy.loginfo("Saw new face.")
-                box = face_detections[0,0,i,3:7] * np.array([w,h,w,h])
-                box = box.astype('int')
-                x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
-                face_center = (y1+(y2-y1)/2, x1+(x2-x1)/2)
-                break
+
         
-        if face_center is None:
-            print("FACE CENTER IS NONE! CHECK!")
+        if center_of_poster is None:
+            print("poster CENTER IS NONE! CHECK!")
             return
 
         point = (self.dims[0], self.dims[1]//2)   
-        print(f"face center: {face_center}")
+        print(f"face center: {center_of_poster}")
         print(f"point: {point}")
-        angle_to_target = np.arctan2(face_center[0]-point[0], face_center[1]-point[1])
+        angle_to_target = np.arctan2(center_of_poster[0]-point[0], center_of_poster[1]-point[1])
         angle_to_target = -(angle_to_target + np.pi/2)
         print(f"angle to target: {angle_to_target}")
         # send twist msg to center the face 
@@ -408,7 +385,7 @@ class FaceRecogniser:
 
 
         rospy.sleep(2)
-        face_distance = float(np.nanmean(depth_image[y1:y2,x1:x2]))
+        face_distance = float(np.nanmean(depth_image[y:y+h,x:x+w]))
         # send twist msg to move forward
         twist_forward = Twist()
         twist_forward.angular.z = 0.0
@@ -417,20 +394,12 @@ class FaceRecogniser:
 
         self.twist_pub.publish(twist_forward)
         rospy.sleep(2)
-        print("moving forward")
 
         greeting_no_movement = Bool()
         greeting_no_movement.data = False
         self.greet_pub.publish(greeting_no_movement)
 
-
-
-
-
-
-
-    def find_faces(self):
-
+    def find_posters(self):
         # Get the next rgb and depth images that are posted from the camera
         try:
             rgb_image_message = rospy.wait_for_message("/camera/rgb/image_raw", Image)
@@ -453,63 +422,45 @@ class FaceRecogniser:
         h = self.dims[0]
         w = self.dims[1]
 
-        # Detect the faces in the image
-        blob = cv2.dnn.blobFromImage(cv2.resize(rgb_image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
-        self.face_net.setInput(blob)
 
-        # no false positives yet, will keep as it is
-        face_detections = self.face_net.forward()
+                # Preprocess the image (if necessary)
+        gray_image = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2GRAY)
 
+        # Perform OCR using Tesseract
+        # Pass any additional configurations as needed
+        data = pytesseract.image_to_data(gray_image, output_type=pytesseract.Output.DICT)
 
-        for i in range(0, face_detections.shape[2]):
-            confidence = face_detections[0, 0, i, 2]
-            if confidence>0.50:
-                rospy.loginfo("Saw new face.")
-                box = face_detections[0,0,i,3:7] * np.array([w,h,w,h])
-                box = box.astype('int')
-                x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
-                
-                ratio = abs(y2-y1)/abs(x2-x1)
-                print(f"Ratio is {ratio}")
-                if  ratio > 1.5:
-                    print(f"Skipping face. Not a nice image.")
-                    return
+        # Iterate over the detected regions
+        for i in range(len(data["text"])):
+            text = data["text"][i]
+            x, y, w, h = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
+            
+            # Filter text based on specific criteria
+            if "WANTED" in text:
+                # we spotted a poster
+                # save it to the posters folder
+                # save the image
+                cv2.imwrite(os.path.join(dirs["dir_posters"], f"{time.time()}.jpg"), rgb_image)        
+                # Display the text and its coordinates
+                print("Text:", text)
+                print("Coordinates: x={}, y={}, width={}, height={}".format(x, y, w, h))
+                print("--------------------")
+                poster_distance = float(np.nanmean(depth_image[y:y+h,x:x+w]))
 
+                deph_time = depth_image_message.header.stamp
 
-                # Extract region containing face
-                face_region = rgb_image[y1:y2, x1:x2]
-                relative_path_to_face_region = os.path.join(dirs["dir_faces"], f"temp_face_region.jpg")
-                image_name = os.path.join(dirs["dir_faces"], f"{time.time()}.jpg")
-                try:
-                    cv2.imwrite(relative_path_to_face_region, face_region) # Save the face image
-                    
-                    cv2.rectangle(rgb_image, (x1,y1), (x2,y2), (0,255,0), 2)
-
-                    cv2.imwrite(image_name, rgb_image) # Save the face image
-                except cv2.error:
-                    # TODO: Assertion error, emtpy image
-                    print(f"face_region is None. Not saving image to {relative_path_to_face_region}.")
-                    continue
-
-                # Find the distance to the detected face
-                face_distance = float(np.nanmean(depth_image[y1:y2,x1:x2]))
-
-                # Get the time that the depth image was recieved
-                depth_time = depth_image_message.header.stamp
-
-                # Find the location of the detected face
-                pose = self.get_pose((x1,x2,y1,y2), face_distance, depth_time)
+                pose = self.get_pose((x,x+w,y,y+h), poster_distance, deph_time)
 
                 if pose is not None:
-                    closest_face = self.get_closest_face(pose)
-                    greet_pose = self.get_greeting_pose(coords=(x1,x2,y1,y2), dist=face_distance, stamp=depth_time, pose_of_detection=p)
+                    closest_poster = self.get_closest_face(pose)
+                    greet_pose = self.get_greeting_pose(coords=(x,x+w,y,y+h), dist=poster_distance, stamp=deph_time, pose_of_detection=p)
                     greeting_position = (greet_pose.position.x, greet_pose.position.y, greet_pose.position.z, greet_pose.orientation.z, greet_pose.orientation.w)
                     # we dont have any face close, (either empty or too far) NEW FACE
-                    if not closest_face:
-                        closest_face = f"face_{self.face_counter}"
-                        face_data = {
-                            "area": (x2-x1)*(y2-y1),
-                            "ratio": ratio,
+                    if not closest_poster:
+                        closest_poster = f"poster_{self.poster_counter}"
+                        poster_data = {
+                            "area": w*h,
+                            "ratio": w/h,
                             "all_positions": [(pose.position.x, pose.position.y, pose.position.z)],
                             "avg_position": (pose.position.x, pose.position.y, pose.position.z),
                             "all_features": [],
@@ -517,36 +468,34 @@ class FaceRecogniser:
                             "all_greet_positions": [greeting_position],
                             "avg_greet_position": greeting_position,
                         }
-                        self.faces[closest_face] = face_data
-                        print(f"ADDED FACE : face_{self.face_counter}")
-                        print(f"length: {len(self.faces)}")
-                        print(f"faces: {self.faces}")
-                        self.face_counter += 1
+                        self.posters[closest_poster] = poster_data
+                        print(f"ADDED POSTER : poster_{self.poster_counter}")
+                        print(f"length: {len(self.posters)}")
+                        print(f"posters: {self.posters}")
+                        self.poster_counter += 1
                     else:
                         # we have a face close, add the new position
-                        self.faces[closest_face]["all_positions"].append((pose.position.x, pose.position.y, pose.position.z))
-                        self.faces[closest_face]["avg_position"] = np.mean(self.faces[closest_face]["all_positions"], axis=0)
-                        self.faces[closest_face]["all_greet_positions"].append(greeting_position)
-                        self.faces[closest_face]["avg_greet_position"] = np.mean(self.faces[closest_face]["all_greet_positions"], axis=0)
-
-                        if len(self.faces[closest_face]["all_greet_positions"]) == GREET_POSITION_THRESHOLD:
+                        self.posters[closest_poster]["all_positions"].append((pose.position.x, pose.position.y, pose.position.z))
+                        self.posters[closest_poster]["avg_position"] = np.mean(self.posters[closest_poster]["all_positions"], axis=0)
+                        self.posters[closest_poster]["all_greet_positions"].append(greeting_position)
+                        self.posters[closest_poster]["avg_greet_position"] = np.mean(self.posters[closest_poster]["all_greet_positions"], axis=0)
+                        
+                        if len(self.posters[closest_poster]["all_greet_positions"]) == GREET_POSITION_THRESHOLD:
                             # GO GREET PERSON
                             # center of the face
-                            self.greet_person(self.faces[closest_face]["avg_greet_position"])
-                
+                            self.greet_person(self.posters[closest_poster]["avg_greet_position"])
+
                 self.update_markers()
 
-
 def main():
-    face_finder = FaceRecogniser()
-    rospy.loginfo("Starting the face finder node")
+    poster_recognizer = PosterRecognizer()
+    rospy.loginfo("Starting the POSTER finder node")
     # this creates all the last run info folders
 
-    
     rospy.sleep(2)
             
     while not rospy.is_shutdown():
-        face_finder.find_faces()
+        poster_recognizer.find_posters()
     
     cv2.destroyAllWindows()
 

@@ -32,7 +32,8 @@ dirs = {
         "dir_cylinders" : os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/"),
         "dir_rings" : os.path.join(os.path.dirname(__file__), "../last_run_info/rings/"),
         "dir_faces" : os.path.join(os.path.dirname(__file__), "../last_run_info/faces/"),
-
+        "dir_posters" : os.path.join(os.path.dirname(__file__), "../last_run_info/posters/"),
+        
         "cylinders": {
             "red": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/red/"),
             "blue": os.path.join(os.path.dirname(__file__), "../last_run_info/cylinders/blue/"),
@@ -46,6 +47,7 @@ dirs = {
             "green": os.path.join(os.path.dirname(__file__), "../last_run_info/rings/green/"),
             "black": os.path.join(os.path.dirname(__file__), "../last_run_info/rings/black/"),
             },
+            
         }
 
 # calculated markers for all possible objects
