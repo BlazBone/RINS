@@ -38,6 +38,7 @@ dirs = {
         }
 
 
+GREET_POSITION_THRESHOLD = 3
 MARKERS_NEEDED_FOR_GREETING = 6
 NN_FACE_SIMILARITY_TOLERANCE = 0.75
 NUMBER_OF_FACES_ON_THE_MAP = 3
@@ -76,6 +77,7 @@ class FaceRecogniser:
 
         self.greet_pub = rospy.Publisher("/only_movement/greeting_is_going_on", Bool, queue_size=10)
         
+        self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
 
         self.twist_pub = rospy.Publisher("/cmd_vel_mux/input/navi", Twist, queue_size=10)
 
@@ -101,6 +103,8 @@ class FaceRecogniser:
         #       "avg_feature": _,
         #       "all_positions": [],
         #       "avg_position": _,
+        #       "all_greet_positions": [],
+        #       "avg_greet_position": tuple(x,y,z),
         #   },
         #   "face2": {
         #       "ratio": _,
@@ -109,12 +113,76 @@ class FaceRecogniser:
         #       "avg_feature": _,
         #       "all_positions": [],
         #       "avg_position": _,
+        #       "all_greet_positions": [],
+        #       "avg_greet_position": tuple(x,y,z),
         #   },
         # }
 
         # array of robot positions when faces are detected
         self.bot_positions = []
     
+    def get_greeting_pose(self, coords : Tuple[int,int,int,int], dist : float, stamp, pose_of_detection: PoseWithCovarianceStamped) -> Pose:
+        """
+        Calculates the greeting position for the bot to travel to.
+        """
+
+        # Calculate the position of the detected face
+        k_f = 554 # kinect focal length in pixels
+
+        x1, x2, _, _ = coords
+
+        face_x = self.dims[1] / 2 - (x1+x2)/2.
+
+        angle_to_target = np.arctan2(face_x,k_f)
+
+        # Get the angles in the base_link relative coordinate system
+        # step away from image 0.4 units (probably meters)
+        dist -= 0.4
+        x, y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
+
+
+        # Define a stamped message for transformation - in the "camera rgb frame"
+        point_s = PointStamped()
+        point_s.point.x = -y
+        point_s.point.y = 0
+        point_s.point.z = x
+        point_s.header.frame_id = "camera_rgb_optical_frame"
+        point_s.header.stamp = stamp
+
+        # Define a quaternion for the rotation
+        # Roatation is such that the image of the face is in the center of the robot view.
+        q = Quaternion()
+        q.x = 0
+        q.y = 0
+        q.z = math.sin(angle_to_target)
+        q.w = math.cos(angle_to_target)
+
+    
+        q2 = pose_of_detection.pose.pose.orientation
+
+        goal_quaternion = quaternion_multiply((q2.x, q2.y, q2.z, q2.w), (q.x, q.y, q.z, q.w))
+
+        # Get the point in the "map" coordinate system
+        try:
+            point_world = self.tf_buf.transform(point_s, "map")
+
+            # Create a Pose object with the same position
+            pose = Pose()
+
+            pose.position.x = point_world.point.x
+            pose.position.y = point_world.point.y
+            pose.position.z = point_world.point.z
+
+            pose.orientation.x = goal_quaternion[0]
+            pose.orientation.y = goal_quaternion[1]
+            pose.orientation.z = goal_quaternion[2]
+            pose.orientation.w = goal_quaternion[3]
+            
+        except Exception as e:
+            print(e)
+            pose = None
+
+        return pose
     
     def update_markers(self):
         #remove all markers
@@ -224,15 +292,79 @@ class FaceRecogniser:
             pose = None
 
         return pose
+    
+    def go_to_greet(self, greeting_pose):
+        msg = PoseStamped()
+        msg.header.frame_id = "map"
+        msg.header.stamp = rospy.Time().now()
+        msg.pose.position.x = greeting_pose[0]
+        msg.pose.position.y = greeting_pose[1]
+        msg.pose.orientation.z = greeting_pose[3]
+        msg.pose.orientation.w = greeting_pose[4]
+        
+        print("PUBLISHING GREETING POSITION")
+        self.simple_goal_pub.publish(msg)
+        
+        while True:
+            status = rospy.wait_for_message("/move_base/status", GoalStatusArray)
+            if status.status_list[-1].status not in (0, 1):
+                print("REACHED GREETING POSE")
+                break
 
-    def greet_person(self, face_center):
-            # PARKING NODE TAKES CONTROL OVER MOVEMENT
+        rospy.sleep(1)
+
+    def greet_person(self, greeting_pose):
+        # PARKING NODE TAKES CONTROL OVER MOVEMENT
         greeting_no_movement = Bool()
         greeting_no_movement.data = True
         self.greet_pub.publish(greeting_no_movement)
         print("GREETING TAKING OVER")
         rospy.sleep(3)
+        
+        self.go_to_greet(greeting_pose)
+            
+        try:
+            rgb_image_message = rospy.wait_for_message("/camera/rgb/image_raw", Image)
+            depth_image_message = rospy.wait_for_message("/camera/depth/image_raw", Image)
+            p = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
+        except Exception as e:
+            print(e)
+            return 0
 
+        # Convert the images into a OpenCV (numpy) format
+
+        try:
+            rgb_image = self.bridge.imgmsg_to_cv2(rgb_image_message, "bgr8")
+            depth_image = self.bridge.imgmsg_to_cv2(depth_image_message, "32FC1")
+        except CvBridgeError as e:
+            print(e)
+
+        # Set the dimensions of the image
+        self.dims = rgb_image.shape
+        h = self.dims[0]
+        w = self.dims[1]
+
+        # Detect the faces in the image
+        blob = cv2.dnn.blobFromImage(cv2.resize(rgb_image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
+        self.face_net.setInput(blob)
+
+        # no false positives yet, will keep as it is
+        face_detections = self.face_net.forward()
+
+        face_center = None
+        for i in range(0, face_detections.shape[2]):
+            confidence = face_detections[0, 0, i, 2]
+            if confidence>0.50:
+                rospy.loginfo("Saw new face.")
+                box = face_detections[0,0,i,3:7] * np.array([w,h,w,h])
+                box = box.astype('int')
+                x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
+                face_center = (y1+(y2-y1)/2, x1+(x2-x1)/2)
+                break
+        
+        if face_center is None:
+            print("FACE CENTER IS NONE! CHECK!")
+            return
 
         point = (self.dims[0], self.dims[1]//2)   
         print(f"face center: {face_center}")
@@ -249,20 +381,16 @@ class FaceRecogniser:
 
 
         rospy.sleep(2)
-        ## ROTATED TO CENTER FACE
+        face_distance = float(np.nanmean(depth_image[y1:y2,x1:x2]))
         # send twist msg to move forward
         twist_forward = Twist()
         twist_forward.angular.z = 0.0
-        twist_forward.linear.x = 0.4
+        twist_forward.linear.x = face_distance - 0.4
         print("moving forward")
 
         self.twist_pub.publish(twist_forward)
-        rospy.sleep(1)
+        rospy.sleep(2)
         print("moving forward")
-
-        self.twist_pub.publish(twist_forward)
-        self.twist_pub.publish(twist_forward)
-        rospy.sleep(1)
 
         greeting_no_movement = Bool()
         greeting_no_movement.data = False
@@ -280,6 +408,7 @@ class FaceRecogniser:
         try:
             rgb_image_message = rospy.wait_for_message("/camera/rgb/image_raw", Image)
             depth_image_message = rospy.wait_for_message("/camera/depth/image_raw", Image)
+            p = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
         except Exception as e:
             print(e)
             return 0
@@ -346,6 +475,8 @@ class FaceRecogniser:
 
                 if pose is not None:
                     closest_face = self.get_closest_face(pose)
+                    greet_pose = self.get_greeting_pose(coords=(x1,x2,y1,y2), dist=face_distance, stamp=depth_time, pose_of_detection=p)
+                    greeting_position = (greet_pose.position.x, greet_pose.position.y, greet_pose.position.z, greet_pose.orientation.z, greet_pose.orientation.w)
                     # we dont have any face close, (either empty or too far) NEW FACE
                     if not closest_face:
                         closest_face = f"face_{self.face_counter}"
@@ -356,20 +487,25 @@ class FaceRecogniser:
                             "avg_position": (pose.position.x, pose.position.y, pose.position.z),
                             "all_features": [],
                             "avg_feature": None,
+                            "all_greet_positions": [greeting_position],
+                            "avg_greet_position": greeting_position,
                         }
                         self.faces[closest_face] = face_data
                         print(f"ADDED FACE : face_{self.face_counter}")
                         print(f"length: {len(self.faces)}")
                         print(f"faces: {self.faces}")
                         self.face_counter += 1
-                        # GO GREET PERSON
-                        # center of the face
-                        face_center = (y1+(y2-y1)/2, x1+(x2-x1)/2)
-                        self.greet_person(face_center)
                     else:
                         # we have a face close, add the new position
                         self.faces[closest_face]["all_positions"].append((pose.position.x, pose.position.y, pose.position.z))
                         self.faces[closest_face]["avg_position"] = np.mean(self.faces[closest_face]["all_positions"], axis=0)
+                        self.faces[closest_face]["all_greet_positions"].append(greeting_position)
+                        self.faces[closest_face]["avg_greet_position"] = np.mean(self.faces[closest_face]["all_greet_positions"], axis=0)
+
+                        if len(self.faces[closest_face]["all_greet_positions"]) == GREET_POSITION_THRESHOLD:
+                            # GO GREET PERSON
+                            # center of the face
+                            self.greet_person(self.faces[closest_face]["avg_greet_position"])
                 
                 self.update_markers()
 

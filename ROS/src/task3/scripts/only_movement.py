@@ -113,7 +113,9 @@ class Movement:
 def main():
     movement = Movement()
     rospy.loginfo("Starting the movement node")
-    rospy.sleep(4)
+    print("Movement sleeping")
+    rospy.sleep(10)
+    print("Movement woke up")
     
             
     movement.publish_new_position()                
