@@ -182,7 +182,6 @@ class The_Cylinder:
         for color in self.cylinders:
             marker_array.markers.append(self.cylinders[color]["location"]) # cylinder marker
             marker_array.markers.append(self.cylinders[color]["greet_position"]) # greet position marker
-            print(f"Added color '{color}' to published markers.")
         return marker_array
 
     def speak_msg(self, msg):
@@ -248,30 +247,22 @@ class The_Cylinder:
         if self.cylinders.get(detected_color):
             all_locations = self.cylinders[detected_color]["all_locations"]
             all_locations = np.array(all_locations)
+
             location = np.mean(all_locations, axis=0)[:3]
-            print("LOCATION", location)
             location_pose = self.coordinates_to_pose(location)
             location_marker = self.pose_to_marker(location_pose, color=detected_color)
-            print("LOCATION MARKER", location_marker)
 
             all_greet_positions = self.cylinders[detected_color]["all_greet_positions"]
             all_greet_positions = np.array(all_greet_positions)
+
             greet_position = np.mean(all_greet_positions, axis=0)[:3]
-            print("GREET POSITION", greet_position)
             greet_pose = self.coordinates_to_pose(greet_position)
             greet_marker = self.pose_to_marker(greet_pose, color="white", size=0.1)
-            print("GREET MARKER", greet_marker)
             
             if location_marker:
                 self.cylinders[detected_color]["location"] = location_marker
-                print(f"ADDED LOCATION MARKER: {location_marker.pose.position}")
-            else:
-                print("LOCATION MARKER NONE")
             if greet_marker:
                 self.cylinders[detected_color]["greet_position"] = greet_marker
-                print(f"ADDED GREET: {greet_marker.pose.position}")
-            else:
-                print("GREET MARKER NONE")
 
 
     def delete_markers(self):
@@ -299,21 +290,12 @@ class The_Cylinder:
         # Get the angles in the base_link relative coordinate system
         x,y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
 
-        ### Define a stamped message for transformation - directly in "base_frame"
-        #point_s = PointStamped()
-        #point_s.point.x = x
-        #point_s.point.y = y
-        #point_s.point.z = 0.3
-        #point_s.header.frame_id = "base_link"
-        #point_s.header.stamp = rospy.Time(0)
-
         # Define a stamped message for transformation - in the "camera rgb frame"
         point_s = PointStamped()
         point_s.point.x = -y
         point_s.point.y = 0
         point_s.point.z = x
         point_s.header.frame_id = "camera_rgb_optical_frame"
-        # point_s.header.stamp = rospy.Time(0) # tle damo current time have to fix
         point_s.header.stamp = time_stamp
 
         # Get the point in the "map" coordinate system
@@ -324,69 +306,10 @@ class The_Cylinder:
         pose.position.y = point_world.point.y
         pose.position.z = point_world.point.z
 
-        # marker_coords = (point_world.point.x, point_world.point.y, point_world.point.z)
-        # # ALL_MARKER_COORDS[detected_object][detected_color].append(marker_coords)
-        # self.cylinders[detected_color]["all_positions"].append(marker_coords)
-
-        # print(f"added {detected_color.upper()} marker for {detected_object}!")
-        # print(f"Current markers for color {detected_color} and object {detected_object} are: {len(ALL_MARKER_COORDS[detected_object][detected_color])}")
-
-        # all_coordinates = np.array(ALL_MARKER_COORDS[detected_object][detected_color])
-        # all_coordinates = np.array(self.cylinders[detected_color]["all_positions"])
-
-        # avg_x = np.nanmean(all_coordinates[:, 0])
-        # avg_y = np.nanmean(all_coordinates[:, 1])
-        # avg_z = np.nanmean(all_coordinates[:, 2])
-
-        # Create a Pose object with the same position
-        # avg_pose = Pose()
-        # avg_pose.position.x = avg_x
-        # avg_pose.position.y = avg_y
-        # avg_pose.position.z = avg_z
         
         if not dist:
-            print(f"DIST: {dist}")
-            # print(marker_coords)
-            # print(f"avg_x: {avg_x}")
-            # print(f"avg_y: {avg_y}")
-            # print(f"avg_z: {avg_z}")
-            # print(f"detected_object: {detected_object}")
-            # print(f"detected_color: {detected_color}")
-            # return
+            print(f"DIST IS NONE IN GET POSE: {dist}")
         
-        # so we get no errors
-        # avg_pose.orientation.z = 1
-        # avg_pose.orientation.w = 0
-        # avg_pose.orientation.x = 0
-        # avg_pose.orientation.y = 0
-        # 
-        # PUBLISHING MARKER
-        # Create a marker used for visualization
-        # self.marker_num += 1
-        # marker = Marker()
-        # marker.header.stamp = point_world.header.stamp
-        # marker.header.frame_id = point_world.header.frame_id
-        # marker.pose = avg_pose
-        # marker.type = Marker.CYLINDER
-        # marker.action = Marker.ADD
-        # marker.frame_locked = False
-        # marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
-        # marker.id = self.marker_num
-        # marker.scale = Vector3(0.2, 0.2, 0.2)
-        # marker.color = marker_color
-
-
-        # BEST_MARKERS[detected_object][detected_color] = marker
-        # self.cylinders[detected_color]["avg_position"] = marker
-
-        # detected color should already be in self.cylinders
-        # if self.cylinders.get(detected_color):
-        #     self.create_markers(detected_color=detected_color)
-        #     print("CREATED MARKERS")
-
-        # markers_to_publish = self.get_marker_array_to_publish()
-        # self.markers_pub.publish(markers_to_publish)
-
         return pose
 
     def get_greeting_pose(self, coords: float, dist : float, stamp, pose_of_detection: PoseWithCovarianceStamped) -> Pose:
