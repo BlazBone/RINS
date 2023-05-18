@@ -123,7 +123,7 @@
       <specular>0.1 0.1 0.1 1</specular>
       <attenuation>
         <range>20</range>
-        <constant>0.5</constant>
+        <constant>8</constant>
         <linear>0.01</linear>
         <quadratic>0.001</quadratic>
       </attenuation>
@@ -136,7 +136,7 @@
       <specular>0.1 0.1 0.1 1</specular>
       <attenuation>
         <range>20</range>
-        <constant>0.5</constant>
+        <constant>8</constant>
         <linear>0.01</linear>
         <quadratic>0.001</quadratic>
       </attenuation>
@@ -149,7 +149,7 @@
       <specular>0.1 0.1 0.1 1</specular>
       <attenuation>
         <range>20</range>
-        <constant>0.5</constant>
+        <constant>8</constant>
         <linear>0.01</linear>
         <quadratic>0.001</quadratic>
       </attenuation>
@@ -162,7 +162,20 @@
       <specular>0.1 0.1 0.1 1</specular>
       <attenuation>
         <range>20</range>
-        <constant>0.5</constant>
+        <constant>8</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <cast_shadows>0</cast_shadows>
+      <direction>0 0 -1</direction>
+    </light>
+    <light name='user_point_light_4' type='point'>
+      <pose frame=''>1.4889 -4.8976 1 0 -0 0</pose>
+      <diffuse>0.5 0.5 0.5 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation>
+        <range>20</range>
+        <constant>8</constant>
         <linear>0.01</linear>
         <quadratic>0.001</quadratic>
       </attenuation>
@@ -196,15 +209,24 @@
       </model>
       <light name='user_point_light_0'>
         <pose frame=''>-1.506116 6.586019 1 0 -0 0</pose>
+        <constant>8</constant>
       </light>
       <light name='user_point_light_1'>
         <pose frame=''>-3.177957 -1.895689 1 0 -0 0</pose>
+        <constant>8</constant>
       </light>
       <light name='user_point_light_2'>
          <pose frame=''>-3.092689 2.329886 1 0 -0 0</pose>
+        <constant>8</constant>
       </light>
       <light name='user_point_light_3'>
          <pose frame=''>6.165482 1.354794 1 0 -0 0</pose>
+        <constant>8</constant>
+      </light>
+
+      <light name='user_point_light_4' type='point'>
+        <pose frame=''>1.4889 -4.8976 1 0 -0 0</pose>
+        <constant>8</constant>
       </light>
     </state>
     <gui fullscreen='0'>
