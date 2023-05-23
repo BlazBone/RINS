@@ -37,6 +37,8 @@ class Movement:
         self.greeting_sub = rospy.Subscriber("/only_movement/greeting_is_going_on", Bool, self.greet_callback)
         self.currently_greeting = False
 
+        self.traversed_already = False
+
         
 
     def cancel_goal(self):
@@ -116,7 +118,6 @@ def main():
     print("Movement sleeping")
     rospy.sleep(10)
     print("Movement woke up")
-    
             
     movement.publish_new_position()                
     loop_time = 0
@@ -138,15 +139,40 @@ def main():
             movement.publish_new_position()
 
         elif movement.path_idx == len(movement.path):
-            rospy.loginfo("FINISHED PATH")
-            # send signal to all nodes
-            end_publisher = rospy.Publisher("/end", Bool, queue_size=1)
-            msg_something = Bool()
-            msg_something.data = True
-            end_publisher.publish(msg_something)
-            time.sleep(5)
-            # sleep mybe to finish processing images.
-            break
+            # TODO check if this is really necessary
+            if not movement.traversed_already:
+                movement.traversed_already = True
+                rospy.loginfo("Traversed path once, starting search for a person of interest.")
+
+                traversed_path_pub = rospy.Publisher("/only_movement/traversed_path/", Bool, queue_size=1)
+                rospy.sleep(0.5)
+                rospy.loginfo("Publishing traversed_path message!")
+                for i in range(2):
+                    msg_traverse = Bool()
+                    msg_traverse.data = True
+                    traversed_path_pub.publish(msg_traverse)
+                    print(f"PUBLISHED TRAVERSED PATH #{i}")
+
+                rospy.sleep(0.5)
+
+                _ = rospy.wait_for_message("/only_cylinders/found_cylinder", Bool)
+                print("MOVEMENT: FOUND CYLINDERS")
+
+                end_publisher = rospy.Publisher("/end", Bool, queue_size=1)
+                msg_something = Bool()
+                msg_something.data = True
+                end_publisher.publish(msg_something)
+
+            # else: 
+            #     rospy.loginfo("FINISHED PATH")
+            #     # send signal to all nodes
+            #     end_publisher = rospy.Publisher("/end", Bool, queue_size=1)
+            #     msg_something = Bool()
+            #     msg_something.data = True
+            #     end_publisher.publish(msg_something)
+            #     time.sleep(5)
+            #     # sleep mybe to finish processing images.
+            #     break
         loop_time += time.time() - start_time
     
     print(f"Average loop time: {loop_time / loop_count}")

@@ -11,7 +11,7 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import PointStamped, Vector3, Pose, Quaternion, PoseWithCovarianceStamped, Twist
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
-from std_msgs.msg import ColorRGBA
+from std_msgs.msg import ColorRGBA, String
 from PIL import Image as _i
 from tf.transformations import *
 from sound_play.libsoundplay import SoundClient
@@ -120,7 +120,28 @@ class FaceRecogniser:
 
         # array of robot positions when faces are detected
         self.bot_positions = []
+
+        self.traverse_sub = rospy.Subscriber("/only_movement/traversed_path/", Bool, self.traversed_callback)
+        self.traversed_path = False
+
+        self.robber_locations = ["red", "yellow"] # TODO don't hardcode this!
     
+    def traversed_callback(self, data):
+        print("TRAVERSED CALLBACK (FACES)")
+        
+        if len(self.robber_locations) == 0:
+            print("No robber locations found yet!")
+        else:
+            robber_cylinder_colors_pub = rospy.Publisher("/only_faces/robber_locations", String, queue_size=len(self.robber_locations))
+            rospy.sleep(0.5)
+            robber_cylinder = String()
+            robber_cylinder.data = ",".join(self.robber_locations)
+            robber_cylinder_colors_pub.publish(robber_cylinder)
+            print("Published cylinder colors:", ','.join(self.robber_locations))
+        
+        self.traversed_path = data.data
+        
+
     def get_greeting_pose(self, coords : Tuple[int,int,int,int], dist : float, stamp, pose_of_detection: PoseWithCovarianceStamped) -> Pose:
         """
         Calculates the greeting position for the bot to travel to.
@@ -546,7 +567,12 @@ def main():
     rospy.sleep(2)
             
     while not rospy.is_shutdown():
-        face_finder.find_faces()
+        if not face_finder.traversed_path:
+            face_finder.find_faces()
+        else:
+            rospy.sleep(5)
+            rospy.loginfo("FACES: STOPPING NODE, WON'T NEED IT ANYMORE!")
+            return
     
     cv2.destroyAllWindows()
 
