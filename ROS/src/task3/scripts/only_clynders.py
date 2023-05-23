@@ -501,7 +501,7 @@ class The_Cylinder:
                                 if not self.cylinders.get(color):
                                     self.speak_msg(f"{color} cylinder")
                                     cylinder_data = {
-                                        "all_locations": [(greet_pose.position.x, greet_pose.position.y, greet_pose.position.z)],
+                                        "all_locations": [cylinder_location],
                                         "location": None,
                                         "all_greet_positions": [greeting_position],
                                         "greet_position": None,
