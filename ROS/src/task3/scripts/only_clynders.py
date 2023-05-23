@@ -11,7 +11,7 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import PointStamped, Vector3, Pose, PoseWithCovarianceStamped, Quaternion
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
-from std_msgs.msg import ColorRGBA
+from std_msgs.msg import ColorRGBA, Bool,String
 from sound_play.libsoundplay import SoundClient
 from typing import Tuple
 import math
@@ -46,7 +46,7 @@ dirs = {
 
 # arbitrarily set, seems to be a good filter
 MINIMAL_ACCEPTED_COLOR_PERCENTAGE = 3
-MINIMAL_ACCEPTED_AREA = 5000
+MINIMAL_ACCEPTED_AREA = 20000
 
 COLOR_DICT = {
         # COLORNAME: (lower_value, upper_value)
@@ -152,11 +152,58 @@ class The_Cylinder:
         # of format:
         # color: cylinder_data
         self.cylinders = {}
+        self.cylinders_to_visit = []
         # OUR ATTRIBUTES
 
         self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
         # self.cancel_goal_pub = rospy.Publisher("/move_base/cancel", GoalID, queue_size=10)
+
+        self.traverse_sub = rospy.Subscriber("/only_movement/traversed_path/", Bool, self.traversed_callback)
+        self.traversed_path = False
+
     
+    def status_reached(self) -> Tuple[bool, int]:
+        """
+        Function listenes for status updates on topic /move_base/status.
+
+        If status is 3 (goal reached) or 4 (goal terminated), the goal is 'reached'.
+        If status is 0 or 1 the goal is 'being processed', else there is an error.
+        """
+        status = rospy.wait_for_message("/move_base/status", GoalStatusArray)
+        if status.status_list[-1].status in (0, 1):
+            # goal is being processed
+            return False,status.status_list[-1].status
+        else:
+            # goal is done (successfully or not)
+            return True,status.status_list[-1].status
+
+    def traversed_callback(self, data):
+        print("TRAVERSED CALLBACK (CYLINDERS)")
+        self.traversed_path = data.data
+
+        robber_cylinder_colors = rospy.wait_for_message("/only_faces/robber_locations", String).data
+
+        for cylinder_color in robber_cylinder_colors.split(","):
+            if self.cylinders.get(cylinder_color):
+                self.cylinders_to_visit.append(self.cylinders[cylinder_color]["greet_position"])
+                rospy.loginfo(f"Will visit '{cylinder_color}' cylinder.")
+            else:
+                rospy.logwarn(f"Color '{cylinder_color}' wasn't detected before! Skipping.")
+
+        rospy.sleep(1)
+        for n, cylinder_greet_pose in enumerate(self.cylinders_to_visit):
+            print(f"Visiting cylinder #{n}")
+            msg = PoseStamped()
+            msg.header.frame_id = "map"
+            msg.header.stamp = cylinder_greet_pose.header.stamp
+            msg.pose = cylinder_greet_pose.pose
+            self.simple_goal_pub.publish(msg)
+            rospy.sleep(0.5)
+            reached, status =self.status_reached()
+            while not reached:
+                reached, status =self.status_reached()
+            print(f"Reached cylinder #{n}")
+
     def get_marker_array_to_publish(self):
         marker_array = MarkerArray()
         for color in self.cylinders:
@@ -432,6 +479,7 @@ class The_Cylinder:
                             
                                 image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
                                 print(f"Found a {color.upper()} cylinder!")
+                                print(f"AREA: {area}")
                                                             
                                 # The contour is roughly rectangular
                                 depth = depth_image[cy][cx]
@@ -462,8 +510,8 @@ class The_Cylinder:
                                 self.delete_markers()
 
                                 markers_to_publish = self.get_marker_array_to_publish()
-                                print("Markers to publish", markers_to_publish)
-                                print(markers_to_publish)
+                                # print("Markers to publish", markers_to_publish)
+                                # print(markers_to_publish)
                                 self.markers_pub.publish(markers_to_publish)
 
 
@@ -478,7 +526,7 @@ class The_Cylinder:
             return
 
 def main():
-    ring_finder = The_Cylinder()
+    cylinder_finder = The_Cylinder()
     
     rospy.loginfo("Starting the cylinder node")
     rate = rospy.Rate(10)
@@ -486,7 +534,8 @@ def main():
     rospy.sleep(1)
 
     while not rospy.is_shutdown():
-        ring_finder.image_callback()
+        if not cylinder_finder.traversed_path:
+            cylinder_finder.image_callback()
         rate.sleep()
     
     cv2.destroyAllWindows()

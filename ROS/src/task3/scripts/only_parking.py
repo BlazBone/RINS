@@ -23,7 +23,7 @@ from typing import Tuple
 def get_angle(image):
     point = (image.shape[0], image.shape[1]//2)
     closes_point = find_closest_pixel(image)    
-    print(closes_point)
+    # print(closes_point)
     return np.arctan2(closes_point[0]-point[0], closes_point[1]-point[1])
 
 def find_closest_pixel(image):
@@ -168,7 +168,7 @@ class Parking:
         img = self.get_binary_arm_image() 
 
         while get_highest_black_pixel(img)[0] < 10:
-            print("FIRST LOOP")
+            # print("FIRST LOOP")
             print(get_highest_black_pixel(img)[0])
             img = self.get_binary_arm_image()
             # cv2.imshow("arm_image", img)
@@ -194,10 +194,10 @@ class Parking:
 
         img = self.get_binary_arm_image() 
         highest_pixel = get_highest_black_pixel(img)[0]
-        print("HIGHEST PIXEL BEFORE 2ND LOOP")
-        print(highest_pixel)
+        # print("HIGHEST PIXEL BEFORE 2ND LOOP")
+        # print(highest_pixel)
         while get_highest_black_pixel(img)[0] < img.shape[0]-150:
-            print("SECOND LOOP")
+            # print("SECOND LOOP")
             print(get_highest_black_pixel(img)[0])
             img = self.get_binary_arm_image()
             twist_msg = Twist()
@@ -245,7 +245,7 @@ def main():
 
     rospy.sleep(1)
     
-    print(parking.greeting_position_green_ring)
+    # print(parking.greeting_position_green_ring)
     parking.simple_goal_pub.publish(parking.greeting_position_green_ring)
     print("(IN MAIN) GOING TO GREEN RING, DELETING ITS POSITION")
     print("WAITING 5 SECONDS")
