@@ -204,6 +204,12 @@ class The_Cylinder:
                 reached, status =self.status_reached()
             print(f"Reached cylinder #{n}")
 
+        # pretend we found the robber on the last cylinder and go to the greet position
+        self.speak_msg("I found you fool, you're comming with me!")
+        rospy.sleep(1)
+
+        # publish a msg to parking node or ring node with the color of the parking space
+
     def get_marker_array_to_publish(self):
         marker_array = MarkerArray()
         for color in self.cylinders:

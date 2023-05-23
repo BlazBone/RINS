@@ -31,6 +31,10 @@ from typing import List, Tuple
 import time
 from std_msgs.msg import Bool
 
+import speech_recognition as sr
+import nltk
+nltk.download('punkt')
+
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 dirs = {
@@ -124,7 +128,7 @@ class FaceRecogniser:
         self.traverse_sub = rospy.Subscriber("/only_movement/traversed_path/", Bool, self.traversed_callback)
         self.traversed_path = False
 
-        self.robber_locations = ["red", "yellow"] # TODO don't hardcode this!
+        self.robber_locations = [] 
     
     def traversed_callback(self, data):
         print("TRAVERSED CALLBACK (FACES)")
@@ -277,8 +281,6 @@ class FaceRecogniser:
         Function for speaking to a person.
         """
         soundhandle = SoundClient()
-        rospy.sleep(0.1)
-
         voice = "voice_kal_diphone"
         volume = 1.
         rospy.loginfo(f"volume: {volume}, voice: {voice}, text:{msg}")
@@ -367,7 +369,7 @@ class FaceRecogniser:
         greeting_no_movement.data = True
         self.greet_pub.publish(greeting_no_movement)
         print("GREETING TAKING OVER")
-        rospy.sleep(3)
+        rospy.sleep(1)
         
         self.go_to_greet(greeting_pose)
             
@@ -437,18 +439,45 @@ class FaceRecogniser:
         print("moving forward")
 
         self.twist_pub.publish(twist_forward)
-        rospy.sleep(2)
-        print("moving forward")
+        rospy.sleep(1.5)
+        
+        ## SPEACH WITH THE PERSON
+        self.speak_msg("Do you know where the robber is?")
+        rospy.sleep(1)
+        recognizer = sr.Recognizer()
+        with sr.Microphone() as source:
+            print("!!!SAY SOMETHING!!!")
+            recognizer.adjust_for_ambient_noise(source)
+            audio = recognizer.listen(source)
+            print("recognizing")
+            try:
+                text = recognizer.recognize_google(audio)
+                print("YOU SAID: ", text)
+                text = text.lower()
+                if "blue" in text:
+                    self.robber_locations.append("blue")
+                elif "red" in text:
+                    self.robber_locations.append("red")
+                elif "yellow" in text:
+                    self.robber_locations.append("yellow")
+                elif "green" in text:
+                    self.robber_locations.append("green")
+                
+            except sr.UnknownValueError:
+                print("Unable to recognize speech")
+            except sr.RequestError as e:
+                print("Error:", str(e))
 
+        
+        self.speak_msg("Thank you for your help!")
+
+        # just so we know what we heard)
+        print(f"current robber possitions: {self.robber_locations}")
+        
+        rospy.sleep(1)
         greeting_no_movement = Bool()
         greeting_no_movement.data = False
         self.greet_pub.publish(greeting_no_movement)
-
-
-
-
-
-
 
     def find_faces(self):
 
@@ -527,6 +556,7 @@ class FaceRecogniser:
                     greeting_position = (greet_pose.position.x, greet_pose.position.y, greet_pose.position.z, greet_pose.orientation.z, greet_pose.orientation.w)
                     # we dont have any face close, (either empty or too far) NEW FACE
                     if not closest_face:
+
                         closest_face = f"face_{self.face_counter}"
                         face_data = {
                             "area": (x2-x1)*(y2-y1),
@@ -541,7 +571,6 @@ class FaceRecogniser:
                         self.faces[closest_face] = face_data
                         print(f"ADDED FACE : face_{self.face_counter}")
                         print(f"length: {len(self.faces)}")
-                        print(f"faces: {self.faces}")
                         self.face_counter += 1
                     else:
                         # we have a face close, add the new position
