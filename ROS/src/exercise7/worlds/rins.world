@@ -54,7 +54,7 @@
         <collision name='classroom_collision'>
           <geometry>
             <mesh>
-              <uri>/home/nac/Documents/projects/RINS/ROS/src/exercise7/meshes/task3_meshes/rins_2023_task3_x1.dae</uri>
+              <uri>/home/nac/Documents/projects/RINS/ROS/src/exercise7/meshes/task3_final/rins_2023_task3_final_textures.dae</uri>
               <scale>1 1 1</scale>
             </mesh>
           </geometry>
@@ -75,7 +75,7 @@
         <visual name='visual'>
           <geometry>
             <mesh>
-              <uri>/home/nac/Documents/projects/RINS/ROS/src/exercise7/meshes/task3_meshes/rins_2023_task3_x1.dae</uri>
+              <uri>/home/nac/Documents/projects/RINS/ROS/src/exercise7/meshes/task3_final/rins_2023_task3_final_textures.dae</uri>
               <scale>1 1 1</scale>
             </mesh>
           </geometry>
@@ -182,6 +182,19 @@
       <cast_shadows>0</cast_shadows>
       <direction>0 0 -1</direction>
     </light>
+    <light name='user_point_light_5' type='point'>
+      <pose frame=''>2.5198 5.0000 1.0000</pose>
+      <diffuse>0.5 0.5 0.5 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation>
+        <range>20</range>
+        <constant>8</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <cast_shadows>0</cast_shadows>
+      <direction>0 0 -1</direction>
+    </light>
     <state world_name='default'>
       <sim_time>308 103000000</sim_time>
       <real_time>129 544901322</real_time>
@@ -226,6 +239,10 @@
 
       <light name='user_point_light_4' type='point'>
         <pose frame=''>1.4889 -4.8976 1 0 -0 0</pose>
+        <constant>8</constant>
+      </light>
+      <light name='user_point_light_5' type='point'>
+        <pose frame=''>2.5198 5.0000 1.0000</pose>
         <constant>8</constant>
       </light>
     </state>
