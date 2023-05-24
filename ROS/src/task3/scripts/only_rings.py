@@ -101,13 +101,16 @@ class The_Ring:
         color = data.data
         parking_marker = self.rings[color]["greet_position"]
 
+        print(f"RECEIVED PRISON COLOR: '{color}'")
+
         p = PoseStamped()
         p.header.stamp = rospy.Time().now()
         p.header.frame_id = "map"
         p.header.seq = 99999
         p.pose = parking_marker.pose
         rospy.sleep(0.5)
-        print("PUBLISHING PRISON CALLBACK (ONLY RINGS)")
+
+        print("PUBLISHING PRISON GREET POSE")
         print(p)
         self.park_scanner_pub.publish(p)
 

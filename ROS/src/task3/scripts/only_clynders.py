@@ -68,6 +68,7 @@ COLOR_DICT = {
             )
         }
 
+
 def apply_colour_mask(cv_image, hsv_image, show=False):
         
         IMAGE_EXTRACTED_DATA = {}
@@ -209,10 +210,11 @@ class The_Cylinder:
             print(f"Reached cylinder #{n}")
 
         # pretend we found the robber on the last cylinder and go to the greet position
-        self.speak_msg("I found you fool, you're comming with me!")
+        self.speak_msg("I found you fool, you're coming with me!")
         rospy.sleep(1)
 
         self.robber_found = True
+        print(f"PUBLISHING PRISON COLOR '{prison_color}'")
         robber_found_pub = rospy.Publisher("/only_movement/prison_color", String, queue_size=1)
 
         msg = String()
@@ -249,8 +251,10 @@ class The_Cylinder:
         """
         try:
             x,y,z = coords
+            or_z = 1
+            or_w = 0
         except ValueError:
-            x,y,z,_,_ = coords
+            x,y,z,or_z,or_w = coords
         except:
             raise ValueError(f"Coordinates are of len {len(coords)}.\nValues are {coords}.")
 
@@ -258,8 +262,8 @@ class The_Cylinder:
         pose.position.x = x
         pose.position.y = y
         pose.position.z = z
-        pose.orientation.z = 1
-        pose.orientation.w = 0
+        pose.orientation.z = or_z
+        pose.orientation.w = or_w
         pose.orientation.x = 0
         pose.orientation.y = 0
 
@@ -295,14 +299,14 @@ class The_Cylinder:
             all_locations = self.cylinders[detected_color]["all_locations"]
             all_locations = np.array(all_locations)
 
-            location = np.mean(all_locations, axis=0)[:3]
+            location = np.mean(all_locations, axis=0)
             location_pose = self.coordinates_to_pose(location)
             location_marker = self.pose_to_marker(location_pose, color=detected_color)
 
             all_greet_positions = self.cylinders[detected_color]["all_greet_positions"]
             all_greet_positions = np.array(all_greet_positions)
 
-            greet_position = np.mean(all_greet_positions, axis=0)[:3]
+            greet_position = np.mean(all_greet_positions, axis=0)
             greet_pose = self.coordinates_to_pose(greet_position)
             greet_marker = self.pose_to_marker(greet_pose, color="white", size=0.1)
             
@@ -534,6 +538,12 @@ class The_Cylinder:
 
                                 greet_pose = self.get_greeting_pose(coords=cx, dist=depth, stamp=depth_time, pose_of_detection=p)
                                 greeting_position = (greet_pose.position.x, greet_pose.position.y, greet_pose.position.z, greet_pose.orientation.z, greet_pose.orientation.w)
+
+                                if color.lower() == "red" and not self.cylinders.get("yellow") and len(self.cylinders["yellow"]["all_locations"]) > 25:
+                                    return
+                                else:
+                                    number_of_yellow = 0 if not self.cylinders.get("yellow") else len(self.cylinders["yellow"]["all_locations"])
+                                    print("ADDING RED CYLINDER, NUMBER OF YELLOW IS", number_of_yellow)
 
                                 # we dont have any face close, (either empty or too far) NEW CYLINDER
                                 if not self.cylinders.get(color):

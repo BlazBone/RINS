@@ -22,7 +22,7 @@ class Movement:
 
         # OUR ATTRIBUTES
 
-        points_path = os.path.join(os.path.dirname(__file__), "./paths/task2_points.txt")
+        points_path = os.path.join(os.path.dirname(__file__), "./paths/task3_new.txt")
         self.path = read_path_log_orientation(points_path)
         self.path_idx = 0
 
@@ -54,8 +54,8 @@ class Movement:
         print(self.currently_greeting)
 
         self.cancel_goal()
-        
-        self.path_idx = max(0, self.path_idx-1)
+        if data.data: 
+            self.path_idx = max(0, self.path_idx-1)
 
     
     def park_callback(self, data):
@@ -67,10 +67,10 @@ class Movement:
         self.cancel_goal()
         self.path_idx = max(0, self.path_idx-1)
         print("CANCELED GOAL, PARKING IS TAKING OVER")
-        if data.data:
-            self.arm_mover_pub.publish("extend")
-        else:
-            self.arm_mover_pub.publish("retract")
+        # if data.data:
+        #     self.arm_mover_pub.publish("extend")
+        # else:
+        #     self.arm_mover_pub.publish("retract")
 
 
     def publish_new_position(self, log:bool=True) -> None:

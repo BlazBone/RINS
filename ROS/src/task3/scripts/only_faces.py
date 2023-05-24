@@ -46,7 +46,7 @@ dirs = {
         }
 
 
-GREET_POSITION_THRESHOLD = 2
+GREET_POSITION_THRESHOLD = 3
 MARKERS_NEEDED_FOR_GREETING = 6
 NN_FACE_SIMILARITY_TOLERANCE = 0.75
 NUMBER_OF_FACES_ON_THE_MAP = 3
@@ -102,7 +102,7 @@ class FaceRecogniser:
 
         self.faces = {}
         self.face_counter = 0
-        self.posters = {0: {"reward": 100000, "color": "blue" }}
+        self.posters = {}
         self.poster_counter = 0
         # all faces features
         # {
@@ -142,7 +142,7 @@ class FaceRecogniser:
         for poster in self.posters:
             if self.posters[poster]["reward"] > most_wanted_prize:
                 most_wanted_color = self.posters[poster]["color"]
-                most_wanted_reward = self.posters[poster]["reward"]
+                most_wanted_prize = self.posters[poster]["reward"]
         return most_wanted_color
 
     def traversed_callback(self, data):
@@ -389,14 +389,16 @@ class FaceRecogniser:
         for line in lines_info:
             #filter out only the numbers
             str_n = "".join(filter(str.isdigit, line))
-
             if str_n != "":
+                if str_n[0] == "0":
+                    str_n = "1" + str_n
                 numbers.append(int(str_n))
+
         reward = max(numbers)
 
         text = text.lower()
         color = None
-        print(f"text: {text}")
+        # print(f"text: {text}")
         # do the same as the gree for colors red, black, blue, green
         if "green" in text:
             color = "green"
@@ -424,14 +426,11 @@ class FaceRecogniser:
         except CvBridgeError as e:
             print(e)
 
-        cv2.imwrite(os.path.join(dirs["dir_posters"], f"poster_{self.poster_counter}.png"), rgb_image)
-        # text = pytesseract.image_to_string(gray_img)
-
         text_pytesseract = pytesseract.image_to_string(rgb_image)
         text_easyocr = "\n".join([detection[1] for detection in READER.readtext(rgb_image)])
 
-        print("TEXT_PYTESSERACT", text_pytesseract)
-        print("TEXT_EASYOCR", text_easyocr)
+        # print("TEXT_PYTESSERACT", text_pytesseract)
+        # print("TEXT_EASYOCR", text_easyocr)
 
         reward_pyt, color_pyt = self.extract_information(text_pytesseract)
         reward_easy, color_easy = self.extract_information(text_easyocr)
@@ -543,7 +542,11 @@ class FaceRecogniser:
             rospy.sleep(1)
             recognizer = sr.Recognizer()
             with sr.Microphone() as source:
+                print()
+                print()
                 print("!!!SAY SOMETHING!!!")
+                print()
+                print()
                 recognizer.adjust_for_ambient_noise(source)
                 audio = recognizer.listen(source)
                 print("recognizing")
