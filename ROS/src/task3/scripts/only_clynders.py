@@ -539,8 +539,11 @@ class The_Cylinder:
                                 greet_pose = self.get_greeting_pose(coords=cx, dist=depth, stamp=depth_time, pose_of_detection=p)
                                 greeting_position = (greet_pose.position.x, greet_pose.position.y, greet_pose.position.z, greet_pose.orientation.z, greet_pose.orientation.w)
 
-                                if color.lower() == "red" and not self.cylinders.get("yellow") and len(self.cylinders["yellow"]["all_locations"]) > 25:
-                                    return
+                                if color.lower() == "red":
+                                    if not self.cylinders.get("yellow"):
+                                        return
+                                    elif len(self.cylinders["yellow"]["all_locations"]) < 20:
+                                        return
                                 else:
                                     number_of_yellow = 0 if not self.cylinders.get("yellow") else len(self.cylinders["yellow"]["all_locations"])
                                     print("ADDING RED CYLINDER, NUMBER OF YELLOW IS", number_of_yellow)
