@@ -5,13 +5,14 @@
 import rospy
 import cv2
 import numpy as np
+from rospy.topics import QueuedConnection
 import tf2_geometry_msgs
 import tf2_ros
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import PointStamped, Vector3, Pose, Quaternion, PoseWithCovarianceStamped
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
-from std_msgs.msg import ColorRGBA
+from std_msgs.msg import ColorRGBA, String
 from tf.transformations import *
 from sound_play.libsoundplay import SoundClient
 
@@ -88,12 +89,27 @@ class The_Ring:
 
 
         self.park_scanner_pub = rospy.Publisher("/only_movement/parking_search", PoseStamped, queue_size=10)
+        self.robber_found_sub = rospy.Subscriber("/only_movement/prison_color", String, callback=self.prison_callback)
 
         self.needs_to_be_parked = True
 
         self.all_green_ring_greeting_positions_array = []
 
         self.rings = {}
+    
+    def prison_callback(self, data):
+        color = data.data
+        parking_marker = self.rings[color]["greet_position"]
+
+        p = PoseStamped()
+        p.header.stamp = rospy.Time().now()
+        p.header.frame_id = "map"
+        p.header.seq = 99999
+        p.pose = parking_marker.pose
+        rospy.sleep(0.5)
+        print("PUBLISHING PRISON CALLBACK (ONLY RINGS)")
+        print(p)
+        self.park_scanner_pub.publish(p)
 
     def get_marker_array_to_publish(self):
         marker_array = MarkerArray()
@@ -116,8 +132,10 @@ class The_Ring:
         """
         try:
             x,y,z = coords
+            or_z = 1
+            or_w = 0
         except ValueError:
-            x,y,z,_,_ = coords
+            x,y,z,or_z,or_w = coords
         except:
             raise ValueError(f"Coordinates are of len {len(coords)}.\nValues are {coords}.")
 
@@ -125,8 +143,8 @@ class The_Ring:
         pose.position.x = x
         pose.position.y = y
         pose.position.z = z
-        pose.orientation.z = 1
-        pose.orientation.w = 0
+        pose.orientation.z = or_z
+        pose.orientation.w = or_w
         pose.orientation.x = 0
         pose.orientation.y = 0
 
@@ -161,14 +179,14 @@ class The_Ring:
             all_locations = self.rings[detected_color]["all_locations"]
             all_locations = np.array(all_locations)
 
-            location = np.mean(all_locations, axis=0)[:3]
+            location = np.mean(all_locations, axis=0)
             location_pose = self.coordinates_to_pose(location)
             location_marker = self.pose_to_marker(location_pose, color=detected_color)
 
             all_greet_positions = self.rings[detected_color]["all_greet_positions"]
             all_greet_positions = np.array(all_greet_positions)
 
-            greet_position = np.mean(all_greet_positions, axis=0)[:3]
+            greet_position = np.mean(all_greet_positions, axis=0)
             greet_pose = self.coordinates_to_pose(greet_position)
             greet_marker = self.pose_to_marker(greet_pose, color="white", size=0.1)
             

@@ -161,6 +161,8 @@ class The_Cylinder:
         self.traverse_sub = rospy.Subscriber("/only_movement/traversed_path/", Bool, self.traversed_callback)
         self.traversed_path = False
 
+        self.robber_found = False
+
     
     def status_reached(self) -> Tuple[bool, int]:
         """
@@ -182,13 +184,15 @@ class The_Cylinder:
         self.traversed_path = data.data
 
         robber_cylinder_colors = rospy.wait_for_message("/only_faces/robber_locations", String).data
-
-        for cylinder_color in robber_cylinder_colors.split(","):
+        
+        colors, prison_color = robber_cylinder_colors.split("\n")
+        for cylinder_color in colors.split(","):
             if self.cylinders.get(cylinder_color):
                 self.cylinders_to_visit.append(self.cylinders[cylinder_color]["greet_position"])
                 rospy.loginfo(f"Will visit '{cylinder_color}' cylinder.")
             else:
                 rospy.logwarn(f"Color '{cylinder_color}' wasn't detected before! Skipping.")
+
 
         rospy.sleep(1)
         for n, cylinder_greet_pose in enumerate(self.cylinders_to_visit):
@@ -207,6 +211,16 @@ class The_Cylinder:
         # pretend we found the robber on the last cylinder and go to the greet position
         self.speak_msg("I found you fool, you're comming with me!")
         rospy.sleep(1)
+
+        self.robber_found = True
+        robber_found_pub = rospy.Publisher("/only_movement/prison_color", String, queue_size=1)
+
+        msg = String()
+        msg.data = prison_color
+        
+        rospy.sleep(0.5)
+
+        robber_found_pub.publish(msg)
 
         # publish a msg to parking node or ring node with the color of the parking space
 

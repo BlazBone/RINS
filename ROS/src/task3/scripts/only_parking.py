@@ -136,15 +136,15 @@ class Parking:
         green_pose.header.stamp = rospy.Time().now()
         green_pose.header.frame_id = "map"
 
-        green_pose.pose.position.x = 2.091554422903801
-        green_pose.pose.position.y = 0.3509621880975083
+        green_pose.pose.position.x = -0.41401849525010176
+        green_pose.pose.position.y = 1.122782322518825
 
-        green_pose.pose.orientation.z = -0.9171601902651947
-        green_pose.pose.orientation.w = 0.3985187390734743
+        green_pose.pose.orientation.z = 0.7601156496842201
+        green_pose.pose.orientation.w = 0.6296645303864493
 
         self.simple_goal_pub.publish(green_pose)
-        print("PUBLISHED SECOND GREEN POSE")
-        rospy.sleep(5)
+        print("PUBLISHED SECOND PRISON POSE")
+        rospy.sleep(1)
         
 
     def fine_manouvering_rotation(self):
@@ -228,7 +228,7 @@ def main():
     rospy.sleep(0.5)
     rospy.loginfo("Starting the parking finder node")
     parking.greeting_position_green_ring = rospy.wait_for_message("/only_movement/parking_search", PoseStamped)    
-    print("GOT GREEN RING GREETING POSE", parking.greeting_position_green_ring)
+    print("GOT PRISON GREETING POSE", parking.greeting_position_green_ring)
 
     rospy.loginfo("STARTED PARKING")
 

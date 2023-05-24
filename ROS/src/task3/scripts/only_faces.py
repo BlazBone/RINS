@@ -102,7 +102,7 @@ class FaceRecogniser:
 
         self.faces = {}
         self.face_counter = 0
-        self.posters = {}
+        self.posters = {0: {"reward": 100000, "color": "blue" }}
         self.poster_counter = 0
         # all faces features
         # {
@@ -136,6 +136,15 @@ class FaceRecogniser:
 
         self.robber_locations = set()
     
+    def get_most_wanted_prison_color(self):
+        most_wanted_color = None
+        most_wanted_prize = 0
+        for poster in self.posters:
+            if self.posters[poster]["reward"] > most_wanted_prize:
+                most_wanted_color = self.posters[poster]["color"]
+                most_wanted_reward = self.posters[poster]["reward"]
+        return most_wanted_color
+
     def traversed_callback(self, data):
         print("TRAVERSED CALLBACK (FACES)")
         
@@ -146,6 +155,7 @@ class FaceRecogniser:
             rospy.sleep(0.5)
             robber_cylinder = String()
             robber_cylinder.data = ",".join(list(self.robber_locations))
+            robber_cylinder.data += f"\n{self.get_most_wanted_prison_color()}"
             robber_cylinder_colors_pub.publish(robber_cylinder)
             print("Published cylinder colors:", ','.join(list(self.robber_locations)))
         
