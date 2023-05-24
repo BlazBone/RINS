@@ -19,7 +19,8 @@ from sound_play.libsoundplay import SoundClient
 from facenet_pytorch import InceptionResnetV1
 import torch
 from torchvision import transforms
-
+import pytesseract
+import easyocr
 
 # OUR IMPORTS
 import os
@@ -33,16 +34,19 @@ from std_msgs.msg import Bool
 
 import speech_recognition as sr
 import nltk
+
 nltk.download('punkt')
+READER = easyocr.Reader(['en'])
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 dirs = {
         "dir_faces" : os.path.join(os.path.dirname(__file__), "../last_run_info/faces/"),
+        "dir_posters" : os.path.join(os.path.dirname(__file__), "../last_run_info/posters/"),
         }
 
 
-GREET_POSITION_THRESHOLD = 3
+GREET_POSITION_THRESHOLD = 2
 MARKERS_NEEDED_FOR_GREETING = 6
 NN_FACE_SIMILARITY_TOLERANCE = 0.75
 NUMBER_OF_FACES_ON_THE_MAP = 3
@@ -98,6 +102,8 @@ class FaceRecogniser:
 
         self.faces = {}
         self.face_counter = 0
+        self.posters = {}
+        self.poster_counter = 0
         # all faces features
         # {
         #   "face1": {
@@ -128,7 +134,7 @@ class FaceRecogniser:
         self.traverse_sub = rospy.Subscriber("/only_movement/traversed_path/", Bool, self.traversed_callback)
         self.traversed_path = False
 
-        self.robber_locations = [] 
+        self.robber_locations = set()
     
     def traversed_callback(self, data):
         print("TRAVERSED CALLBACK (FACES)")
@@ -139,9 +145,9 @@ class FaceRecogniser:
             robber_cylinder_colors_pub = rospy.Publisher("/only_faces/robber_locations", String, queue_size=len(self.robber_locations))
             rospy.sleep(0.5)
             robber_cylinder = String()
-            robber_cylinder.data = ",".join(self.robber_locations)
+            robber_cylinder.data = ",".join(list(self.robber_locations))
             robber_cylinder_colors_pub.publish(robber_cylinder)
-            print("Published cylinder colors:", ','.join(self.robber_locations))
+            print("Published cylinder colors:", ','.join(list(self.robber_locations)))
         
         self.traversed_path = data.data
         
@@ -362,6 +368,85 @@ class FaceRecogniser:
                 break
 
         rospy.sleep(1)
+    def extract_information(self, text): 
+        number_text = text.replace("o", "0")
+        # GET THE REWARD
+        lines_info = [line.replace(" ", "") for line in number_text.split("\n")]
+        # remove empy lines
+        lines_info = list(filter(lambda x: x != "", lines_info))
+
+        numbers = [0]
+        for line in lines_info:
+            #filter out only the numbers
+            str_n = "".join(filter(str.isdigit, line))
+
+            if str_n != "":
+                numbers.append(int(str_n))
+        reward = max(numbers)
+
+        text = text.lower()
+        color = None
+        print(f"text: {text}")
+        # do the same as the gree for colors red, black, blue, green
+        if "green" in text:
+            color = "green"
+        elif "red" in text:
+            color = "red"
+        elif "black" in text:
+            color = "black"
+        elif "blue" in text:
+            color = "blue"
+        
+        return reward, color
+
+    def is_poster(self):
+        poster_info = {}
+        is_poster = False
+        
+        try:
+            rgb_image_message = rospy.wait_for_message("/camera/rgb/image_raw", Image)
+        except Exception as e:
+            print(e)
+            return 0
+
+        try:
+            rgb_image = self.bridge.imgmsg_to_cv2(rgb_image_message, "bgr8")
+        except CvBridgeError as e:
+            print(e)
+
+        cv2.imwrite(os.path.join(dirs["dir_posters"], f"poster_{self.poster_counter}.png"), rgb_image)
+        # text = pytesseract.image_to_string(gray_img)
+
+        text_pytesseract = pytesseract.image_to_string(rgb_image)
+        text_easyocr = "\n".join([detection[1] for detection in READER.readtext(rgb_image)])
+
+        print("TEXT_PYTESSERACT", text_pytesseract)
+        print("TEXT_EASYOCR", text_easyocr)
+
+        reward_pyt, color_pyt = self.extract_information(text_pytesseract)
+        reward_easy, color_easy = self.extract_information(text_easyocr)
+        
+        rewards = [0]
+        if reward_pyt:
+            rewards.append(reward_pyt)
+        if reward_easy:
+            rewards.append(reward_easy)
+        
+        reward = max(rewards)
+        
+        color = color_pyt or color_easy
+        if reward and color:
+            print(f"REWARD: {reward}")
+            print(f"COLOR: {color}")
+
+            poster_info = {"reward": reward, "color": color}
+            is_poster = True
+            cv2.imwrite(os.path.join(dirs["dir_posters"], f"poster_{reward}_{color}_{self.poster_counter}.png"), rgb_image)
+        elif not reward or not color:
+            print("DID NOT EXTRACT ANY INFO")
+            print("text_pytesseract:", text_pytesseract)
+
+        return is_poster, poster_info
 
     def greet_person(self, greeting_pose):
         # PARKING NODE TAKES CONTROL OVER MOVEMENT
@@ -405,7 +490,7 @@ class FaceRecogniser:
         for i in range(0, face_detections.shape[2]):
             confidence = face_detections[0, 0, i, 2]
             if confidence>0.50:
-                rospy.loginfo("Saw new face.")
+                # rospy.loginfo("Saw new face.")
                 box = face_detections[0,0,i,3:7] * np.array([w,h,w,h])
                 box = box.astype('int')
                 x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
@@ -414,66 +499,76 @@ class FaceRecogniser:
         
         if face_center is None:
             print("FACE CENTER IS NONE! CHECK!")
-            return
+        else:
+            point = (self.dims[0], self.dims[1]//2)   
+            # print(f"face center: {face_center}")
+            # print(f"point: {point}")
 
-        point = (self.dims[0], self.dims[1]//2)   
-        print(f"face center: {face_center}")
-        print(f"point: {point}")
-        angle_to_target = np.arctan2(face_center[0]-point[0], face_center[1]-point[1])
-        angle_to_target = -(angle_to_target + np.pi/2)
-        print(f"angle to target: {angle_to_target}")
-        # send twist msg to center the face 
-        twist_rotation = Twist()
-        twist_rotation.angular.z = angle_to_target
-        twist_rotation.linear.x = 0.0
-        self.twist_pub.publish(twist_rotation)
-        print("centering")
+            angle_to_target = np.arctan2(face_center[0]-point[0], face_center[1]-point[1])
+            angle_to_target = -(angle_to_target + np.pi/2)
+            # print(f"angle to target: {angle_to_target}")
+            # send twist msg to center the face 
+            twist_rotation = Twist()
+            twist_rotation.angular.z = angle_to_target
+            twist_rotation.linear.x = 0.0
+            self.twist_pub.publish(twist_rotation)
+            print("centering")
 
 
-        rospy.sleep(2)
-        face_distance = float(np.nanmean(depth_image[y1:y2,x1:x2]))
-        # send twist msg to move forward
-        twist_forward = Twist()
-        twist_forward.angular.z = 0.0
-        twist_forward.linear.x = face_distance - 0.4
-        print("moving forward")
+            rospy.sleep(2)
+            face_distance = float(np.nanmean(depth_image[y1:y2,x1:x2]))
+            # send twist msg to move forward
+            twist_forward = Twist()
+            twist_forward.angular.z = 0.0
+            twist_forward.linear.x = face_distance - 0.5
+            print("moving forward")
 
-        self.twist_pub.publish(twist_forward)
-        rospy.sleep(1.5)
-        
-        ## SPEACH WITH THE PERSON
-        self.speak_msg("Do you know where the robber is?")
-        rospy.sleep(1)
-        recognizer = sr.Recognizer()
-        with sr.Microphone() as source:
-            print("!!!SAY SOMETHING!!!")
-            recognizer.adjust_for_ambient_noise(source)
-            audio = recognizer.listen(source)
-            print("recognizing")
-            try:
-                text = recognizer.recognize_google(audio)
-                print("YOU SAID: ", text)
-                text = text.lower()
-                if "blue" in text:
-                    self.robber_locations.append("blue")
-                elif "red" in text:
-                    self.robber_locations.append("red")
-                elif "yellow" in text:
-                    self.robber_locations.append("yellow")
-                elif "green" in text:
-                    self.robber_locations.append("green")
-                
-            except sr.UnknownValueError:
-                print("Unable to recognize speech")
-            except sr.RequestError as e:
-                print("Error:", str(e))
+            self.twist_pub.publish(twist_forward)
+            rospy.sleep(1.5)
 
-        
-        self.speak_msg("Thank you for your help!")
+        poster_status, poster_info = self.is_poster()
+        if not poster_status:
+            ## SPEACH WITH THE PERSON
+            self.speak_msg("Do you know where the robber is?")
+            rospy.sleep(1)
+            recognizer = sr.Recognizer()
+            with sr.Microphone() as source:
+                print("!!!SAY SOMETHING!!!")
+                recognizer.adjust_for_ambient_noise(source)
+                audio = recognizer.listen(source)
+                print("recognizing")
+                try:
+                    text = recognizer.recognize_google(audio)
+                    print("YOU SAID: ", text)
+                    text = text.lower()
+                    colors = ("blue", "green", "red", "yellow")
+                    found_colors = set(text.split()).intersection(set(colors))
+                    print(f"FOUND COLORS: {found_colors}")
+                    self.robber_locations = self.robber_locations.union(found_colors)
+                    # if "blue" in text:
+                    #     self.robber_locations.append("blue")
+                    # elif "red" in text:
+                    #     self.robber_locations.append("red")
+                    # elif "yellow" in text:
+                    #     self.robber_locations.append("yellow")
+                    # elif "green" in text:
+                    #     self.robber_locations.append("green")
+                    
+                except sr.UnknownValueError:
+                    print("Unable to recognize speech")
+                except sr.RequestError as e:
+                    print("Error:", str(e))
 
-        # just so we know what we heard)
-        print(f"current robber possitions: {self.robber_locations}")
-        
+            
+            self.speak_msg("Thank you for your help!")
+
+            # just so we know what we heard)
+            print(f"current robber positions: {self.robber_locations}")
+        else:
+            self.posters.update({self.poster_counter: poster_info})
+            self.poster_counter += 1
+            print("SAW A POSTER!")
+
         rospy.sleep(1)
         greeting_no_movement = Bool()
         greeting_no_movement.data = False
@@ -514,14 +609,14 @@ class FaceRecogniser:
         for i in range(0, face_detections.shape[2]):
             confidence = face_detections[0, 0, i, 2]
             if confidence>0.50:
-                rospy.loginfo("Saw new face.")
+                # rospy.loginfo("Saw new face.")
                 box = face_detections[0,0,i,3:7] * np.array([w,h,w,h])
                 box = box.astype('int')
                 x1, y1, x2, y2 = box[0], box[1], box[2], box[3]
                 
                 ratio = abs(y2-y1)/abs(x2-x1)
-                print(f"Ratio is {ratio}")
-                if  ratio > 1.5:
+                # print(f"Ratio is {ratio}")
+                if  ratio > 2:
                     print(f"Skipping face. Not a nice image.")
                     return
 

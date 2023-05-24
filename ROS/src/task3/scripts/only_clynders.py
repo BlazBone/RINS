@@ -46,7 +46,7 @@ dirs = {
 
 # arbitrarily set, seems to be a good filter
 MINIMAL_ACCEPTED_COLOR_PERCENTAGE = 3
-MINIMAL_ACCEPTED_AREA = 20000
+MINIMAL_ACCEPTED_AREA = 5000
 
 COLOR_DICT = {
         # COLORNAME: (lower_value, upper_value)
@@ -425,6 +425,23 @@ class The_Cylinder:
                 break
 
         rospy.sleep(1)
+    def find_highest_green_pixel(self, image):
+        # Convert image to numpy array
+        np_image = np.array(image)
+
+        # Find indices where the green pixel value is (0, 255, 0)
+        green_pixels = np.where((np_image[:, :, 0] == 0) & (np_image[:, :, 1] == 255) & (np_image[:, :, 2] == 0))
+
+        if green_pixels[0].size == 0:
+            return None  # No green pixel found
+
+        # Get the coordinates of the highest green pixel
+        highest_green_pixel_index = np.argmin(green_pixels[0])
+        x = green_pixels[1][highest_green_pixel_index]
+        y = green_pixels[0][highest_green_pixel_index]
+
+        return x, y
+
     def image_callback(self):
         try:
             data = rospy.wait_for_message('/camera/rgb/image_raw', Image)
@@ -466,7 +483,8 @@ class The_Cylinder:
                                 angles.append(angle)
 
                             area = cv2.contourArea(contour)
-                            color_text = (0,255,0) if color != "green" else (255,255,255)
+                            # color_text = (0,255,0) if color != "green" else (255,255,255)
+                            color_text = (0,255,0)
 
                             if all(angle > 80 and angle < 100 for angle in angles) and area > MINIMAL_ACCEPTED_AREA:
                                 M = cv2.moments(contour)
@@ -484,8 +502,8 @@ class The_Cylinder:
                                 }
                             
                                 image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
-                                print(f"Found a {color.upper()} cylinder!")
-                                print(f"AREA: {area}")
+                                # print(f"Found a {color.upper()} cylinder!")
+                                # print(f"AREA: {area}")
                                                             
                                 # The contour is roughly rectangular
                                 depth = depth_image[cy][cx]
@@ -493,6 +511,12 @@ class The_Cylinder:
                                 cylinder_location = (cylinder_pose.position.x, cylinder_pose.position.y, cylinder_pose.position.z)
                                 cv2.drawContours(cv_image_raw, contour, -1, color_text, 2)
                                 cv2.imwrite(image_name, cv_image_raw)
+
+                                highest_x, highest_y = self.find_highest_green_pixel(cv_image_raw)
+                                
+                                if highest_y > cv_image_raw.shape[0] / 2:
+                                    # print("Cylinder in bottom half, skipping!")
+                                    return
 
                                 greet_pose = self.get_greeting_pose(coords=cx, dist=depth, stamp=depth_time, pose_of_detection=p)
                                 greeting_position = (greet_pose.position.x, greet_pose.position.y, greet_pose.position.z, greet_pose.orientation.z, greet_pose.orientation.w)

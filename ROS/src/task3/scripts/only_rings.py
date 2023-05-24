@@ -140,7 +140,7 @@ class The_Ring:
         marker.header.stamp = rospy.Time.now()
         marker.header.frame_id = "map"
         marker.pose = pose
-        marker.type = Marker.CYLINDER
+        marker.type = Marker.SPHERE
         marker.action = Marker.ADD
         marker.frame_locked = False
         marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
