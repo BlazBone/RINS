@@ -4,5 +4,6 @@
 */devel/*
 *.jpg
 images/*
+!report/images/*.jpg
 face_coordinates.txt
 */.vscode/*
