@@ -2,6 +2,5 @@
 .idea/
 */build/*
 */devel/*
-*.jpg
 face_coordinates.txt
 */.vscode/*
