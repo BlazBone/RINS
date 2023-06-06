@@ -46,7 +46,7 @@ dirs = {
 
 # arbitrarily set, seems to be a good filter
 MINIMAL_ACCEPTED_COLOR_PERCENTAGE = 3
-MINIMAL_ACCEPTED_AREA = 20000
+MINIMAL_ACCEPTED_AREA = 5000
 
 COLOR_DICT = {
         # COLORNAME: (lower_value, upper_value)
@@ -67,6 +67,7 @@ COLOR_DICT = {
                np.array([40, 255, 255])
             )
         }
+
 
 def apply_colour_mask(cv_image, hsv_image, show=False):
         
@@ -161,6 +162,8 @@ class The_Cylinder:
         self.traverse_sub = rospy.Subscriber("/only_movement/traversed_path/", Bool, self.traversed_callback)
         self.traversed_path = False
 
+        self.robber_found = False
+
     
     def status_reached(self) -> Tuple[bool, int]:
         """
@@ -182,13 +185,15 @@ class The_Cylinder:
         self.traversed_path = data.data
 
         robber_cylinder_colors = rospy.wait_for_message("/only_faces/robber_locations", String).data
-
-        for cylinder_color in robber_cylinder_colors.split(","):
+        
+        colors, prison_color = robber_cylinder_colors.split("\n")
+        for cylinder_color in colors.split(","):
             if self.cylinders.get(cylinder_color):
                 self.cylinders_to_visit.append(self.cylinders[cylinder_color]["greet_position"])
                 rospy.loginfo(f"Will visit '{cylinder_color}' cylinder.")
             else:
                 rospy.logwarn(f"Color '{cylinder_color}' wasn't detected before! Skipping.")
+
 
         rospy.sleep(1)
         for n, cylinder_greet_pose in enumerate(self.cylinders_to_visit):
@@ -203,6 +208,23 @@ class The_Cylinder:
             while not reached:
                 reached, status =self.status_reached()
             print(f"Reached cylinder #{n}")
+
+        # pretend we found the robber on the last cylinder and go to the greet position
+        self.speak_msg("I found you fool, you're coming with me!")
+        rospy.sleep(1)
+
+        self.robber_found = True
+        print(f"PUBLISHING PRISON COLOR '{prison_color}'")
+        robber_found_pub = rospy.Publisher("/only_movement/prison_color", String, queue_size=1)
+
+        msg = String()
+        msg.data = prison_color
+        
+        rospy.sleep(0.5)
+
+        robber_found_pub.publish(msg)
+
+        # publish a msg to parking node or ring node with the color of the parking space
 
     def get_marker_array_to_publish(self):
         marker_array = MarkerArray()
@@ -229,8 +251,10 @@ class The_Cylinder:
         """
         try:
             x,y,z = coords
+            or_z = 1
+            or_w = 0
         except ValueError:
-            x,y,z,_,_ = coords
+            x,y,z,or_z,or_w = coords
         except:
             raise ValueError(f"Coordinates are of len {len(coords)}.\nValues are {coords}.")
 
@@ -238,8 +262,8 @@ class The_Cylinder:
         pose.position.x = x
         pose.position.y = y
         pose.position.z = z
-        pose.orientation.z = 1
-        pose.orientation.w = 0
+        pose.orientation.z = or_z
+        pose.orientation.w = or_w
         pose.orientation.x = 0
         pose.orientation.y = 0
 
@@ -275,14 +299,14 @@ class The_Cylinder:
             all_locations = self.cylinders[detected_color]["all_locations"]
             all_locations = np.array(all_locations)
 
-            location = np.mean(all_locations, axis=0)[:3]
+            location = np.mean(all_locations, axis=0)
             location_pose = self.coordinates_to_pose(location)
             location_marker = self.pose_to_marker(location_pose, color=detected_color)
 
             all_greet_positions = self.cylinders[detected_color]["all_greet_positions"]
             all_greet_positions = np.array(all_greet_positions)
 
-            greet_position = np.mean(all_greet_positions, axis=0)[:3]
+            greet_position = np.mean(all_greet_positions, axis=0)
             greet_pose = self.coordinates_to_pose(greet_position)
             greet_marker = self.pose_to_marker(greet_pose, color="white", size=0.1)
             
@@ -419,6 +443,23 @@ class The_Cylinder:
                 break
 
         rospy.sleep(1)
+    def find_highest_green_pixel(self, image):
+        # Convert image to numpy array
+        np_image = np.array(image)
+
+        # Find indices where the green pixel value is (0, 255, 0)
+        green_pixels = np.where((np_image[:, :, 0] == 0) & (np_image[:, :, 1] == 255) & (np_image[:, :, 2] == 0))
+
+        if green_pixels[0].size == 0:
+            return None  # No green pixel found
+
+        # Get the coordinates of the highest green pixel
+        highest_green_pixel_index = np.argmin(green_pixels[0])
+        x = green_pixels[1][highest_green_pixel_index]
+        y = green_pixels[0][highest_green_pixel_index]
+
+        return x, y
+
     def image_callback(self):
         try:
             data = rospy.wait_for_message('/camera/rgb/image_raw', Image)
@@ -460,7 +501,8 @@ class The_Cylinder:
                                 angles.append(angle)
 
                             area = cv2.contourArea(contour)
-                            color_text = (0,255,0) if color != "green" else (255,255,255)
+                            # color_text = (0,255,0) if color != "green" else (255,255,255)
+                            color_text = (0,255,0)
 
                             if all(angle > 80 and angle < 100 for angle in angles) and area > MINIMAL_ACCEPTED_AREA:
                                 M = cv2.moments(contour)
@@ -478,8 +520,8 @@ class The_Cylinder:
                                 }
                             
                                 image_name = f"{dirs['cylinders'][color]}{color.upper()}_cylinder_{time.time()}.jpg"
-                                print(f"Found a {color.upper()} cylinder!")
-                                print(f"AREA: {area}")
+                                # print(f"Found a {color.upper()} cylinder!")
+                                # print(f"AREA: {area}")
                                                             
                                 # The contour is roughly rectangular
                                 depth = depth_image[cy][cx]
@@ -488,14 +530,29 @@ class The_Cylinder:
                                 cv2.drawContours(cv_image_raw, contour, -1, color_text, 2)
                                 cv2.imwrite(image_name, cv_image_raw)
 
+                                highest_x, highest_y = self.find_highest_green_pixel(cv_image_raw)
+                                
+                                if highest_y > cv_image_raw.shape[0] / 2:
+                                    # print("Cylinder in bottom half, skipping!")
+                                    return
+
                                 greet_pose = self.get_greeting_pose(coords=cx, dist=depth, stamp=depth_time, pose_of_detection=p)
                                 greeting_position = (greet_pose.position.x, greet_pose.position.y, greet_pose.position.z, greet_pose.orientation.z, greet_pose.orientation.w)
+
+                                if color.lower() == "red":
+                                    if not self.cylinders.get("yellow"):
+                                        return
+                                    elif len(self.cylinders["yellow"]["all_locations"]) < 20:
+                                        return
+                                else:
+                                    number_of_yellow = 0 if not self.cylinders.get("yellow") else len(self.cylinders["yellow"]["all_locations"])
+                                    print("ADDING RED CYLINDER, NUMBER OF YELLOW IS", number_of_yellow)
 
                                 # we dont have any face close, (either empty or too far) NEW CYLINDER
                                 if not self.cylinders.get(color):
                                     self.speak_msg(f"{color} cylinder")
                                     cylinder_data = {
-                                        "all_locations": [(greet_pose.position.x, greet_pose.position.y, greet_pose.position.z)],
+                                        "all_locations": [cylinder_location],
                                         "location": None,
                                         "all_greet_positions": [greeting_position],
                                         "greet_position": None,

@@ -5,13 +5,14 @@
 import rospy
 import cv2
 import numpy as np
+from rospy.topics import QueuedConnection
 import tf2_geometry_msgs
 import tf2_ros
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import PointStamped, Vector3, Pose, Quaternion, PoseWithCovarianceStamped
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
-from std_msgs.msg import ColorRGBA
+from std_msgs.msg import ColorRGBA, String
 from tf.transformations import *
 from sound_play.libsoundplay import SoundClient
 
@@ -50,39 +51,20 @@ dirs = {
             
         }
 
-# calculated markers for all possible objects
-ALL_MARKER_COORDS= {
-    # if rings are above parking spaces, there's no need to include them in this dict
-    "ring": {
-        "red": list(),
-        "blue": list(),
-        "green": list(),
-        "black": list(),
-        "white": list(), # currently only used for parking spaces
-        },
-    }
+MARKER_COLORS = {
+    "red": ColorRGBA(1,0,0,1),
+    "green": ColorRGBA(0,1,0,1),
+    "blue": ColorRGBA(0,0,1,1),
+    "unknown": ColorRGBA(0,0,0,1),
+    "yellow": ColorRGBA(1,1,0,1),
+    "white": ColorRGBA(1,1,1,1),
+    "black": ColorRGBA(0,0,0,1),
 
-# best calculated markers for all possible objects
-BEST_MARKERS= {
-    # if rings are above parking spaces, there's no need to include them in this dict
-    "ring": {
-        "red": None,
-        "blue": None,
-        "green": None,
-        "black": None,
-        "white": None, # currently only used for parking spaces
-        },
-    }
+}
+
 
 MARKERS_NEEDED_FOR_PARKING = 6
 
-def get_marker_array_to_publish():
-    marker_array = MarkerArray()
-    for shape in BEST_MARKERS:
-        for color in BEST_MARKERS[shape]:
-            if BEST_MARKERS[shape][color]:
-                marker_array.markers.append(BEST_MARKERS[shape][color])
-    return marker_array
 
 class The_Ring:
     def __init__(self):
@@ -107,10 +89,115 @@ class The_Ring:
 
 
         self.park_scanner_pub = rospy.Publisher("/only_movement/parking_search", PoseStamped, queue_size=10)
+        self.robber_found_sub = rospy.Subscriber("/only_movement/prison_color", String, callback=self.prison_callback)
 
         self.needs_to_be_parked = True
 
         self.all_green_ring_greeting_positions_array = []
+
+        self.rings = {}
+    
+    def prison_callback(self, data):
+        color = data.data
+        parking_marker = self.rings[color]["greet_position"]
+
+        print(f"RECEIVED PRISON COLOR: '{color}'")
+
+        p = PoseStamped()
+        p.header.stamp = rospy.Time().now()
+        p.header.frame_id = "map"
+        p.header.seq = 99999
+        p.pose = parking_marker.pose
+        rospy.sleep(0.5)
+
+        print("PUBLISHING PRISON GREET POSE")
+        print(p)
+        self.park_scanner_pub.publish(p)
+
+    def get_marker_array_to_publish(self):
+        marker_array = MarkerArray()
+        for color in self.rings:
+            marker_array.markers.append(self.rings[color]["location"]) # cylinder marker
+            marker_array.markers.append(self.rings[color]["greet_position"]) # greet position marker
+        return marker_array
+
+    def delete_markers(self):
+        delete_arr = MarkerArray()
+        delete_marker = Marker()
+        delete_marker.action = Marker.DELETEALL
+        delete_marker.header.frame_id = 'map'
+        delete_arr.markers.append(delete_marker)
+        self.markers_pub.publish(delete_arr)
+
+    def coordinates_to_pose(self, coords):
+        """
+        Transforms tuple (x, y, z) to Pose.
+        """
+        try:
+            x,y,z = coords
+            or_z = 1
+            or_w = 0
+        except ValueError:
+            x,y,z,or_z,or_w = coords
+        except:
+            raise ValueError(f"Coordinates are of len {len(coords)}.\nValues are {coords}.")
+
+        pose = Pose()
+        pose.position.x = x
+        pose.position.y = y
+        pose.position.z = z
+        pose.orientation.z = or_z
+        pose.orientation.w = or_w
+        pose.orientation.x = 0
+        pose.orientation.y = 0
+
+        return pose
+
+    def pose_to_marker(self, pose, color: str, size: float=0.2):
+        """
+        Transforms Pose to Marker.
+        """
+        marker = Marker()
+        marker.header.stamp = rospy.Time.now()
+        marker.header.frame_id = "map"
+        marker.pose = pose
+        marker.type = Marker.SPHERE
+        marker.action = Marker.ADD
+        marker.frame_locked = False
+        marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
+        marker.id = self.marker_num
+        self.marker_num += 1
+        marker.scale = Vector3(size, size, size)
+        marker.color = MARKER_COLORS[color]
+        return marker
+
+    def create_markers(self, detected_color: str):
+        """
+        Returns a tuple (marker_cylinder, marker_greet).
+        """
+        location_marker = None
+        greet_marker = None
+
+        if self.rings.get(detected_color):
+            all_locations = self.rings[detected_color]["all_locations"]
+            all_locations = np.array(all_locations)
+
+            location = np.mean(all_locations, axis=0)
+            location_pose = self.coordinates_to_pose(location)
+            location_marker = self.pose_to_marker(location_pose, color=detected_color)
+
+            all_greet_positions = self.rings[detected_color]["all_greet_positions"]
+            all_greet_positions = np.array(all_greet_positions)
+
+            greet_position = np.mean(all_greet_positions, axis=0)
+            greet_pose = self.coordinates_to_pose(greet_position)
+            greet_marker = self.pose_to_marker(greet_pose, color="white", size=0.1)
+            
+            if location_marker:
+                self.rings[detected_color]["location"] = location_marker
+            if greet_marker:
+                self.rings[detected_color]["greet_position"] = greet_marker
+
 
     def speak_msg(self, msg):
         """
@@ -123,6 +210,8 @@ class The_Ring:
         volume = 1.
         rospy.loginfo(f"volume: {volume}, voice: {voice}, text:{msg}")
         soundhandle.say(msg, voice, volume)
+
+    
 
     def get_pose(self,e,dist, time_stamp, marker_color, detected_object, detected_color):
         # parking_spaces are below rings - can share markers
@@ -141,87 +230,30 @@ class The_Ring:
         # Get the angles in the base_link relative coordinate system
         x,y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
 
-        ### Define a stamped message for transformation - directly in "base_frame"
-        #point_s = PointStamped()
-        #point_s.point.x = x
-        #point_s.point.y = y
-        #point_s.point.z = 0.3
-        #point_s.header.frame_id = "base_link"
-        #point_s.header.stamp = rospy.Time(0)
-
         # Define a stamped message for transformation - in the "camera rgb frame"
         point_s = PointStamped()
         point_s.point.x = -y
         point_s.point.y = 0
         point_s.point.z = x
         point_s.header.frame_id = "camera_rgb_optical_frame"
-        # point_s.header.stamp = rospy.Time(0) # tle damo current time have to fix
         point_s.header.stamp = time_stamp
 
         # Get the point in the "map" coordinate system
         point_world = self.tf_buf.transform(point_s, "map")
 
-        marker_coords = (point_world.point.x, point_world.point.y, point_world.point.z)
-        ALL_MARKER_COORDS[detected_object][detected_color].append(marker_coords)
-
-        # print(f"added {detected_color.upper()} marker for {detected_object}!")
-        # print(f"Current markers for color {detected_color} and object {detected_object} are: {len(ALL_MARKER_COORDS[detected_object][detected_color])}")
-
-        all_coordinates = np.array(ALL_MARKER_COORDS[detected_object][detected_color])
-        avg_x = np.nanmean(all_coordinates[:, 0])
-        avg_y = np.nanmean(all_coordinates[:, 1])
-        avg_z = np.nanmean(all_coordinates[:, 2])
-
         # Create a Pose object with the same position
         pose = Pose()
-        pose.position.x = avg_x
-        pose.position.y = avg_y
-        pose.position.z = avg_z
+        pose.position.x = point_world.point.x
+        pose.position.y = point_world.point.y
+        pose.position.z = point_world.point.z
         
         if not dist:
             print(f"DIST: {dist}")
-            print(marker_coords)
-            print(f"avg_x: {avg_x}")
-            print(f"avg_y: {avg_y}")
-            print(f"avg_z: {avg_z}")
             print(f"detected_object: {detected_object}")
             print(f"detected_color: {detected_color}")
-            return
+            return None
         
-        # so we get no errors
-        pose.orientation.z = 1
-        pose.orientation.w = 0
-        pose.orientation.x = 0
-        pose.orientation.y = 0
-        
-        # PUBLISHING MARKER
-        # Create a marker used for visualization
-        self.marker_num += 1
-        marker = Marker()
-        marker.header.stamp = point_world.header.stamp
-        marker.header.frame_id = point_world.header.frame_id
-        marker.pose = pose
-        marker.type = Marker.SPHERE
-        marker.action = Marker.ADD
-        marker.frame_locked = False
-        marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
-        marker.id = self.marker_num
-        marker.scale = Vector3(0.2, 0.2, 0.2)
-        marker.color = marker_color
-
-
-        
-        BEST_MARKERS[detected_object][detected_color] = marker
-        
-        delete_arr = MarkerArray()
-        delete_marker = Marker()
-        delete_marker.action = Marker.DELETEALL
-        delete_marker.header.frame_id = 'map'
-        delete_arr.markers.append(delete_marker)
-        self.markers_pub.publish(delete_arr)
-
-        markers_to_publish = get_marker_array_to_publish()
-        self.markers_pub.publish(markers_to_publish)
+        return pose
 
     def get_greeting_pose(self, e, dist, stamp, pose_of_detection):
         # Calculate the position of the detected face
@@ -232,7 +264,7 @@ class The_Ring:
         angle_to_target = np.arctan2(elipse_x,k_f)
         
         # Get the angles in the base_link relative coordinate system
-        dist -= .7
+        dist -= .5
         x,y = dist*np.cos(angle_to_target), dist*np.sin(angle_to_target)
 
 
@@ -279,24 +311,6 @@ class The_Ring:
         except Exception as e:
             print(e)
             pose = None
-
-        marker = Marker()
-        marker.header.stamp = rospy.Time().now()
-        marker.header.frame_id = "map"
-        marker.pose = pose.pose
-        marker.type = Marker.SPHERE
-        marker.action = Marker.ADD
-        marker.frame_locked = False
-        marker.lifetime = rospy.Duration(1000) # this way marker stays up until deleted
-        marker.id = self.marker_num
-        marker.scale = Vector3(0.2, 0.2, 0.2)
-        marker.color = ColorRGBA(1, 1, 1, 1)
-
-        # hardcoded because this is for parking space only
-        BEST_MARKERS["ring"]["white"] = marker
-        marker_array_to_publish = get_marker_array_to_publish()
-
-        self.markers_pub.publish(marker_array_to_publish)
 
         return pose
 
@@ -519,80 +533,55 @@ class The_Ring:
                 # print main color
                 timestamp_img = time.time()
 
-                marker_colors = {
-                    "red": ColorRGBA(1,0,0,1),
-                    "green": ColorRGBA(0,1,0,1),
-                    "blue": ColorRGBA(0,0,1,1),
-                    "black": ColorRGBA(0,0,0,1),
-                    "unknown": ColorRGBA(0,0,0,1)
-                }
+
 
                 if main_color in ("red", "green", "blue", "black"):
                     image_name = f"{dirs['rings'][main_color]}{timestamp_img}.jpg"
                 else:
                     image_name = f"{dirs['dir_irregular']}{timestamp_img}.jpg"
                 
-                print(f"Found a {main_color.upper()} ring!")
-                
-                if main_color != "unknown" and len(ALL_MARKER_COORDS["ring"][main_color]) == 0:
-                    self.speak_msg(f"{main_color} ring")
-                    
-                # Create a masked array where zeros are masked
+                                # Create a masked array where zeros are masked
                 depth_ring = depth_image[y-h:y+h, x-w:x+w]
                 masked_a = np.ma.masked_equal(depth_ring, 0)
                 # Compute the mean of the masked array
                 mean = masked_a.mean()
-                # ONLY IF DIST IS NONE (WAS IN TASK 2 PATH)
-                # if main_color in ("black", "unknown") and bool(mean):
-                #     mean = 2.9
-                #     print("...")
-                   
-                if main_color == "green" and bool(mean):
-                    greeting_position_green_ring = self.get_greeting_pose(e1, mean, depth_time, p)
-                    self.all_green_ring_greeting_positions_array.append(greeting_position_green_ring)
 
-                if main_color == "green" and len(ALL_MARKER_COORDS["ring"]["green"]) >= MARKERS_NEEDED_FOR_PARKING and self.needs_to_be_parked and bool(mean):
-                    print("STARTED SCANNING FOR PARKING")
-                    self.needs_to_be_parked = False
-                    
-                    x_green,y_green,w_green,z_green = 0,0,0,0
-
-                    for pose in self.all_green_ring_greeting_positions_array:
-                        x_green += pose.pose.position.x
-                        y_green += pose.pose.position.y
-                        z_green += pose.pose.orientation.z
-                        w_green += pose.pose.orientation.w
-
-                    x_green /= len(self.all_green_ring_greeting_positions_array)
-                    y_green /= len(self.all_green_ring_greeting_positions_array)
-                    z_green /= len(self.all_green_ring_greeting_positions_array)
-                    w_green /= len(self.all_green_ring_greeting_positions_array)
-
-                    green_pose = PoseStamped()
-                     
-                    green_pose.header.stamp = rospy.Time().now()
-                    green_pose.header.frame_id = "map"
-
-                    green_pose.pose.position.x = x_green
-                    green_pose.pose.position.y = y_green
-
-                    green_pose.pose.orientation.z = z_green
-                    green_pose.pose.orientation.w = w_green
-            
-                    # parking_scan_message.data = True
-                    self.park_scanner_pub.publish(green_pose)
-                    print("PUBLISHING GREEN_POSE")
-                    print(green_pose)
+                ring_pose = self.get_pose(e=e2,dist=mean, time_stamp=depth_time, marker_color=MARKER_COLORS[main_color], detected_object="ring", detected_color=main_color)
+                if not ring_pose:
+                    continue
+                ring_location = (ring_pose.position.x, ring_pose.position.y, ring_pose.position.z)
                 
+                greet_pose = self.get_greeting_pose(e=e2, dist=mean, stamp=depth_time, pose_of_detection=p)
+                greeting_position = (greet_pose.pose.position.x, greet_pose.pose.position.y, greet_pose.pose.position.z, greet_pose.pose.orientation.z, greet_pose.pose.orientation.w)
 
+
+                if not self.rings.get(main_color):
+                    print(f"Found a {main_color.upper()} ring!")
+                    self.speak_msg(f"{main_color} ring")
+                    ring_data = {
+                        "all_locations": [ring_location],
+                        "all_greet_positions": [greeting_position],
+                        "greet_position": None,
+                        "location": None,
+                    }
+                    self.rings.update({main_color: ring_data})
+                else:
+                    self.rings[main_color]["all_locations"].append(ring_location)
+                    self.rings[main_color]["all_greet_positions"].append(greeting_position)
+                
+                self.create_markers(detected_color=main_color)
+                self.delete_markers()
+                
+                marker_to_publish = self.get_marker_array_to_publish()
+                self.markers_pub.publish(marker_to_publish)
+
+                
+                
                 cv2.line(cv_image, (x-w, 0), (x-w, cv_image.shape[0]), (0,0,255), 1)
                 cv2.line(cv_image, (x+w, 0), (x+w, cv_image.shape[0]), (0,0,255), 1)
 
                 cv2.line(cv_image, (0, y-h), (cv_image.shape[1], y-h), (255,0,0), 1)
                 cv2.line(cv_image, (0, y+h), (cv_image.shape[1], y+h), (255,0,0), 1)
-                
-                self.get_pose(e1, mean, depth_time, marker_colors[main_color], "ring", main_color)                
-
                 cv2.imwrite(image_name, cv_image) # Save the whole image
 
 

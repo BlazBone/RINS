@@ -12,7 +12,7 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import PointStamped, Vector3, Pose, Quaternion, PoseWithCovarianceStamped, Twist
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
-from std_msgs.msg import ColorRGBA, Bool
+from std_msgs.msg import ColorRGBA, Bool, String
 
 # OUR IMPORTS
 from tf2_geometry_msgs import PoseStamped
@@ -83,6 +83,7 @@ class Parking:
         self.simple_goal_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
 
         self.twist_pub = rospy.Publisher("/cmd_vel_mux/input/navi", Twist, queue_size=10)
+        self.arm_mover_pub = rospy.Publisher("/arm_command", String, queue_size=10)
 
         self.is_parked = False
 
@@ -136,15 +137,15 @@ class Parking:
         green_pose.header.stamp = rospy.Time().now()
         green_pose.header.frame_id = "map"
 
-        green_pose.pose.position.x = 2.091554422903801
-        green_pose.pose.position.y = 0.3509621880975083
+        green_pose.pose.position.x = -0.6837977420946423
+        green_pose.pose.position.y = 0.9226411301964432
 
-        green_pose.pose.orientation.z = -0.9171601902651947
-        green_pose.pose.orientation.w = 0.3985187390734743
+        green_pose.pose.orientation.z = 0.6887448776174251
+        green_pose.pose.orientation.w = 0.7250037886492443
 
         self.simple_goal_pub.publish(green_pose)
-        print("PUBLISHED SECOND GREEN POSE")
-        rospy.sleep(5)
+        print("PUBLISHED SECOND PRISON POSE")
+        rospy.sleep(1)
         
 
     def fine_manouvering_rotation(self):
@@ -168,9 +169,17 @@ class Parking:
         img = self.get_binary_arm_image() 
 
         while get_highest_black_pixel(img)[0] < 10:
-            # print("FIRST LOOP")
-            print(get_highest_black_pixel(img)[0])
             img = self.get_binary_arm_image()
+            # angle = -(get_angle(img) + np.pi/2)
+            #
+            # twist_msg = Twist()
+            # twist_msg.linear.x = 0.00
+            # twist_msg.angular.z = angle
+            #
+            # self.twist_pub.publish(twist_msg)
+            # rospy.sleep(0.2)
+            # print("FIRST LOOP")
+            # print(get_highest_black_pixel(img)[0])
             # cv2.imshow("arm_image", img)
             # cv2.waitKey(0)
             twist_msg = Twist()
@@ -228,7 +237,7 @@ def main():
     rospy.sleep(0.5)
     rospy.loginfo("Starting the parking finder node")
     parking.greeting_position_green_ring = rospy.wait_for_message("/only_movement/parking_search", PoseStamped)    
-    print("GOT GREEN RING GREETING POSE", parking.greeting_position_green_ring)
+    print("PARKING: GOT PRISON GREETING POSE", parking.greeting_position_green_ring)
 
     rospy.loginfo("STARTED PARKING")
 
@@ -237,24 +246,30 @@ def main():
     # PARKING NODE TAKES CONTROL OVER MOVEMENT
     parking_no_movement_msg = Bool()
     parking_no_movement_msg.data = True
+    rospy.sleep(0.5)
     parking_no_movement_pub.publish(parking_no_movement_msg)
 
     parking_no_movement_msg = Bool()
     parking_no_movement_msg.data = True
+    rospy.sleep(0.5)
     parking_no_movement_pub.publish(parking_no_movement_msg)
 
     rospy.sleep(1)
     
     # print(parking.greeting_position_green_ring)
-    parking.simple_goal_pub.publish(parking.greeting_position_green_ring)
-    print("(IN MAIN) GOING TO GREEN RING, DELETING ITS POSITION")
-    print("WAITING 5 SECONDS")
+    # parking.simple_goal_pub.publish(parking.greeting_position_green_ring)
+
+    parking.publish_second_greeting_pose()
+    print("PARKING: PUBLISHED 2nd PRISON GREETING POSE")
+    print(parking.greeting_position_green_ring)
 
     while not parking.status_reached()[0]:
         pass
 
+    parking.arm_mover_pub.publish("extend")
+
     rospy.sleep(2)
-    
+    print("STARTED FINE MANOUVERING")    
     parking.greeting_position_green_ring = None
     parking.fine_manouvering_rotation()
     while not rospy.is_shutdown() and not parking.is_parked:
@@ -262,9 +277,12 @@ def main():
 
     rospy.loginfo("Parking finder node finished.")
 
+    parking.arm_mover_pub.publish("retract")
+
     # MOVEMENT NODE TAKES CONTROL OVER MOVEMENT
     parking_no_movement_msg = Bool()
     parking_no_movement_msg.data = False
+    rospy.sleep(0.5)
     parking_no_movement_pub.publish(parking_no_movement_msg)
 
 
