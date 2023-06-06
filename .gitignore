@@ -6,3 +6,6 @@
 images/*
 face_coordinates.txt
 */.vscode/*
+
+
+!report/images/*.jpg
