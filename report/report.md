@@ -27,6 +27,10 @@ Our face recognition system doesn't stop at detecting faces in the current frame
 
 In conclusion, our face recognition system combines a DNN for image-based face detection with depth information for tracking faces in 3D space over time. This multimodal approach allows for a more robust and versatile face recognition system.
 
+![face_image1](./images/face1.jpg)
+![face_image2](./images/face2.jpg)
+
+
 ### Clyinder detections
 Our approach to detecting cylinders in an image is multi-staged, combining image processing techniques with object shape characteristics. 
 
@@ -46,6 +50,9 @@ If a detection passes all the checks, we calculate the centroid, which will be u
 
 In conclusion, we leverage color information, spatial distribution, and geometric properties to detect and localize cylinders in an image. This method is a robust approach, allowing us to recognize cylinders of different colors in various scenarios.
 
+![cylinder1](./images/cylinder1.jpg)
+![cylinder2](./images/cylinder2.jpg)
+
 ### Ring detection
 
 Our ring detection approach combines various techniques to accurately identify and locate rings in the scene. The process begins by retrieving an RGB image and converting it to grayscale. Histogram equalization is applied to enhance contrast. Adaptive thresholding is then performed to create a binary image.
@@ -60,6 +67,10 @@ Using depth information, the pose of the detected ring and associated greeting p
 
 Our approach leverages image processing, ellipse fitting, depth analysis, and color recognition techniques to achieve robust ring detection. By combining information from the color image and depth image, our method enables accurate detection even in complex scenarios.
 
+![ring1](./images/ring1.jpg)
+![ring2](./images/ring2.jpg)
+
+
 ### Text detection and recognition
 
 Our text detection and recognition process  utilizes libraries such as pytesseract and EasyOCR to perform the text recognition.
@@ -69,6 +80,10 @@ In the `is_poster` function, the code captures an RGB image from the camera. The
 In the `extract_information` function, the input text is processed to extract numerical information and identify the dominant color. The lines of text are then cleaned by removing any spaces and empty lines. Next, the function extracts numerical values from the text by filtering out non-digit characters and converting the resulting strings to integers. The highest numerical value is considered as the reward. The function also identifies the dominant color by searching for specific color keywords in the text.
 
 Our approach leverages text recognition algorithms and preprocessing techniques to accurately extract information from text in the image. By combining the outputs of multiple text recognition libraries, we enhance the accuracy and reliability of the information extraction process.
+
+![poster1](./images/poster1.png)
+![poster2](./images/poster2.png)
+
 
 ### Speech Recognition
 
@@ -92,10 +107,15 @@ To initiate parking, the robot captures an image using its arm camera and conver
 
 Our parking functionality combines image analysis, depth perception, and motion control to achieve accurate positioning in the middle of the desired parking slot.
 
+![parking](./images/parking.png)
+
+
 ## Implementation and integration.
 
 
 ## Results
+
+![markers](./images/markers.png)
 
 
 ## Division of work

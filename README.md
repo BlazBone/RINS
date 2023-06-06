@@ -1,12 +1,23 @@
-# POZOR
 
-POTREBNO JE DA SI NADOMETSTITA TO ZA ZVOK
+## RUN MAIN TASK (task3)
 
 ```bash
-sudo apt install ros-noetic-sound-play
+roslaunch task3 rins_world.launch
 ```
 
-### RUN TASK 1
+```bash
+roslaunch exercise3 amcl_simulation.launch
+```
+
+```bash
+roslaunch turtlebot_rviz_launchers view_navigation.launch
+```
+
+```bash
+roslaunch task3 start.launch
+```
+
+## RUN TASK 1
 
 ```bash
 roslaunch exercise3 rins_world.launch
@@ -34,10 +45,10 @@ or (to create images)
 (rm run_info/* && rosrun task1 task1) || rosrun task1 task1
 ```
 
-# RUN EXERCISE 6
+## RUN EXERCISE 6
 
 IMPORTANT: IF rins_world DOESN'T START, CHECK THAT YOU'RE NOT EXPORTING 'ROS_IP' AND 'ROS_MASTER_URI'
-IMPORTANT: You have to tunr shadows off in gazebo.
+IMPORTANT: You have to turn shadows off in gazebo.
 
 ```bash
 roslaunch exercise6 rins_world.launch
@@ -55,7 +66,7 @@ roslaunch turtlebot_rviz_launchers view_navigation.launch
 rosrun exercise6 detect_rings
 ```
 
-# RUN EXERCISE 7
+## RUN EXERCISE 7
 
 IMPORTANT: IF rins_world DOESN'T START, CHECK THAT YOU'RE NOT EXPORTING 'ROS_IP' AND 'ROS_MASTER_URI'
 IMPORTANT: You have to tunr shadows off in gazebo.
@@ -81,7 +92,7 @@ rosrun exercise7 move_arm.py
 rosrun exercise6 detect_rings
 ```
 
-# Shorcuts, tips, tricks
+## Shorcuts, tips, tricks
 
 ### Change border sensitivity of a robot
 
@@ -117,11 +128,3 @@ source /home/bone/RINS/ROS_TURTLE/devel/setup.zsh --extend
 ```bash
 ps aux | grep -ie ros | awk '{print $2}' | xargs kill -9
 ```
-
-### parking idea
-
-1. Ko zazna zelen ring najde najblizji location na zemljevidu temu ringu kamor loh gre in se tja zapelje
-2. Ko prispe extenda roko tko da gleda pravokotno na tla in se začne vrtet v krogu
-3. Ko na tleh zazna krog se obrača tako, da je center tega kroga znotraj 30px centra slike
-4. Ko je to res se začne premikat naprej dokler center kroga ni v spodnjih 50px slike
-5. Ko sta 3) in 4) izpolnjena si parked in lah pospraviš nazaj roko
