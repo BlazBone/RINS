@@ -115,8 +115,18 @@ Our parking functionality combines image analysis, depth perception, and motion 
 
 ## Results
 
+During the competition, our robot performed exceptionally well, successfully completing all the assigned tasks with high accuracy and efficiency.
+* The face detection module accurately recognized and tracked faces within the simulated environment.
+* The cylinder detection module effectively identified and located cylinders of different colors.
+* The ring detection module achieved accurate detection and localization of rings of different colors.
+* The text recognition module accurately extracted information from posters, including reward values and prison colors.
+* The speech recognition module enabled effective interaction between the robot and humans, allowing for gathering information about the robber's whereabouts.
+* The parking module demonstrated reliable performance in navigating and positioning the robot in designated parking spot.
+* Overall, the robot's performance showcased the capabilities of our intelligent robotic system, with precise object detection, reliable localization, and successful completion of tasks.
+
 ![markers](./images/markers.png)
 
+In our system, markers in the form of orange cubes are used for face detection, colored spheres for ring detection, and colored cylinders for cylinder detection. The presence of white spots indicates the robot's greeting positions, where it approaches and centers the detected objects in its field of view. We successfully detected all objects, and our markers are dynamically updated during the run, providing more reliable results by averaging the positions of the captured objects instead of relying solely on the initial detection.
 
 ## Division of work
 
