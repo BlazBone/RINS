@@ -1,21 +1,24 @@
-# RINS report
+# RINS: project report
+
+**Authors:** Blaž Bone, Nace Kovačič  
+Fakulteta za računalništvo in informatiko, Univerza v Ljubljani
 
 ## Introduction
 
-The project we undertook as part of the 2022/23 Development of Intelligent Systems competition revolved around a challenging task of developing a robotic system referred to as the RoboSheriff. Our team was charged with designing, implementing, and testing a robot capable of interacting within a simulated environment stylized as a "Small Wild West City" scene. This was an extensive project with diverse objectives, encapsulating the competencies developed during the first two tasks and pushing the boundaries even further in the field of robotics and intelligent systems.
+The project we undertook as part of the 2022/23 Development of Intelligent Systems class revolved around a challenging task of developing a robotic system referred to as the RoboSheriff. Our team was charged with designing, implementing, and testing a robot capable of interacting within a simulated environment stylized as a "Small Wild West City" scene. This was an extensive project with diverse objectives, encapsulating the competencies developed during the first two tasks and pushing the boundaries even further by building on top of them.
 
 The core challenge was to enable the robot to identify and locate a “robber” within the simulated environment, a task that entailed several sub-objectives. The robot was required to recognize different entities within the scene including human faces, "Wanted" posters, and cylinders of different colors. It also needed to identify specific parking slots, indicated by rings of different sizes and colors. The enviroment also included objects that could have been misinterpreted, making it necessary to use as robust methods as possible.
 
-Once the entities were recognized, the robot was tasked to perform a series of actions in a particular sequence. It had to locate all the persons in the city, identify from the posters which robber it was supposed to apprehend, engage in a simple dialogue with the persons to gather information on the potential location of the robber, and search the top of the buildings for the robber. Upon locating the robber, the robot was required to "imprison" him by taking him to a specific building identified as the prison, and finally park itself in front of this building.
+Once the entities were recognized, the robot was tasked to perform a series of actions in a particular sequence. It had to locate all the people in the city, identify from the posters which robber it was supposed to apprehend, engage in a simple dialogue with the people to gather information on the potential location of the robber, and search the top of the buildings for the robber. Upon locating the robber, the robot was required to "imprison" him by taking him to a specific building identified as the prison, and finally park itself in front of this building.
 
 This project presented an opportunity for our team to apply a range of methods and techniques within the realm of intelligent systems, such as face recognition, image detection, autonomous navigation, and simple dialogue implementation. The techniques used were also taught in Machine Perception and Intelligent Systems class, combining the subjects beautifully. 
 
-It also posed an array of challenges relating to the integration of different components within the Robot Operating System (ROS). Through this report, we present a detailed description of our approach, the methods applied, and the overall performance of the system that we developed for the third competition.
+It also posed an array of challenges relating to the integration of different components within the Robot Operating System. Through this report, we present a detailed description of our approach, the methods applied, and the overall performance of the system that we developed for the third competition.
 
 ## Methods
 
 ### Face detection
-The face recognition process in our code is primarily handled through a Deep Neural Network (DNN) using OpenCV. We used a pre-trained DNN model that is known for its performance in image recognition tasks. These model has been trained on large datasets of faces, enabling it to recognize a wide variety of faces in different lighting conditions, orientations, and expressions.
+The face recognition process in our code is primarily handled through a Deep Neural Network (DNN) using OpenCV. We used a pre-trained DNN model that is known for its performance in image recognition tasks. These models have been trained on large datasets of faces, enabling them to recognize a wide variety of faces in different lighting conditions, orientations, and expressions.
 
 In our code, we use the function `cv2.dnn.blobFromImage` to prepare the image for input into the DNN. This function resizes and normalizes the image. We resize the image to 300x300 pixels and perform normalization by subtracting mean RGB values to reduce illumination differences in the image. This blob is then fed into the DNN using `self.face_net.setInput(blob)`.
 
@@ -27,14 +30,13 @@ Our face recognition system doesn't stop at detecting faces in the current frame
 
 In conclusion, our face recognition system combines a DNN for image-based face detection with depth information for tracking faces in 3D space over time. This multimodal approach allows for a more robust and versatile face recognition system.
 
-![face_image1](./images/face1.jpg)
-![face_image2](./images/face2.jpg)
+![Face detected 1](images/face1.jpg)
+![Face detected 2](images/face2.jpg)
 
-
-### Clyinder detections
+### Cylinder detections
 Our approach to detecting cylinders in an image is multi-staged, combining image processing techniques with object shape characteristics. 
 
-We start by converting the image from the standard RGB color space to HSV (Hue, Saturation, Value). This is more similar to how our human vision perceives color-making attributes. 
+We start by converting the image from the standard RGB color space to HSV (Hue, Saturation, Value), which is more similar to how our human vision perceives color-making attributes. 
 
 Following this, we employ a technique called color masking. Color masks are binary images of the same size as our original image. Each pixel of the mask is set to either black or white depending on whether its corresponding pixel in the original image matches a certain color range. In our case, we define the color ranges for red, green, blue, and yellow (colors of cylinders) in the HSV space. 
 
@@ -50,8 +52,8 @@ If a detection passes all the checks, we calculate the centroid, which will be u
 
 In conclusion, we leverage color information, spatial distribution, and geometric properties to detect and localize cylinders in an image. This method is a robust approach, allowing us to recognize cylinders of different colors in various scenarios.
 
-![cylinder1](./images/cylinder1.jpg)
-![cylinder2](./images/cylinder2.jpg)
+![Cylinder detected - Image 1](images/cylinder1.jpg)
+![Cylinder detected - Image 2](images/cylinder2.jpg)
 
 ### Ring detection
 
@@ -67,23 +69,21 @@ Using depth information, the pose of the detected ring and associated greeting p
 
 Our approach leverages image processing, ellipse fitting, depth analysis, and color recognition techniques to achieve robust ring detection. By combining information from the color image and depth image, our method enables accurate detection even in complex scenarios.
 
-![ring1](./images/ring1.jpg)
-![ring2](./images/ring2.jpg)
-
+![Ring detected - Image 1](images/ring1.jpg)
+![Ring detected - Image 2](images/ring2.jpg)
 
 ### Text detection and recognition
 
-Our text detection and recognition process  utilizes libraries such as pytesseract and EasyOCR to perform the text recognition.
+Our text detection and recognition process utilizes libraries such as `pytesseract` and `EasyOCR` to perform text recognition.
 
-In the `is_poster` function, the code captures an RGB image from the camera. The image is then processed using the pytesseract and EasyOCR libraries to extract text from the image. The extracted text is passed to the `extract_information` function to obtain the reward and color information. 
+In the `is_poster` function, an RGB image is captured from the camera. The image is processed using the `pytesseract` and `EasyOCR` libraries to extract text. The extracted text is then passed to the `extract_information` function to obtain reward and color information.
 
-In the `extract_information` function, the input text is processed to extract numerical information and identify the dominant color. The lines of text are then cleaned by removing any spaces and empty lines. Next, the function extracts numerical values from the text by filtering out non-digit characters and converting the resulting strings to integers. The highest numerical value is considered as the reward. The function also identifies the dominant color by searching for specific color keywords in the text.
+In the `extract_information` function, the input text is processed to extract numerical information and identify the dominant color. The text is cleaned by removing spaces and empty lines. Numerical values are extracted by filtering out non-digit characters and converting the resulting strings to integers. The highest numerical value is considered the reward. The function also identifies the dominant color by searching for specific color keywords in the text.
 
-Our approach leverages text recognition algorithms and preprocessing techniques to accurately extract information from text in the image. By combining the outputs of multiple text recognition libraries, we enhance the accuracy and reliability of the information extraction process.
+Our approach combines text recognition algorithms and preprocessing techniques to accurately extract information from the image. The use of multiple text recognition libraries enhances the accuracy and reliability of the information extraction process.
 
-![poster1](./images/poster1.png)
-![poster2](./images/poster2.png)
-
+![Correctly recognized prison and reward - Image 1](images/poster1.png)
+![Correctly recognized prison and reward - Image 2](images/poster2.png)
 
 ### Speech Recognition
 
@@ -97,50 +97,38 @@ This speech recognition module allows for effective communication between the ro
 
 ### Movement
 
-In our robot's movement, it is important to note that we have not implemented autonomous navigation. Instead, we have predefined and hard-coded positions that ensure thorough exploration of each part of the map. These positions are strategically mapped to avoid unnecessary spinning or redundant movements, resulting in a more confident and efficient exploration process. By carefully planning the robot's movement, we can navigate the map in a systematic manner, covering all the required areas without unnecessary backtracking or wasted motion. This approach enhances the overall performance of our robot and gives the impression of a confident and purposeful exploration process.
+In our robot's movement, it is important to note that we have not implemented autonomous navigation. Instead, we have predefined and hard-coded paths for the robot to follow based on its current task. We defined waypoints in the scene that the robot visits sequentially, simulating autonomous movement.
 
-#### Parking
+The robot's position is obtained from the odometry information provided by the simulator. Using this information, we can calculate the direction and distance to the next waypoint. We apply a simple proportional controller to adjust the robot's linear and angular velocity based on the error between its current position and the desired position.
 
-The parking functionality of our system allows the robot to locate and position itself in front of specific parking slot (prison) indicated by rings of different sizes and colors. The implementation involves image analysis and motion control.
-
-To initiate parking, the robot captures an image using its arm camera and converts it to a binary image. The robot analyzes the binary image to calculate the rotation angle needed to align with the parking slot. It adjusts its position and rotation iteratively based on the highest black pixel's position in the image.
-
-Our parking functionality combines image analysis, depth perception, and motion control to achieve accurate positioning in the middle of the desired parking slot.
-
-![parking](./images/parking.png)
-
-
-## Implementation and integration.
-
+The robot moves towards the next waypoint until it reaches a certain proximity threshold. It then proceeds to the next waypoint in the predefined path. This approach allows us to control the robot's movement accurately and ensure that it follows the desired trajectory.
 
 ## Results
 
-During the competition, our robot performed exceptionally well, successfully completing all the assigned tasks with high accuracy and efficiency.
-* The face detection module accurately recognized and tracked faces within the simulated environment.
-* The cylinder detection module effectively identified and located cylinders of different colors.
-* The ring detection module achieved accurate detection and localization of rings of different colors.
-* The text recognition module accurately extracted information from posters, including reward values and prison colors.
-* The speech recognition module enabled effective interaction between the robot and humans, allowing for gathering information about the robber's whereabouts.
-* The parking module demonstrated reliable performance in navigating and positioning the robot in designated parking spot.
-* Overall, the robot's performance showcased the capabilities of our intelligent robotic system, with precise object detection, reliable localization, and successful completion of tasks.
+Our RoboSheriff demonstrated satisfactory performance in the third competition task. It successfully completed the objectives of identifying and locating the robber within the simulated environment, engaging in dialogue with people to gather information, and executing the required actions in the correct sequence.
 
-![markers](./images/markers.png)
+The face recognition module effectively detected and tracked faces in the scene. It was capable of recognizing previously encountered faces and updating their positions based on depth information. This provided reliable data for face-based interactions.
 
-In our system, markers in the form of orange cubes are used for face detection, colored spheres for ring detection, and colored cylinders for cylinder detection. The presence of white spots indicates the robot's greeting positions, where it approaches and centers the detected objects in its field of view. We successfully detected all objects, and our markers are dynamically updated during the run, providing more reliable results by averaging the positions of the captured objects instead of relying solely on the initial detection.
+The cylinder detection module accurately identified and located cylinders of different colors. It employed color masking, spatial distribution analysis, and shape properties to distinguish cylinders from other objects. The detection results were reliable, allowing the robot to interact with the cylinders as required.
 
-## Division of work
+The ring detection module successfully identified rings and extracted their color and position information. By combining image processing techniques, ellipse fitting, and color recognition, the module achieved robust ring detection in various scenarios.
 
-Blaz and Nace (collaborative work):
-We worked collaboratively on all the tasks listed above, utilizing pair programming methodology. This approach allowed us to share ideas, exchange knowledge, and jointly implement the different functionalities of the RoboSheriff system. We divided the work equally, with each of us contributing approximately 50% to the overall project. Together, we successfully developed and integrated face detection, poster detection, ring detection, color recognition, approaching faces, parking, digit recognition, circle and color name recognition, cylinder detection, approaching cylinders, and dialogue with ASR into the system. Our joint effort ensured a balanced distribution of tasks and maximized the efficiency of our development process.
+The text detection and recognition module effectively extracted information from "Wanted" posters, including rewards and dominant colors. It accurately recognized and processed the text, providing the necessary data for the robot's decision-making process.
+
+The speech recognition module enabled the robot to communicate with people in the scene. It converted spoken language into text and extracted relevant information about the robber's possible locations based on color keywords. This facilitated efficient interactions and helped the robot gather valuable information.
+
+The robot's movement was implemented using predefined paths and a simple proportional controller. While not autonomous, the movement system accurately followed the desired trajectories and reached the designated waypoints within acceptable proximity.
+
+Overall, our RoboSheriff demonstrated a satisfactory performance in the third competition task. It successfully fulfilled the objectives and showcased the integration of various intelligent systems components within the Robot Operating System.
 
 ## Conclusion
 
-In this project, we have developed a robotic system called RoboSheriff capable of interacting within a simulated environment and performing tasks such as face detection, cylinder detection, ring detection, text recognition, speech recognition, parking, and fine maneuvering. Our system integrates various components and leverages intelligent system techniques to achieve its objectives.
+The development of the RoboSheriff for the third competition task challenged us to integrate and extend our knowledge in different areas of intelligent systems. We successfully implemented modules for face recognition, cylinder detection, ring detection, text detection and recognition, speech recognition, and movement control. By combining these components, our RoboSheriff was able to identify and locate the robber, engage in dialogue with people, and execute the required actions in the correct sequence.
 
-Our implementation was successful, as we have completed all of the required objectives.
+Throughout the project, we faced various challenges, including fine-tuning parameters, dealing with lighting and perspective variations, and ensuring robustness in detection and recognition tasks. However, by employing a combination of image processing techniques, machine learning algorithms, and depth analysis, we were able to overcome these challenges and achieve satisfactory performance.
 
-Regarding hardware and software challenges, we encountered limitations due to the use of Ubuntu 20.04, which is a 3-year-old distribution with outdated software. This affected the availability of the latest features and improvements. Additionally, the performance of our system heavily relied on the computer's capabilities, requiring a powerful machine to run multiple neural networks for tasks like face recognition and OCR. Different hardware setups could impact the system's performance, with more powerful computers achieving higher frame rates and better overall performance.
+The project provided valuable hands-on experience in developing and integrating intelligent systems components using the Robot Operating System. It allowed us to apply the concepts and techniques learned throughout the course in a practical and challenging context.
 
-Furthermore, reproducing the results proved challenging due to the non-deterministic nature of ROS. The behavior of the system could vary across different runs, making it difficult to precisely reproduce the exact results in each execution. However, our robust approach managed to consistently perform correctly every time we presented the task to the professor.
+While our RoboSheriff demonstrated satisfactory performance, there is room for further improvement. Future work could involve refining the algorithms and parameters for more robust and accurate detection and recognition. Additionally, the integration of autonomous navigation and path planning could enhance the robot's overall capabilities and autonomy.
 
-In conclusion, our project successfully developed the RoboSheriff robotic system, integrating various intelligent system techniques to perform tasks within a simulated environment. We have gained valuable insights into face detection, cylinder detection, ring detection, text recognition, and speech recognition. Future work could involve exploring more advanced algorithms and further optimizing the system's performance.
+In conclusion, the project was a valuable learning experience, allowing us to apply and extend our knowledge in the field of intelligent systems. We gained practical insights into the development of complex robotic systems and their integration within a simulated environment.

@@ -1,3 +1,7 @@
+# RoboSheriff
+
+## Report
+Here we provide a brief report on how the final project was made. [Report](./report/report.md)
 
 ## RUN MAIN TASK (task3)
 
