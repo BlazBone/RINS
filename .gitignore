@@ -7,6 +7,8 @@ images/*
 !report/images/*.jpg
 face_coordinates.txt
 */.vscode/*
+report/report.aux
+report/report.log
 
 
 !report/images/*.jpg
