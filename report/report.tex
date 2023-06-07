@@ -4,6 +4,9 @@
 \usepackage{tikz}
 \usepackage{geometry}
 \usepackage{url}
+\usepackage{parskip}
+
+\setlength{\parskip}{\bigskipamount}
 
 \begin{document}
 
@@ -20,15 +23,15 @@
 
 \section{Introduction}
 
-The project we undertook as part of the 2022/23 Development of Intelligent Systems competition revolved around a challenging task of developing a robotic system referred to as the RoboSheriff. Our team was charged with designing, implementing, and testing a robot capable of interacting within a simulated environment stylized as a "Small Wild West City" scene. This was an extensive project with diverse objectives, encapsulating the competencies developed during the first two tasks and pushing the boundaries even further in the field of robotics and intelligent systems.
+The project we undertook as part of the 2022/23 Development of Intelligent Systems class revolved around a challenging task of developing a robotic system referred to as the RoboSheriff. Our team was charged with designing, implementing, and testing a robot capable of interacting within a simulated environment stylized as a "Small Wild West City" scene. This was an extensive project with diverse objectives, encapsulating the competencies developed during the first two tasks and pushing the boundaries even further by building on top of them.
 
 The core challenge was to enable the robot to identify and locate a “robber” within the simulated environment, a task that entailed several sub-objectives. The robot was required to recognize different entities within the scene including human faces, "Wanted" posters, and cylinders of different colors. It also needed to identify specific parking slots, indicated by rings of different sizes and colors. The enviroment also included objects that could have been misinterpreted, making it necessary to use as robust methods as possible.
 
-Once the entities were recognized, the robot was tasked to perform a series of actions in a particular sequence. It had to locate all the persons in the city, identify from the posters which robber it was supposed to apprehend, engage in a simple dialogue with the persons to gather information on the potential location of the robber, and search the top of the buildings for the robber. Upon locating the robber, the robot was required to "imprison" him by taking him to a specific building identified as the prison, and finally park itself in front of this building.
+Once the entities were recognized, the robot was tasked to perform a series of actions in a particular sequence. It had to locate all the people in the city, identify from the posters which robber it was supposed to apprehend, engage in a simple dialogue with the people to gather information on the potential location of the robber, and search the top of the buildings for the robber. Upon locating the robber, the robot was required to "imprison" him by taking him to a specific building identified as the prison, and finally park itself in front of this building.
 
 This project presented an opportunity for our team to apply a range of methods and techniques within the realm of intelligent systems, such as face recognition, image detection, autonomous navigation, and simple dialogue implementation. The techniques used were also taught in Machine Perception and Intelligent Systems class, combining the subjects beautifully. 
 
-It also posed an array of challenges relating to the integration of different components within the Robot Operating System (ROS). Through this report, we present a detailed description of our approach, the methods applied, and the overall performance of the system that we developed for the third competition.
+It also posed an array of challenges relating to the integration of different components within the Robot Operating System. Through this report, we present a detailed description of our approach, the methods applied, and the overall performance of the system that we developed for the third competition.
 
 \section{Methods}
 
@@ -66,7 +69,7 @@ In conclusion, our face recognition system combines a DNN for image-based face d
 \subsection{Clyinder detections}
 Our approach to detecting cylinders in an image is multi-staged, combining image processing techniques with object shape characteristics. 
 
-We start by converting the image from the standard RGB color space to HSV (Hue, Saturation, Value). This is more similar to how our human vision perceives color-making attributes. 
+We start by converting the image from the standard RGB color space to HSV (Hue, Saturation, Value), which is more similar to how our human vision perceives color-making attributes. 
 
 Following this, we employ a technique called color masking. Color masks are binary images of the same size as our original image. Each pixel of the mask is set to either black or white depending on whether its corresponding pixel in the original image matches a certain color range. In our case, we define the color ranges for red, green, blue, and yellow (colors of cylinders) in the HSV space. 
 
@@ -219,18 +222,17 @@ Our parking functionality combines image analysis, depth perception, and motion 
     \draw (only_rings) -- node[align=center] {\texttt{/only\_movement/parking\_search}} (only_parking);
 \end{tikzpicture}
 
-\subsection{Communication when face is detected}
+\subsection{Communication upon Face Detection}
 
-While traversing the path, the robot should visit all of the people on the map and ask around for the robber's location. The \texttt{only\_faces} node is responsible for this task. Once the face has been detected, it publishes to the \texttt{only\_movement} node that the \texttt{only\_faces} node will take over navigation of the robot by setting the greeting position of the face as the new move goal. Meanwhile, the \texttt{only\_movement} node receives a signal that the greeting is taking over via the aforementioned \texttt{/only\_movement/greeting\_is\_taking\_over} topic. While waiting for the confirmation that the greeting is no longer taking over (sent by the same node, with the message as \texttt{False}), the \texttt{only\_movement} node decrements its path index, ensuring that the robot visits the previous point in the path to ensure proper exploration of the entire map.
+As the robot traverses its path, it should visit every person on the map to inquire about the robber's location. This task is managed by the \texttt{only\_faces} node. Upon detecting a face, this node communicates with the \texttt{only\_movement} node to take over the robot's navigation. This takeover is realized by setting the greeting position of the detected face as the new move goal. This signal is relayed to the \texttt{only\_movement} node via the \texttt{/only\_movement/greeting\_is\_taking\_over} topic. While waiting for a confirmation signal indicating that the greeting is no longer taking control (sent from the same node with the message set as \texttt{False}), the \texttt{only\_movement} node reduces its path index. This ensures that the robot revisits the previous point on the path, facilitating thorough exploration of the entire map.
 
+\subsection{Communication upon Path Traversal Completion}
 
-\subsection{Communication once the path is traversed}
+Once the robot finishes traversing the pre-determined path, the \texttt{only\_movement} node signals the \texttt{only\_faces} and \texttt{only\_cylinders} nodes. At this juncture, the robot is expected to have detected possible hideouts (two colored cylinders) for the robber, and the color of the ring, referred to as the "prison" color. This communication occurs through the \texttt{/only\_movement/traversed\_path} topic, utilizing a \texttt{Bool} message. This topic acts as a flag, indicating the completion of map exploration to the other nodes.
 
-The \texttt{only\_movement} node signals the \texttt{only\_faces} and \texttt{only\_cylinders} nodes when the robot has finished traversing its predefined path. At this stage, the robot should have detected potential hiding places for the robber (cylinders of two different colors) as well as the color of the ring (referred to as the "prison" color). The communication occurs via the \texttt{only\_movement/traversed\_path} topic, using a \texttt{Bool} message. This topic serves as a flag to indicate the completion of map exploration to other nodes.
+Upon receiving the completion signal, the \texttt{only\_faces} node communicates the potential hideout colors (e.g., 'green red') for the robber to the \texttt{only\_cylinders} node via the \texttt{/only\_faces/robber\_locations} topic. Subsequently, the \texttt{only\_cylinders} node gains control of navigation and guides the robot to each potential hideout to ascertain the robber's actual location. After visiting the final cylinder, the \texttt{only\_cylinders} node signals the \texttt{only\_rings} node, conveying the color of the ring under which the robot should park.
 
-Upon receiving the completion signal, the \texttt{only\_faces} node sends a message to the \texttt{only\_cylinders} node through the \texttt{/only\_faces/robber\_locations} topic. The message contains the color names of the potential hideouts for the robber (e.g., 'green red'). Subsequently, the \texttt{only\_cylinders} node takes control of the navigation, directing the robot to visit each potential hideout and determine the robber's actual hiding place. Once the last cylinder is visited, the \texttt{only\_cylinders} node sends a signal to the \texttt{only\_rings} node, publishing the color of the ring under which the robot should park.
-
-The \texttt{only\_rings} node acts as an intermediary communication layer between the \texttt{only\_cylinders} and \texttt{only\_parking} nodes. It waits to receive confirmation that the robber has been caught by listening to the \texttt{/only\_movement/prison\_color} topic and then sends the appropriate pose to the \texttt{only\_parking} node, guiding the robot towards the final parking space (referred to as the prison).
+The \texttt{only\_rings} node serves as a communication bridge between the \texttt{only\_cylinders} and \texttt{only\_parking} nodes. It awaits confirmation that the robber has been found by monitoring the \texttt{/only\_movement/prison\_color} topic. Subsequently, it communicates the appropriate pose to the \texttt{only\_parking} node, directing the robot towards its final parking location, referred to as the prison.
 
 \section{Results}
 
@@ -238,7 +240,7 @@ During the competition, our robot exhibited exceptional performance, successfull
 \begin{itemize}
   \item The face detection module accurately recognized and tracked faces within the simulated environment.
   \item The cylinder detection module effectively identified and located cylinders of different colors.
-  \item The ring detection module achieved accurate detection and localization of rings of different colors.
+  \item The ring detection module achieved accurate detection and localization of rings of different colors. It also succeeded in distinguishing between 3D ring objects and 2D circles, floating above the map.
   \item The text recognition module accurately extracted information from posters, including reward values and prison colors.
   \item The speech recognition module enabled effective interaction between the robot and humans, facilitating the gathering of information about the robber's whereabouts.
   \item The parking module demonstrated reliable performance in navigating and positioning the robot in designated parking spots.
@@ -248,7 +250,7 @@ Overall, our robot's exceptional performance showcased the capabilities of our i
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{images/markers.png}
-  \caption{Robot parked in the middle of parking space}
+  \caption{Markers used for object detection after the robot has completed its path traversal. All objects are accurately detected, with white markers before them signaling the objects greeting position.}
   \label{fig:markers}
 \end{figure}
 
@@ -267,8 +269,8 @@ Our implementation was successful, as we have completed all of the required obje
 
 Regarding hardware and software challenges, we encountered limitations due to the use of Ubuntu 20.04, which is a 3-year-old distribution with outdated software. This affected the availability of the latest features and improvements. Additionally, the performance of our system heavily relied on the computer's capabilities, requiring a powerful machine to run multiple neural networks for tasks like face recognition and OCR. Different hardware setups could impact the system's performance, with more powerful computers achieving higher frame rates and better overall performance.
 
-Furthermore, reproducing the results proved challenging due to the non-deterministic nature of ROS. The behavior of the system could vary across different runs, making it difficult to precisely reproduce the exact results in each execution. However, our robust approach managed to consistently perform correctly every time we presented the task to the professor.
+Furthermore, reproducing the results proved challenging due to the non-deterministic nature of ROS. The behavior of the system could vary across different runs, making it difficult to precisely reproduce the exact results in each execution. That being said, our robust approach still managed to consistently perform correctly every time we presented the task to the professor.
 
-In conclusion, our project successfully developed the RoboSheriff robotic system, integrating various intelligent system techniques to perform tasks within a simulated environment. We have gained valuable insights into face detection, cylinder detection, ring detection, text recognition, and speech recognition. Future work could involve exploring more advanced algorithms and further optimizing the system's performance.
+In conclusion, our project successfully developed the RoboSheriff robotic system, integrating various intelligent system techniques to perform tasks within a simulated environment. We have gained valuable insights into face detection, cylinder detection, ring detection, text recognition, and speech recognition. The practical nature of this class was also a pleasant change, allowing us to get a more hands-on experience with the topics covered in class than in most of our other classes. Future work could involve exploring more advanced algorithms and further optimizing the system's performance.
 
 \end{document}
