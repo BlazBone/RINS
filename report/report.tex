@@ -1,6 +1,9 @@
 \documentclass{article}
 \usepackage{graphicx}
 \usepackage{subfigure}
+\usepackage{tikz}
+\usepackage{geometry}
+\usepackage{url}
 
 \begin{document}
 
@@ -198,6 +201,36 @@ Our parking functionality combines image analysis, depth perception, and motion 
 \end{figure}
 
 \section{Implementation and integration}
+
+\begin{tikzpicture}[->,>=stealth,auto,node distance=6cm]
+    % Nodes
+    \node[draw,circle,minimum size=1.5cm] (only_faces) {only\_faces};
+    \node[draw,circle,minimum size=1.5cm] (only_movement) at (0,-4) {only\_movement};
+    \node[draw,circle,minimum size=1.5cm] (only_cylinders) at (-6,-8) {only\_cylinders};
+    \node[draw,circle,minimum size=1.5cm] (only_rings) at (6,-8) {only\_rings};
+    \node[draw,circle,minimum size=1.5cm] (only_parking) at (0,-12) {only\_parking};
+
+    % Connections
+    \draw (only_faces) -- node[align=center, swap] {\texttt{/only\_faces/robber\_locations}} (only_cylinders);
+    \draw (only_faces) -- node[align=center, pos=0.8] {\texttt{/only\_movement/greeting\_is\_taking\_over}} (only_movement);
+    \draw (only_movement) -- node[align=center, swap, pos=0.8] {\texttt{/only\_movement/traversed\_path}} (only_faces);
+    \draw (only_movement) -- node[align=center] {\texttt{/only\_movement/traversed\_path}} (only_cylinders);
+    \draw (only_cylinders) -- node[align=center] {\texttt{/only\_movement/prison\_color}} (only_rings);
+    \draw (only_rings) -- node[align=center] {\texttt{/only\_movement/parking\_search}} (only_parking);
+\end{tikzpicture}
+
+\subsection{Communication when face is detected}
+
+While traversing the path, the robot should visit all of the people on the map and ask around for the robber's location. The \texttt{only\_faces} node is responsible for this task. Once the face has been detected, it publishes to the \texttt{only\_movement} node that the \texttt{only\_faces} node will take over navigation of the robot by setting the greeting position of the face as the new move goal. Meanwhile, the \texttt{only\_movement} node receives a signal that the greeting is taking over via the aforementioned \texttt{/only\_movement/greeting\_is\_taking\_over} topic. While waiting for the confirmation that the greeting is no longer taking over (sent by the same node, with the message as \texttt{False}), the \texttt{only\_movement} node decrements its path index, ensuring that the robot visits the previous point in the path to ensure proper exploration of the entire map.
+
+
+\subsection{Communication once the path is traversed}
+
+The \texttt{only\_movement} node signals the \texttt{only\_faces} and \texttt{only\_cylinders} nodes when the robot has finished traversing its predefined path. At this stage, the robot should have detected potential hiding places for the robber (cylinders of two different colors) as well as the color of the ring (referred to as the "prison" color). The communication occurs via the \texttt{only\_movement/traversed\_path} topic, using a \texttt{Bool} message. This topic serves as a flag to indicate the completion of map exploration to other nodes.
+
+Upon receiving the completion signal, the \texttt{only\_faces} node sends a message to the \texttt{only\_cylinders} node through the \texttt{/only\_faces/robber\_locations} topic. The message contains the color names of the potential hideouts for the robber (e.g., 'green red'). Subsequently, the \texttt{only\_cylinders} node takes control of the navigation, directing the robot to visit each potential hideout and determine the robber's actual hiding place. Once the last cylinder is visited, the \texttt{only\_cylinders} node sends a signal to the \texttt{only\_rings} node, publishing the color of the ring under which the robot should park.
+
+The \texttt{only\_rings} node acts as an intermediary communication layer between the \texttt{only\_cylinders} and \texttt{only\_parking} nodes. It waits to receive confirmation that the robber has been caught by listening to the \texttt{/only\_movement/prison\_color} topic and then sends the appropriate pose to the \texttt{only\_parking} node, guiding the robot towards the final parking space (referred to as the prison).
 
 \section{Results}
 
